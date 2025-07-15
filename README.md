@@ -1,5 +1,9 @@
 # IRC Server
 
+<p align="center">
+    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/ft_irc_badge.png" alt="ft_irc_badge.png" />
+</p>
+
 
 This project is a collaboration between:
 
