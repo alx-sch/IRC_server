@@ -14,8 +14,6 @@
 */
 void	do_select(t_env *e)
 {
-	e->fd_read = e->fd_write = (fd_set){0}; // Initialize fd sets to empty
-
 	// select()
 	// 1. range of fds to check, excluding e->max + 1
 	// 2. set of fds to check for reading
