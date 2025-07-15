@@ -21,7 +21,9 @@ void	init_env(t_env *e)
 	X(-1, getrlimit(RLIMIT_NOFILE, &rlp), "getrlimit"); // Error handling for getrlimit failure
 
 	// Store current (soft)
-	e->maxfd = rlp.rlim_cur; // Typically 1024 or higher
+	e->maxfd = rlp.rlim_cur; // Typically 1024 or higher; it's higher in Codespace and would result in malloc failure --> capped to MAX_FD
+	if (e->maxfd > MAX_FD)
+		e->maxfd = MAX_FD; // Cap to defined maximum for our server
 
 	// Allocate memory for file descriptor array (one t_fd per possible fd)
 	e->fds = (t_fd*)Xv(NULL, malloc(sizeof(*e->fds) * e->maxfd), "malloc");
