@@ -177,6 +177,34 @@ When a client sends a message:
  Parameters: <username> <hostname> <servername> <realname>
  https://www.rfc-editor.org/rfc/rfc1459#section-4.1.3
 
+ 
+ Command: JOIN
+ Parameters: <channel>{,<channel>} [<key>{,<key>}]
+ https://www.rfc-editor.org/rfc/rfc1459#section-4.2.1
+ 
+ Command: KICK
+ Parameters: <channel> <user> [<comment>]
+ https://www.rfc-editor.org/rfc/rfc1459#section-4.2.8
+ 
+ Command: INVITE
+ Parameters: <nickname> <channel>
+ https://www.rfc-editor.org/rfc/rfc1459#section-4.2.7
+
+ Command: TOPIC
+ Parameters: <channel> [<topic>]
+ https://www.rfc-editor.org/rfc/rfc1459#section-4.2.4
+ 
+ Command: MODE
+  Parameters: <channel> {[+|-]|o|p|s|i|t|n|b|v} [<limit>] [<user>]
+               [<ban mask>]
+OR
+ Parameters: <nickname> {[+|-]|i|w|s|o}
+https://www.rfc-editor.org/rfc/rfc1459#section-4.2.3
+ 
+ Command: LIST
+ Parameters: [<channel>{,<channel>} [<server>]]
+ https://www.rfc-editor.org/rfc/rfc1459#section-4.2.6
+
 ---
 
 ### Usage
