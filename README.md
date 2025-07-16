@@ -33,7 +33,7 @@ This project is a collaboration between:
 
 - **Port**
     - Identifies a specific **service or application** on a host.
-    - Range: `0`–`65535`
+    - Range: `1`–`65535` (unsigned 16-bit integer); port 0 is reserved as a wildcard, allowing the OS to assign an ephemeral (random) port automatically.
     - Common ports: `22` (SSH), `80` (HTTP), `6667` (IRC)
 
 - **Socket**
