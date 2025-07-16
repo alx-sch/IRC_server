@@ -6,17 +6,17 @@
 class	User
 {
 	private:
-		int				_fd;
+		// Disable default constructor and copying (makes no sense for a user)
+		User();
+		User(const User& other);
+		User&	operator=(const User& other);
+
+		int				_fd;		// fd for user's socket
 		std::string		_nickname;
 		std::string		_username;
 
-		// Disable default constructor / assignment operator
-		User();
-		User&	operator=(const User& other);
-
 	public:
 		User(int fd);
-		User(const User& other);
 		~User();
 
 		void				setNickname(const std::string& nickname);

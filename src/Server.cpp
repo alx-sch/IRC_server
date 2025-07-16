@@ -1,9 +1,8 @@
 
 // C++ standard headers
-#include <iostream>		// std::cout, std::endl
-#include <stdexcept>	// std::runtime_error
-#include <cstring>		// memset, strerror
-#include <cstdlib>		// for exit()
+#include <iostream>	
+#include <stdexcept>	// std::runtime_error()
+#include <cstring>		// memset(), strerror()
 #include <cerrno>		// errno
 #include <unistd.h>		// close()
 
@@ -14,9 +13,9 @@
 
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
-#include "../include/defines.hpp"	// For YELLOW, RESET
-#include "../include/signal.hpp"	// For g_running
-#include "../include/utils.hpp"		// For toString()
+#include "../include/defines.hpp"	// color formatting
+#include "../include/signal.hpp"	// g_running variable
+#include "../include/utils.hpp"		// toString()
 
 // just testing
 #include <unistd.h> // for usleep()
@@ -33,7 +32,7 @@ Server::Server(int port, const std::string& password)
 
 Server::~Server()
 {
-	// Close the listening socket if still open
+	// Close the listening socket if open
 	if (_fd != -1)
 		close(_fd);
 
@@ -67,39 +66,33 @@ Server::~Server()
 void	Server::initSocket()
 {
 	// Create socket (IPv4, TCP, non-blocking)
-	// Note: SOCK_NONBLOCK is not available on macOS — use fcntl() there instead.
+	// Note: SOCK_NONBLOCK is not available on macOS — use fcntl() instead.
 	_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);
 	if (_fd == -1)
-		throw std::runtime_error("Failed to create socket");
+		throw std::runtime_error("Failed to create server socket: " + std::string(strerror(errno)));
 
 	// Avoid "Address already in use" error when restarting server quickly
 	int	yes = 1;
 	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1)
 	{
 		close(_fd);
-		throw std::runtime_error("Failed to set SO_REUSEADDR");
+		throw std::runtime_error("Failed to set SO_REUSEADDR in server socket: " + std::string(strerror(errno)));
 	}
 
 	// Set up address struct for binding
 	sockaddr_in	addr;
-	memset(&addr, 0, sizeof(addr)); // Set all fields to zero
+	memset(&addr, 0, sizeof(addr));		// Set all fields to zero
 	addr.sin_family = AF_INET;
-	addr.sin_port = htons(_port); // Makes sure that port is in network byte order (big-endian; htons: Host To Network Short)
-	addr.sin_addr.s_addr = INADDR_ANY; // Any address for socket binding (0.0.0.0)
+	addr.sin_port = htons(_port);		// Makes sure port is in network byte order (big-endian)
+	addr.sin_addr.s_addr = INADDR_ANY;	// Any address for socket binding (0.0.0.0)
 
 	// Bind the socket to the address and port
-	if (bind(_fd, (sockaddr*)&addr, sizeof(addr)) == -1)
-	{
-		close(_fd);
-		throw std::runtime_error("Failed to bind socket to port " + toString(_port) + ": " + strerror(errno));
-	}
+	if (bind(_fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == -1)
+		throw std::runtime_error("Failed to bind server socket to port " + toString(_port) + ": " + strerror(errno));
 
 	// Start listening for incoming connections (max connections as allowed by system)
 	if (listen(_fd, SOMAXCONN) == -1)
-	{
-		close(_fd);
-		throw std::runtime_error("Failed to listen on socket");
-	}
+		throw std::runtime_error("Failed to listen on server socket: " + std::string(strerror(errno)));
 }
 
 /**
@@ -113,16 +106,16 @@ void	Server::initSocket()
 */
 void	Server::start()
 {
-	int			userFd;
-	sockaddr_in	clientAddr;
-	socklen_t	clientLen = sizeof(clientAddr);
+	int			userFd;			// fd for the accepted user connection
+	sockaddr_in	userAddr;		// Init user address structure
+	socklen_t	userLen = sizeof(userAddr);
 
 	std::cout << "Server running on port " << YELLOW << _port << RESET << std::endl;
 
 	while (g_running)
 	{
 		// Accept incoming connections
-		userFd = accept(_fd, reinterpret_cast<sockaddr*>(&clientAddr), &clientLen);
+		userFd = accept(_fd, reinterpret_cast<sockaddr*>(&userAddr), &userLen);
 		if (userFd == -1) // Also returns -1 when no pending connections are queued
 		{
 			if (errno == EWOULDBLOCK || errno == EAGAIN)
@@ -134,8 +127,8 @@ void	Server::start()
 		}
 
 		std::cout	<< "User "<< YELLOW << "#" << userFd << RESET << " connected from "
-					<< YELLOW << inet_ntoa(clientAddr.sin_addr) // IP address as string
-					<< ":" << ntohs(clientAddr.sin_port) // Port (convert from network order)
+					<< YELLOW << inet_ntoa(userAddr.sin_addr)	// IP address as string
+					<< ":" << ntohs(userAddr.sin_port)			// Port (convert from network order)
 					<< RESET << std::endl;
 
 		// Store new user

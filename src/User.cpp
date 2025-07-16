@@ -1,6 +1,5 @@
 
-#include <unistd.h>		// close()
-
+#include <unistd.h>	// close()
 #include "../include/User.hpp"
 
 /////////////////////////////////
@@ -9,14 +8,10 @@
 
 User::User(int fd)  : _fd(fd), _nickname(""), _username("") {}
 
-User::User(const User& other) 
-	: _fd(other._fd), _nickname(other._nickname), _username(other._username) {}
-
 User::~User()
 {
-	if (_fd != -1) {
+	if (_fd != -1)
 		close(_fd);
-	}
 }
 
 /////////////////////////

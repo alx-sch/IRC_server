@@ -9,23 +9,23 @@
 class Server
 {
 	private:
-		int					_port;
-		int					_fd;
-		std::string			_password;
-		std::vector<User*>	_users; // Keep track of active clients
-
-		void				initSocket();
-
-		// Not a great idea to copy a user -> Disable copy/assignment
+		// Disable default constructor and copying (makes no sense for a server)
 		Server();
 		Server(const Server& other); 
 		Server&	operator=(const Server& other);
+
+		int					_port;		// Server port
+		int					_fd;		// Listening socket fd
+		std::string			_password;	// Server password
+		std::vector<User*>	_users;		// Keep track of active clients
+
+		void				initSocket();
 
 	public:
 		Server(int port, const std::string& password);
 		~Server();
 
-		void			start();
+		void				start();
 };
 
 # endif

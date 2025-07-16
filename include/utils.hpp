@@ -2,9 +2,9 @@
 # define UTILS_HPP
 
 # include <cstdlib>		// strtol
-# include <string>		// std::string
-# include <stdexcept>	// std::runtime_error
 # include <sstream>		// std::ostringstream
+# include <stdexcept>	// std::runtime_error
+# include <string>		// std::string
 
 int			parsePort(const char* arg);
 std::string	toString(int value);
