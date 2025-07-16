@@ -1,6 +1,8 @@
 #include <set>
 #include <string>
 
+#ifndef CHANNEL_HPP
+#define CHANNEL_HPP
 class Channel
 {
 private:
@@ -17,3 +19,4 @@ Channel::Channel(/* args */)
 Channel::~Channel()
 {
 }
+#endif

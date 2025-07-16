@@ -1,6 +1,8 @@
 #include <string>
 #include <vector>
 
+#ifndef CLIENT_HPP
+#define CLIENT_HPP
 class Client
 {
 private:
@@ -35,3 +37,4 @@ std::string Client::get_nickname()
 	return nickname;
 }
 
+#endif
