@@ -2,7 +2,11 @@ NAME :=			ircserv
 
 # SOURCE FILES
 SRCS_DIR :=		src
-SRCS_FILES :=	main.cpp
+SRCS_FILES :=	main.cpp \
+				Server.cpp \
+				User.cpp \
+				signal.cpp \
+				utils.cpp
 
 SRCS :=			$(addprefix $(SRCS_DIR)/, $(SRCS_FILES))
 				
