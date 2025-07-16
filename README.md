@@ -103,7 +103,8 @@ This project is a collaboration between:
 
 ## bircd - Basic IRC Daemon
 
-**`bircd`** is a lightweight IRC server implementation written in C. It serves as a learning tool for getting familiar with non-blocking I/O, TCP server setup, and basic message relaying. As such, `bircd` provides a solid starting point for implementing a fully functional IRC server.
+**`bircd`** is a lightweight IRC server implementation written in C. It serves as a learning tool for getting familiar with non-blocking I/O, TCP server setup, and basic message relaying. As such, `bircd` provides a solid starting point for implementing a fully functional IRC server.   
+As a network daemon, `bircd` runs continuously in the background, listening for client connections and facilitating communication between them.
 
 ---
 
