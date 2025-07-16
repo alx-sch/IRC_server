@@ -9,6 +9,7 @@ private:
 public:
 	Client(/* args */);
 	~Client();
+	int get_fd();
 };
 
 Client::Client(/* args */)
@@ -19,4 +20,8 @@ Client::~Client()
 {
 }
 
+int Client::get_fd()
+{
+	return fd;
+}
 

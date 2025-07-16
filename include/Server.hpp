@@ -12,6 +12,8 @@ private:
 public:
 	Server(/* args */);
 	~Server();
+	void delete_client(std::string nickname);
+	void delete_client(int fd);
 };
 
 Server::Server(/* args */)
@@ -22,5 +24,13 @@ Server::~Server()
 {
 }
 
+
+void Server::delete_client(std::string nickname)
+{
+	Client * client = nickname_client_map[nickname];
+	nickname_client_map.erase(nickname);
+	fd_client_map.erase(client->get_fd());
+	delete client;
+}
 
 # endif
