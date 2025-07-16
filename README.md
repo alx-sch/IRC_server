@@ -187,6 +187,8 @@ make
 ./bircd 6667    # Start server on IRC standard port
 ```
 
+**Note:** While you'll get an error like `bind error (srv_create.c, 36): Permission denied` if you try to use a port that's already in use or restricted, you can check in advance which ports are in use by running `netstat -tuln`.
+
 ---
 
 #### Testing the Chat Server
