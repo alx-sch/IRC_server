@@ -33,4 +33,12 @@ void Server::delete_client(std::string nickname)
 	delete client;
 }
 
+void Server::delete_client(int fd)
+{
+	Client * client = fd_client_map[fd];
+	nickname_client_map.erase(client->get_nickname());
+	fd_client_map.erase(fd);
+	delete client;
+}
+
 # endif
