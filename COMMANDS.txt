@@ -1,0 +1,13 @@
+Let me note the logic behind the execution of every command
+
+JOIN
+ server checks 
+ 	is there at least one parameter
+	does the parameter start with # 
+	does the parameter have any other alphanum?
+	does the alphanum match with an existing channel from the list?
+	if yes then join (do we need a password?)
+	 if client isn't already member of the channel 
+	   add the client nickname to the set of users in the channel 
+	if no then create channel 
+	add client to channel
