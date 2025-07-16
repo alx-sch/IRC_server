@@ -1,7 +1,7 @@
 {
 	"name": "42 IRC Dev",
 	"image": "mcr.microsoft.com/vscode/devcontainers/base:ubuntu-22.04",
-	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y valgrind telnet netcat bc", // telnet and netcat for bircd testing
+	"postCreateCommand": "sudo apt-get update && sudo apt-get install -y valgrind telnet netcat bc",
 	"customizations": {
 		"vscode": {
 			"extensions": []
