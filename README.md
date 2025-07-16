@@ -171,6 +171,14 @@ When a client sends a message:
 
 ---
 
+### Commands to Implement
+
+ Command: USER 
+ Parameters: <username> <hostname> <servername> <realname>
+ https://www.rfc-editor.org/rfc/rfc1459#section-4.1.3
+
+---
+
 ### Usage
 
 #### Building
