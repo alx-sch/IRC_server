@@ -1,5 +1,11 @@
 Let me note the logic behind the execution of every command
 
+MSG
+ server checks
+	are there at least two parameters?
+	does the first parameter correspond to the nickname of a user in the channel?
+	does the second parameter have at least one char?
+
 JOIN
  server checks 
  	is there at least one parameter
