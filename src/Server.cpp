@@ -46,6 +46,7 @@ Server::~Server()
 /////////////
 
 /**
+ Used in the constructor.
  Initializes the server socket, the server-side endpoint for communication.
 
  It creates the socket using:
@@ -53,12 +54,8 @@ Server::~Server()
  - type:		`SOCK_STREAM | SOCK_NONBLOCK` (TCP + non-blocking)
  - protocol:	`0` (default for `SOCK_STREAM` is TCP)
 
-  It sets socket options to allow address reuse (`SO_REUSEADDR`), binds the
-  socket to the specified port, and starts listening.
-
- Ressources:
- - socket: https://man7.org/linux/man-pages/man2/socket.2.html
- - https://beej.us/guide/bgnet/html/
+ It sets socket options to allow address reuse (`SO_REUSEADDR`), binds the
+ socket to the specified port, and starts listening.
 */
 void	Server::initSocket()
 {
@@ -72,7 +69,7 @@ void	Server::initSocket()
 	int	yes = 1;
 	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1)
 	{
-		close(_fd);
+		close(_fd); // closing necessary here, as desctructor would not be called (error happens within constructor)
 		throw std::runtime_error("Failed to set SO_REUSEADDR in server socket: " + std::string(strerror(errno)));
 	}
 
@@ -85,11 +82,17 @@ void	Server::initSocket()
 
 	// Bind the socket to the address and port
 	if (bind(_fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == -1)
+	{
+		close(_fd);
 		throw std::runtime_error("Failed to bind server socket to port " + toString(_port) + ": " + strerror(errno));
+	}
 
 	// Start listening for incoming connections (max connections as allowed by system)
 	if (listen(_fd, SOMAXCONN) == -1)
+	{
+		close(_fd);
 		throw std::runtime_error("Failed to listen on server socket: " + std::string(strerror(errno)));
+	}
 }
 
 /**
