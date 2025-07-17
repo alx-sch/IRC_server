@@ -24,6 +24,11 @@ void	User::setUsername(const std::string& username)
 	_username = username;
 }
 
+const int&	User::getFd() const
+{
+	return _fd;
+}
+
 const std::string&	User::getNickname() const
 {
 	return _nickname;

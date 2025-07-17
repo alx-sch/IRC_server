@@ -28,26 +28,11 @@ class Server
 
 		void		start();	// Starts the server loop, accepting incoming connections and managing users
 
-		void		delete_client(int fd);
-		void		delete_client(std::string nickname);
-	
+		void		deleteUser(int fd);
+		void		deleteUser(const std::string& nickname);
+
 		User*		getUser(int fd) const;
+		User*		getUser(const std::string& nickname) const;
 };
-
-void Server::delete_client(std::string nickname)
-{
-	User * user = _usersNick[nickname];
-	_usersNick.erase(nickname);
-	_usersFd.erase(user->getFd());
-	delete user;
-}
-
-void Server::delete_client(int fd)
-{
-	User * user = _usersFd[fd];
-	_usersNick.erase(user->getNickname());
-	_usersFd.erase(fd);
-	delete user;
-}
 
 # endif

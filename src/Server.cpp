@@ -37,11 +37,8 @@ Server::~Server()
 		close(_fd);
 
 	// Delete all dynamically allocated User objects
-	for (std::map<int, User*>::iterator it = _users.begin(); it != _users.end(); ++it)
-	{
-		delete it->second; // second is a pointer to User
-		it->second = NULL;
-	}
+	while (!_usersFd.empty())
+		deleteUser(_usersFd.begin()->first);
 }
 
 /////////////
@@ -133,7 +130,7 @@ void	Server::start()
 
 		// Store new user
 		User*	newUser = new User(); // maybe get info for username , nickname and have parametrized constructor
-		_users[userFd] = newUser;
+		_usersFd[userFd] = newUser;
 
 		////////////////////
 		// TESTING ONLY !!///
@@ -165,6 +162,34 @@ void	Server::start()
 	}
 }
 
+// Deletes a user from the server using their file descriptor.
+void	Server::deleteUser(int fd)
+{
+	User* user = getUser(fd);
+	if (!user)
+		return;
+
+	_usersFd.erase(fd);
+	_usersNick.erase(user->getNickname());
+	delete user;
+}
+
+// Deletes a user from the server using their nickname.
+void	Server::deleteUser(const std::string& nickname)
+{
+	User* user = getUser(nickname);
+	if (!user)
+		return;
+
+	_usersNick.erase(nickname);
+	_usersFd.erase(user->getFd());
+	delete user;
+}
+
+/////////////
+// Getters //
+/////////////
+
 /**
  Retrieves a User object by its file descriptor (fd) in a safe manner.
 
@@ -176,8 +201,25 @@ void	Server::start()
 */
 User*	Server::getUser(int fd) const
 {
-	std::map<int, User*>::const_iterator	it = _users.find(fd);
-	if (it != _users.end())
+	std::map<int, User*>::const_iterator	it = _usersFd.find(fd);
+	if (it != _usersFd.end())
+		return it->second;
+	return NULL;
+}
+
+/**
+ Retrieves a User object by its nickname in a safe manner.
+
+ This method safely searches the `_usersNick` map using `.find()` (instead of `[]`)
+ to avoid accidental insertion of invalid keys.
+
+ @param nickname 	The nickname of the user to retrieve.
+ @return 			Pointer to the `User` object if found, `NULL` otherwise.
+*/
+User*	Server::getUser(const std::string& nickname) const
+{
+	std::map<std::string, User*>::const_iterator	it = _usersNick.find(nickname);
+	if (it != _usersNick.end())
 		return it->second;
 	return NULL;
 }
