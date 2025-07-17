@@ -162,7 +162,7 @@ void	Server::run()
 	}
 }
 
-// Deletes a user from the server using their file descriptor.
+// Deletes a user from the server (`_usersFd`, `_usersNick`) using their file descriptor.
 void	Server::deleteUser(int fd)
 {
 	User* user = getUser(fd);
@@ -174,7 +174,7 @@ void	Server::deleteUser(int fd)
 	delete user;
 }
 
-// Deletes a user from the server using their nickname.
+// Deletes a user from the server (`_usersFd`, `_usersNick`) using their nickname.
 void	Server::deleteUser(const std::string& nickname)
 {
 	User* user = getUser(nickname);
