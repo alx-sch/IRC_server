@@ -2,9 +2,9 @@
 # define SERVER_HPP
 
 # include <string>
-# include <vector>
+# include <map>
 
-# include "User.hpp"
+class	User; // no include needed as only pointer is used
 
 class Server
 {
@@ -14,18 +14,19 @@ class Server
 		Server(const Server& other); 
 		Server&	operator=(const Server& other);
 
-		int					_port;		// Server port
-		int					_fd;		// Listening socket fd
-		std::string			_password;	// Server password
-		std::vector<User*>	_users;		// Keep track of active clients
+		int						_port;		// Server port
+		int						_fd;		// Listening socket fd
+		std::string				_password;	// Server password
+		std::map<int, User*>	_users;		// Keep track of active clients <fd, User*>
 
-		void				initSocket();
+		void					initSocket();
 
 	public:
 		Server(int port, const std::string& password);
 		~Server();
 
-		void				start();
+		void					start();
+		User*					getUser(int fd) const;
 };
 
 # endif

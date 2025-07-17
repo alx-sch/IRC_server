@@ -37,10 +37,10 @@ Server::~Server()
 		close(_fd);
 
 	// Delete all dynamically allocated User objects
-	for (size_t i = 0; i < _users.size(); ++i)
+	for (std::map<int, User*>::iterator it = _users.begin(); it != _users.end(); ++it)
 	{
-		delete _users[i];
-		_users[i] = NULL;
+		delete it->second; // second is a pointer to User
+		it->second = NULL;
 	}
 }
 
@@ -121,7 +121,7 @@ void	Server::start()
 			if (errno == EWOULDBLOCK || errno == EAGAIN)
 			{
 				usleep(100000); // Sleep for 100ms to avoid busy-waiting --> removed when select() is implemented
-				continue; // No pending connections — try again
+				continue; // No pending connections — try again --> loop start over
 			}
 			throw std::runtime_error("Failed to accept connection: " + std::string(strerror(errno)));
 		}
@@ -132,7 +132,52 @@ void	Server::start()
 					<< RESET << std::endl;
 
 		// Store new user
-		User*	newUser = new User(userFd);
-		_users.push_back(newUser);
+		User*	newUser = new User(); // maybe get info for username , nickname and have parametrized constructor
+		_users[userFd] = newUser;
+
+		////////////////////
+		// TESTING ONLY !!///
+		////////////////////
+		getUser(userFd)->setNickname("Guest" + toString(userFd)); // Set default nickname
+		getUser(userFd)->setUsername("User" + toString(userFd)); // Set default username
+
+		// print user info, just testing
+		if (getUser(userFd) == NULL)
+			std::cerr << RED << "Error: User not found for fd " << userFd << RESET << std::endl;
+		else
+		{
+			std::cout	<< "New user info: "
+						<< "Nickname: " << YELLOW << getUser(userFd)->getNickname() << RESET
+						<< ", Username: " << YELLOW << getUser(userFd)->getUsername() << RESET
+						<< std::endl;
+		}
+
+		userFd += 1; // Increment fd to simulate invalid access (for testing purposes)
+		if (getUser(userFd) == NULL)
+			std::cerr << RED << "Error: User not found for fd " << userFd << RESET << std::endl;
+		else
+		{
+			std::cout	<< "New user info: "
+						<< "Nickname: " << YELLOW << getUser(userFd)->getNickname() << RESET
+						<< ", Username: " << YELLOW << getUser(userFd)->getUsername() << RESET
+						<< std::endl;
+		}
 	}
+}
+
+/**
+ Retrieves a User object by its file descriptor (fd) in a safe manner.
+
+ This method safely searches the `_users` map using `.find()` (instead of `[]`)
+ to avoid accidental insertion of invalid keys.
+
+ @param fd 	The file descriptor (socket) of the user to retrieve.
+ @return 	Pointer to the `User` object if found, `NULL` otherwise.
+*/
+User*	Server::getUser(int fd) const
+{
+	std::map<int, User*>::const_iterator	it = _users.find(fd);
+	if (it != _users.end())
+		return it->second;
+	return NULL;
 }

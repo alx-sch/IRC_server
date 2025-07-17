@@ -6,13 +6,9 @@
 // Constructors and Destructor //
 /////////////////////////////////
 
-User::User(int fd)  : _fd(fd), _nickname(""), _username("") {}
+User::User() : _nickname(""), _username("") {}
 
-User::~User()
-{
-	if (_fd != -1)
-		close(_fd);
-}
+User::~User() {}
 
 /////////////////////////
 // SETTERS AND GETTERS //
@@ -26,11 +22,6 @@ void	User::setNickname(const std::string& nickname)
 void	User::setUsername(const std::string& username)
 {
 	_username = username;
-}
-
-int	User::getFd() const
-{
-	return _fd;
 }
 
 const std::string&	User::getNickname() const
