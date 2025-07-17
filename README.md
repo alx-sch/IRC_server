@@ -96,8 +96,41 @@ This project is a collaboration between:
 | `select()` | Monitor multiple FDs (I/O readiness) | `int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);` | Fine for small-scale use; limit = `FD_SETSIZE` |
 | `poll()` | Modern I/O multiplexing | `int poll(struct pollfd fds[], nfds_t nfds, int timeout);` | Scales better with many clients; preferred for dynamic FD sets |
 
+---
 
+## Commands to Implement
 
+ Command: USER 
+ `Parameters: <username> <hostname> <servername> <realname>`
+ https://www.rfc-editor.org/rfc/rfc1459#section-4.1.3
+
+ 
+ Command: JOIN
+ `Parameters: <channel>{,<channel>} [<key>{,<key>}]`
+ https://www.rfc-editor.org/rfc/rfc1459#section-4.2.1
+ 
+ Command: KICK
+ `Parameters: <channel> <user> [<comment>]`
+ https://www.rfc-editor.org/rfc/rfc1459#section-4.2.8
+ 
+ Command: INVITE
+ `Parameters: <nickname> <channel>`
+ https://www.rfc-editor.org/rfc/rfc1459#section-4.2.7
+
+ Command: TOPIC
+ `Parameters: <channel> [<topic>]`
+ https://www.rfc-editor.org/rfc/rfc1459#section-4.2.4
+ 
+ Command: MODE
+  `Parameters: <channel> {[+|-]|o|p|s|i|t|n|b|v} [<limit>] [<user>]`
+               `[<ban mask>]`
+OR
+` Parameters: <nickname> {[+|-]|i|w|s|o}`
+https://www.rfc-editor.org/rfc/rfc1459#section-4.2.3
+ 
+ Command: LIST
+ `Parameters: [<channel>{,<channel>} [<server>]]`
+ https://www.rfc-editor.org/rfc/rfc1459#section-4.2.6
 
 ---
 
@@ -171,42 +204,6 @@ When a client sends a message:
 
 ---
 
-### Commands to Implement
-
- Command: USER 
- `Parameters: <username> <hostname> <servername> <realname>`
- https://www.rfc-editor.org/rfc/rfc1459#section-4.1.3
-
- 
- Command: JOIN
- `Parameters: <channel>{,<channel>} [<key>{,<key>}]`
- https://www.rfc-editor.org/rfc/rfc1459#section-4.2.1
- 
- Command: KICK
- `Parameters: <channel> <user> [<comment>]`
- https://www.rfc-editor.org/rfc/rfc1459#section-4.2.8
- 
- Command: INVITE
- `Parameters: <nickname> <channel>`
- https://www.rfc-editor.org/rfc/rfc1459#section-4.2.7
-
- Command: TOPIC
- `Parameters: <channel> [<topic>]`
- https://www.rfc-editor.org/rfc/rfc1459#section-4.2.4
- 
- Command: MODE
-  `Parameters: <channel> {[+|-]|o|p|s|i|t|n|b|v} [<limit>] [<user>]`
-               `[<ban mask>]`
-OR
-` Parameters: <nickname> {[+|-]|i|w|s|o}`
-https://www.rfc-editor.org/rfc/rfc1459#section-4.2.3
- 
- Command: LIST
- `Parameters: [<channel>{,<channel>} [<server>]]`
- https://www.rfc-editor.org/rfc/rfc1459#section-4.2.6
-
----
-
 ### Usage
 
 #### Building
@@ -250,4 +247,3 @@ telnet localhost 6667
 Then:
 - Type messages from one terminal → see them appear in the other
 - Use `Ctrl+C` or close the terminal to disconnect
-
