@@ -3,6 +3,7 @@
 
 # include <string>
 # include <map>
+# include <sys/select.h> // for fd_set
 
 class	User;	//no include needed as only pointer is used
 
@@ -20,7 +21,9 @@ class Server
 		std::map<int, User*>			_usersFd;	// Keep track of active users by fd
 		std::map<std::string, User*>	_usersNick;	// Keep track of active users by nickname
 
-		void		initSocket();					// Initializes the server socket
+		void		initSocket();
+		int			prepareReadSet(fd_set& readFds);
+		void		acceptNewUser();
 
 	public:
 		Server(int port, const std::string& password);

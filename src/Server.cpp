@@ -9,7 +9,8 @@
 // Socket and networking headers
 #include <arpa/inet.h>	// inet_ntoa(), htons(), ntohs()
 #include <netinet/in.h>	// sockaddr_in, INADDR_ANY
-#include <sys/socket.h>	// socket, bind, listen, accept, setsockopt, etc.
+#include <sys/select.h> // for select(), fd_set, FD_* macros
+#include <sys/socket.h>	// socket(), bind(), listen(), accept(), setsockopt(), etc.
 
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
@@ -106,63 +107,72 @@ void	Server::initSocket()
 */
 void	Server::run()
 {
-	int			userFd;			// fd for the accepted user connection
-	sockaddr_in	userAddr;		// Init user address structure
-	socklen_t	userLen = sizeof(userAddr);
+	fd_set		readFds;	// struct to keep track of fds that are ready to read (connections, messages)
+	int			maxFd;		// Highest-numbered fd in the read set
+	int			ready;		// Number of ready fds
 
 	std::cout << "Server running on port " << YELLOW << _port << RESET << std::endl;
 
 	while (g_running)
 	{
-		// Accept incoming connections
-		userFd = accept(_fd, reinterpret_cast<sockaddr*>(&userAddr), &userLen);
-		if (userFd == -1) // Also returns -1 when no pending connections are queued
-		{
-			if (errno == EWOULDBLOCK || errno == EAGAIN)
-			{
-				usleep(100000); // Sleep for 100ms to avoid busy-waiting --> removed when select() is implemented
-				continue; // No pending connections — try again --> loop start over
-			}
-			throw std::runtime_error("Failed to accept connection: " + std::string(strerror(errno)));
-		}
+		maxFd = prepareReadSet(readFds);
 
-		std::cout	<< "User "<< YELLOW << "#" << userFd << RESET << " connected from "
-					<< YELLOW << inet_ntoa(userAddr.sin_addr)	// IP address as string
-					<< ":" << ntohs(userAddr.sin_port)			// Port (convert from network order)
-					<< RESET << std::endl;
+		// Pause the program until a socket becomes readable (messages or new connections)
+		ready = select(maxFd + 1, &readFds, NULL, NULL, NULL); // returns number of ready fds
+		if (ready == -1)
+			throw std::runtime_error("select() failed: " + std::string(strerror(errno)));
 
-		// Store new user
-		User*	newUser = new User(); // maybe get info for username , nickname and have parametrized constructor
-		_usersFd[userFd] = newUser;
-
-		////////////////////
-		// TESTING ONLY !!///
-		////////////////////
-		getUser(userFd)->setNickname("Guest" + toString(userFd)); // Set default nickname
-		getUser(userFd)->setUsername("User" + toString(userFd)); // Set default username
-
-		// print user info, just testing
-		if (getUser(userFd) == NULL)
-			std::cerr << RED << "Error: User not found for fd " << userFd << RESET << std::endl;
-		else
-		{
-			std::cout	<< "New user info: "
-						<< "Nickname: " << YELLOW << getUser(userFd)->getNickname() << RESET
-						<< ", Username: " << YELLOW << getUser(userFd)->getUsername() << RESET
-						<< std::endl;
-		}
-
-		userFd += 1; // Increment fd to simulate invalid access (for testing purposes)
-		if (getUser(userFd) == NULL)
-			std::cerr << RED << "Error: User not found for fd " << userFd << RESET << std::endl;
-		else
-		{
-			std::cout	<< "New user info: "
-						<< "Nickname: " << YELLOW << getUser(userFd)->getNickname() << RESET
-						<< ", Username: " << YELLOW << getUser(userFd)->getUsername() << RESET
-						<< std::endl;
-		}
+		// Check if the server socket (_fd) is readable -> listening socket has a new connection
+		if (FD_ISSET(_fd, &readFds))
+			acceptNewUser();
 	}
+}
+
+/**
+ Prepares the read fd_set for use with select().
+
+ @param readFds 	Reference to the fd_set to be passed to select().
+ @return			The highest file descriptor value among all monitored fds.
+*/
+int	Server::prepareReadSet(fd_set& readFds)
+{
+	FD_ZERO(&readFds);		// Clear the set before each select call
+	FD_SET(_fd, &readFds);	// Add the listening socket fd to the read set
+	int maxFd = _fd;
+
+	// Add all active user sockets to readFds for monitoring
+	for (std::map<int, User*>::iterator it = _usersFd.begin(); it != _usersFd.end(); ++it)
+	{
+		FD_SET(it->first, &readFds);
+		if (it->first > maxFd) // Update maxFd if this user fd is larger
+			maxFd = it->first;
+	}
+
+	return maxFd;
+}
+
+/**
+ Accepts a new user connection and adds them to the server's user lists
+ (`_usersFd`, `_usersNick`) by creating a new User object.
+*/
+void	Server::acceptNewUser()
+{
+	int			userFd;		// fd for the accepted user connection
+	sockaddr_in	userAddr;	// Init user address structure
+	socklen_t	userLen = sizeof(userAddr);
+
+	userFd = accept(_fd, reinterpret_cast<sockaddr*>(&userAddr), &userLen);
+	if (userFd == -1)
+		throw std::runtime_error("accept() failed: " + std::string(strerror(errno)));
+	
+
+	std::cout	<< "User "<< YELLOW << "#" << userFd << RESET << " connected from "
+				<< YELLOW << inet_ntoa(userAddr.sin_addr)	// IP address as string
+				<< ":" << ntohs(userAddr.sin_port)			// Port (convert from network order)
+				<< RESET << std::endl;
+
+	User* newUser = new User();
+	_usersFd[userFd] = newUser;
 }
 
 // Deletes a user from the server (`_usersFd`, `_usersNick`) using their file descriptor.
@@ -172,6 +182,7 @@ void	Server::deleteUser(int fd)
 	if (!user)
 		return;
 
+	close(fd);
 	_usersFd.erase(fd);
 	_usersNick.erase(user->getNickname());
 	delete user;
@@ -184,6 +195,7 @@ void	Server::deleteUser(const std::string& nickname)
 	if (!user)
 		return;
 
+	close(user->getFd());
 	_usersNick.erase(nickname);
 	_usersFd.erase(user->getFd());
 	delete user;
