@@ -19,7 +19,7 @@ int	main(int argc, char** argv)
 		Server	server(port, argv[2]);		// Create server instance with port and password
 
 		setupSignalHandler();				// Set up signal handler for graceful shutdown via SIGINT
-		server.start();						// Start the server loop
+		server.run();						// Start the server loop
 	}
 	catch (const std::exception& e)
 	{

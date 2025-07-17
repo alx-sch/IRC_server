@@ -95,13 +95,13 @@ void	Server::initSocket()
 /**
  Starts the server loop and accepts incoming client connections.
 
- Enters an infinite loop, calling `accept()` on the listening socket.
+ Enters an infinite `accept` loop, calling `accept()` on the listening socket.
  For each successful client connection, it prints the client's IP address and port,
  then immediately closes the connection (for testing purposes).
 
  Loop and function ends when SIGINT (Ctrl+C) is received, setting `g_running` to 0.
 */
-void	Server::start()
+void	Server::run()
 {
 	int			userFd;			// fd for the accepted user connection
 	sockaddr_in	userAddr;		// Init user address structure

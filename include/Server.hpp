@@ -26,7 +26,7 @@ class Server
 		Server(int port, const std::string& password);
 		~Server();
 
-		void		start();	// Starts the server loop, accepting incoming connections and managing users
+		void		run();	// Starts the server loop, accepting incoming connections and managing users
 
 		void		deleteUser(int fd);
 		void		deleteUser(const std::string& nickname);
