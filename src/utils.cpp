@@ -14,12 +14,3 @@ int	parsePort(const char* arg)
 
 	return static_cast<int>(port);
 }
-
-// Converts an `int` to a `std::string`
-std::string	toString(int value)
-{
-	std::ostringstream	oss;
-	
-	oss << value;
-	return oss.str();
-}
