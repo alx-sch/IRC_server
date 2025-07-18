@@ -3,6 +3,7 @@ NAME :=			ircserv
 # SOURCE FILES
 SRCS_DIR :=		src
 SRCS_FILES :=	main.cpp \
+				Channel.cpp \
 				Server.cpp \
 				ServerUser.cpp \
 				ServerSocket.cpp \
