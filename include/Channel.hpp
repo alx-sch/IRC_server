@@ -10,6 +10,7 @@ private:
 	std::string _channel_topic;
 	std::set<std::string> _channel_members_by_nickname;
 	std::set<std::string> _channel_operators_by_nickname;
+	std::set<std::string> _channel_invitation_list;
 
 	int _connected_user_number;
 	// MODE RELATED VARS
@@ -44,6 +45,7 @@ public:
 
 	void set_invite_only();
 	bool is_invite_only() const;
+	bool is_invited(const std::string& nickname) const;
 
 
 	bool has_password() const;

@@ -45,7 +45,13 @@ bool Channel::is_user_operator(const std::string& user_nick)
 
 bool Channel::can_user_join(const std::string &user_nick, const std::string &provided_key) const
 {
-	return false;
+	if (has_user_limit() && is_at_user_limit())
+		return false;
+	if (has_password() && !validate_password(provided_key))
+		return false;
+	if (is_invite_only() && !is_invited(user_nick))
+		return false;
+	return true;
 }
 
 void Channel::set_topic(const std::string &topic)
@@ -92,6 +98,13 @@ void Channel::set_invite_only()
 bool Channel::is_invite_only() const
 {
 	return _invite_only;
+}
+
+bool Channel::is_invited(const std::string& nickname) const
+{
+	if (_channel_invitation_list.find(nickname) == _channel_invitation_list.end())
+		return false;
+	return true;
 }
 
 bool Channel::has_password() const
