@@ -6,26 +6,50 @@
 class Channel
 {
 private:
-	std::string channel_name;
-	std::string channel_topic;
-	std::set<std::string> channel_members_by_nickname;
-	std::set<std::string> channel_operators_by_nickname;
+	std::string _channel_name;
+	std::string _channel_topic;
+	std::set<std::string> _channel_members_by_nickname;
+	std::set<std::string> _channel_operators_by_nickname;
 
+	int _connected_user_number;
 	// MODE RELATED VARS
-	int user_limit; // set by l
-	bool invite_only; // set by i
-	bool topic_protection; // set by t
-	std::string channel_key; // password set by k
+	int _user_limit; // set by l
+	bool _invite_only; // set by i
+	bool _topic_protection; // set by t
+	std::string _channel_key; // password set by k
 
 public:
 	Channel(/* args */);
 	~Channel();
-	void add_user(std::string user_nick);
-	void remove_user(std::string user_nick);
-	void make_user_operator(std::string user_nick);
-	void remove_user_operator_status(std::string user_nick);
-	bool is_user_member(std::string user_nick);
-	bool is_user_operator(std::string user_nick);
+
+	void add_user(const std::string& user_nick);
+	void remove_user(const std::string& user_nick);
+	bool is_user_member(const std::string& user_nick);
+
+	void make_user_operator(const std::string& user_nick);
+	void remove_user_operator_status(const std::string& user_nick);
+	bool is_user_operator(const std::string& user_nick);
+
+
+	bool Channel::can_user_join(const std::string& user_nick, const std::string& provided_key) const;
+
+	void set_topic(const std::string& topic);
+	bool has_topic_protection() const;
+	std::string get_topic() const;
+	
+	bool has_user_limit() const;
+	bool Channel::is_at_user_limit() const;
+	void set_user_limit(const int new_limit);
+	int get_user_limit() const;
+
+	void set_invite_only();
+	bool is_invite_only() const;
+
+
+	bool has_password() const;
+	void set_password(const std::string& password);
+	bool validate_password(const std::string& password) const;
+
 };
 
 Channel::Channel(/* args */)
