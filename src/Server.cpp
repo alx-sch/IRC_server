@@ -39,9 +39,9 @@ Server::~Server()
 */
 void	Server::run()
 {
-	fd_set		readFds;	// struct to keep track of fds that are ready to read (connections, messages)
-	int			maxFd;		// Highest-numbered fd in the read set
-	int			ready;		// Number of ready fds
+	fd_set	readFds;	// struct to keep track of fds that are ready to read (connections, messages)
+	int		maxFd;		// Highest-numbered fd in the read set
+	int		ready;		// Number of ready fds
 
 	std::cout << "Server running on port " << YELLOW << _port << RESET << std::endl;
 
@@ -58,8 +58,11 @@ void	Server::run()
 			throw std::runtime_error("select() failed: " + std::string(strerror(errno)));
 		}
 
-		// Check if the server socket (_fd) is readable -> listening socket has a new connection
+		// New incoming connection?
 		if (FD_ISSET(_fd, &readFds))
 			acceptNewUser();
+
+		// Handle user input for all active connections (messages, disconnections)
+		handleReadyUsers(readFds);
 	}
 }

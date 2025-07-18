@@ -35,6 +35,11 @@ class Server
 		// === ServerUser.cpp ===
 
 		void	acceptNewUser();
+		void	handleReadyUsers(fd_set& readFds);
+		bool	handleUserInput(int fd);
+		void	broadcastMessage(int senderFd, const std::string& nick, const std::string& message);
+		void	handleSendError(int fd, const std::string& nick);
+
 		void	deleteUser(int fd);
 		void	deleteUser(const std::string& nickname);
 		User*	getUser(int fd) const;

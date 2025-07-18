@@ -1,8 +1,7 @@
 
 #include "../include/User.hpp"
 
-User::User() : _nickname(""), _username("") {}
-
+User::User() {}
 User::~User() {}
 
 void	User::setNickname(const std::string& nickname)
@@ -28,4 +27,9 @@ const std::string&	User::getNickname() const
 const std::string&	User::getUsername() const
 {
 	return _username;
+}
+
+std::string&	User::getInputBuffer()
+{
+	return _inputBuffer;
 }

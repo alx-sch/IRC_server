@@ -1,15 +1,25 @@
-#include <cerrno>		// errno
-#include <cstring>		// strerror()
 #include <iostream>
+#include <string>
+#include <cstring>		// strerror()
+#include <cerrno>		// errno
 #include <stdexcept>	// std::runtime_error()
-#include <unistd.h>		// close()
 
-#include <arpa/inet.h>	// inet_ntoa()
+#include <unistd.h>		// close()
+#include <sys/types.h>	// size_t, ssize_t
+#include <sys/socket.h>	// accept(), recv(), send(), FD_* macros
 #include <netinet/in.h>	// sockaddr_in, ntohs()
+#include <arpa/inet.h>	// inet_ntoa()
 
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
-#include "../include/defines.hpp"	// color formatting
+#include "../include/defines.hpp"
+#include "../include/utils.hpp"	// toString()
+
+static void	logDisconnection(const std::string& nick, int fd, const std::string& reason);
+
+///////////////////////////////
+// Accepting Users on Server //
+///////////////////////////////
 
 /**
  Accepts a new user connection and adds them to the server's user lists
@@ -25,14 +35,162 @@ void	Server::acceptNewUser()
 	if (userFd == -1)
 		throw std::runtime_error("accept() failed: " + std::string(strerror(errno)));
 
-	std::cout	<< "User "<< YELLOW << "#" << userFd << RESET << " connected from "
-				<< YELLOW << inet_ntoa(userAddr.sin_addr)	// IP address as string
-				<< ":" << ntohs(userAddr.sin_port)			// Port (convert from network order)
-				<< RESET << std::endl;
+	std::cout	<< "New connection from "
+				<< YELLOW << inet_ntoa(userAddr.sin_addr)		// IP address as string
+				<< ":" << ntohs(userAddr.sin_port)	<< RESET	// Port (convert from network order)
+				<< " (" << MAGENTA << "fd " << userFd << RESET << ")\n";
 
 	User* newUser = new User();
+	newUser->setNickname("Guest" + toString(userFd));	// Set a default nickname; should come from user input eventually
 	_usersFd[userFd] = newUser;
 }
+
+///////////////////////////////////
+// Input Handling & Broadcasting //
+///////////////////////////////////
+
+/**
+ Handles input readiness for all connected users.
+
+ This function iterates through all user file descriptors and checks if any are marked
+ as ready for reading (based on `select()` populating `readFds`). For each ready user,
+ it attempts to read and process input using `handleUserInput()`. If a user has disconnected
+ or an error occurred while reading, the user is removed from the server via `deleteUser()`.
+
+ @param readFds 	A set of file descriptors marked as ready to read by `select()`.
+*/
+void	Server::handleReadyUsers(fd_set& readFds)
+{
+	std::map<int, User*>::iterator	it = _usersFd.begin();
+
+	// Iterate through all active users and check if they have data to read
+	while (it != _usersFd.end())
+	{
+		int	userFd = it->first;
+		++it;
+
+		if (FD_ISSET(userFd, &readFds))
+		{	
+			if (!handleUserInput(userFd)) // User disconnected or error
+				deleteUser(userFd);
+		}
+	}
+}
+
+/**
+ Handles incoming data from a user socket.
+
+ This function reads data from the specified fd into a temporary buffer,
+ appends it to the user's persistent input buffer, and processes complete messages
+ delimited by newline characters (`\n`). Each complete message is then broadcast to all other users.
+
+ @param fd 	The fd of the user to read input from.
+ @return 	`true` if input was successfully handled, `false` if the user disconnected or an error occurred.
+*/
+bool	Server::handleUserInput(int fd)
+{
+	User*		user = _usersFd[fd];
+	char		buffer[MAX_BUFFER_SIZE];	// Temp buffer on the stack for incoming data
+	ssize_t		bytesRead = recv(fd, buffer, sizeof(buffer) - 1, 0);	// Read from user socket
+	size_t		newlinePos;					// Position of newline char
+	std::string	message;					// Extracted message
+
+	// Retrieve the sender's User object to get their nickname
+	User*		sender = getUser(fd);
+	std::string	nick = (sender ? sender->getNickname() : "Unknown");
+
+	if (bytesRead <= 0)
+	{
+		// Log the disconnection / error immediately
+		logDisconnection(nick, fd, (bytesRead == 0 ? "Connection closed" : strerror(errno)));
+		return false; // User removed in 'handleReadyUsers()'
+	}
+
+	// Append the received bytes to the user's input buffer
+	user->getInputBuffer().append(buffer, bytesRead);
+
+	// Process all complete messages (ending with '\n') from the buffer
+	while ((newlinePos = user->getInputBuffer().find('\n')) != std::string::npos)
+	{
+		// Extract the message up to the newline character, and remove it from the buffer
+		message = user->getInputBuffer().substr(0, newlinePos);
+		user->getInputBuffer().erase(0, newlinePos + 1);
+
+		// Broadcast the message to all other users
+		broadcastMessage(fd, nick, message); // send to others
+	}
+	// Longer messages without newline are kept in the buffer for next read
+	return true;
+}
+
+/**
+ Broadcasts a message from one user to all other connected users.
+
+ If a `send()` operation fails, it calls `handleSendError()` to log and handle the error.
+
+ @param senderFd 	The fd of the user who sent the message.
+ @param message 	The message to broadcast to all other users.
+*/
+void	Server::broadcastMessage(int senderFd, const std::string& nick, const std::string& message)
+{
+	// Format the message with color and sender nickname --> LIKELY HANDLED BY IRC CLIENT
+	std::string output =	std::string(MAGENTA) + std::string(BOLD) + nick
+							+ ": " + std::string(RESET) + message + "\n";
+
+	// Loop through all connected users
+	std::map<int, User*>::iterator	it = _usersFd.begin();
+	while (it != _usersFd.end())
+	{
+		int targetFd = it->first;
+		++it; // Advance iterator early in case target FD is removed
+
+		if (targetFd != senderFd) // Don't send the message back to the sender
+		{
+			// Attempt to send the message to the target user
+			if (send(targetFd, output.c_str(), output.length(), 0) == -1)
+				handleSendError(targetFd, nick);
+		}
+	}
+}
+
+/**
+ Handles a failed `send()` operation to a user.
+
+ Logs the error to the server terminal.
+ If the failure was due to a broken or reset connection (`EPIPE` or `ECONNRESET`),
+ the user is considered disconnected and is removed from the server.
+
+ @param fd 	The fd of the user for whom `send()` failed.
+*/
+void	Server::handleSendError(int fd, const std::string& nick)
+{
+	// Log the send error with color formatting
+	std::cerr	<< RED << "Failed to send to "
+				<< GREEN << nick << RED
+				<< " (" << MAGENTA << "fd " << fd << RED << "): "
+				<< strerror(errno) << RESET << std::endl;
+
+	// If the error was a broken pipe or connection reset, treat it as a disconnect
+	if (errno == EPIPE || errno == ECONNRESET)
+	{
+		// Log the disconnection, remove the user from the server
+		logDisconnection(nick, fd, strerror(errno));
+		deleteUser(fd);
+	}
+}
+
+// Helper function to log user disconnection with color formatting
+static void	logDisconnection(const std::string& nick, int fd, const std::string& reason)
+{
+	std::cerr	<< RED << "Removing user "
+				<< GREEN << nick << RED
+				<< " (" << MAGENTA << "fd " << fd << RED << "): "
+				<< reason << RESET << std::endl;
+}
+
+////////////////////
+// Retrieve Users //
+////////////////////
 
 /**
  Retrieves an `User` object by its file descriptor (fd) in a safe manner.
@@ -67,6 +225,10 @@ User*	Server::getUser(const std::string& nickname) const
 		return it->second;
 	return NULL;
 }
+
+//////////////////
+// Remove Users //
+//////////////////
 
 // Deletes a user from the server (`_usersFd`, `_usersNick`) using their file descriptor.
 void	Server::deleteUser(int fd)
