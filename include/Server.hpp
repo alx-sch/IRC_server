@@ -30,6 +30,10 @@ class Server
 		// === ServerSocket.cpp ===
 
 		void	initSocket();
+		void	createSocket();
+		void	setSocketOptions();
+		void	bindSocket();
+		void	startListening();
 		int		prepareReadSet(fd_set& readFds);
 
 		// === ServerUser.cpp ===
