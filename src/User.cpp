@@ -1,18 +1,9 @@
 
-#include <unistd.h>	// close()
 #include "../include/User.hpp"
-
-/////////////////////////////////
-// Constructors and Destructor //
-/////////////////////////////////
 
 User::User() : _nickname(""), _username("") {}
 
 User::~User() {}
-
-/////////////////////////
-// SETTERS AND GETTERS //
-/////////////////////////
 
 void	User::setNickname(const std::string& nickname)
 {

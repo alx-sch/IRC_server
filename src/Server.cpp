@@ -5,7 +5,7 @@
 #include <string>
 #include <unistd.h>		// close()
 
-#include <sys/select.h> // for select(), fd_set, FD_* macros
+#include <sys/select.h>	// for select(), fd_set, FD_* macros
 
 #include "../include/Server.hpp"
 #include "../include/defines.hpp"	// color formatting
