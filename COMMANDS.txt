@@ -13,11 +13,9 @@ USER (4 params)
 		yes -> some kind of error
 		no -> set user identity info 
 
-
- 
 KICK
 are there at least two parameters?
-	
+
 	does the first parameter correspond to an active channel?
 	server checks if sender is operator 
 	does the second parameter correspond to the nickname of a user in the channel?
@@ -34,7 +32,7 @@ TOPIC (min. 1 parameter)
 	is the sender a member 
 	if the second parameter is defined AND topic protection is enable 
 		- is sended the channel operator?
-		
+
 
  
  Command: MODE
@@ -71,3 +69,29 @@ JOIN
 	   add the client nickname to the set of users in the channel 
 	if no then create channel 
 	add client to channel
+
+
+PART
+   Parameters: <channel>{,<channel>}
+   The PART message causes the client sending the message to be removed
+   from the list of active users for all given channels listed in the
+   parameter string.
+
+   Numeric Replies:
+
+           ERR_NEEDMOREPARAMS              ERR_NOSUCHCHANNEL
+           ERR_NOTONCHANNEL
+
+OPER
+   Parameters: <user> <password>
+
+   OPER message is used by a normal user to obtain operator privileges.
+   The combination of <user> and <password> are required to gain
+   Operator privileges.
+
+
+
+Command: NICK
+   Parameters: <nickname> [ <hopcount> ]
+
+*the hopcount is weird and I don't fully get it*
