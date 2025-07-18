@@ -1,5 +1,4 @@
 #include "../include/utils.hpp"
-#include "../include/Server.hpp"
 
 // Parses and validates a port number from a C-style string (argument)
 int	parsePort(const char* arg)

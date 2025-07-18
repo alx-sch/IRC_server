@@ -4,6 +4,8 @@ NAME :=			ircserv
 SRCS_DIR :=		src
 SRCS_FILES :=	main.cpp \
 				Server.cpp \
+				ServerUser.cpp \
+				ServerSocket.cpp \
 				User.cpp \
 				signal.cpp \
 				utils.cpp
