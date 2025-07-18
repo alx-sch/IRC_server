@@ -8,6 +8,17 @@
 
 class	User
 {
+	public:
+		User();
+		~User();
+
+		void				setNickname(const std::string& nickname);
+		void				setUsername(const std::string& username);
+
+		const int&			getFd() const;
+		const std::string&	getNickname() const;
+		const std::string&	getUsername() const;
+
 	private:
 		// Disable constructor and copying (makes no sense for a user)
 		User(const User& other);
@@ -19,17 +30,6 @@ class	User
 		std::string					_realname;	// required - usually unused
 		std::string					_hostname;	// basically ip address -- should we do full resolution
 		std::vector<std::string>	_opChannels; // channels where this user has operator privileges
-
-	public:
-		User();
-		~User();
-
-		void				setNickname(const std::string& nickname);
-		void				setUsername(const std::string& username);
-
-		const int&			getFd() const;
-		const std::string&	getNickname() const;
-		const std::string&	getUsername() const;
 };
 
 #endif
