@@ -98,10 +98,10 @@ This project is a collaboration between:
 
 ---
 
-## IRC Client
+## Client–Server Communication
 
-### Initial registration (sent by client on connect):
-When a client connects to an IRC server, it must register by sending a specific sequence of commands to be recognized as a valid user.
+### User Registration (sent by client upon server connection)
+When a user connects to an IRC server via a client, they register by sending a specific sequence of commands to be recognized as a valid user.
 
 1. `PASS <password>`
     - Optional, but must come first.
@@ -134,6 +134,68 @@ responds with welcome messages (numeric replies  `001` through  `004`), for exam
 | 002  | Server hostname and version                                             |
 | 003  | Server creation date/time                                               |
 | 004  | Server name, version, supported user and channel modes                 |
+
+### Server Replies to Client
+
+In IRC, the server communicates with clients by sending **protocol-compliant replies**. Each message follows a standard format, as specified in [RFC 1459](https://datatracker.ietf.org/doc/html/rfc1459).
+
+#### IRC Message Format
+
+Every message from the server to the client has this general structure:
+
+```text
+:<prefix> <command or numeric> <target> :<message>\r\n
+```
+
+| Field                  | Description                                                                 |
+|------------------------|-----------------------------------------------------------------------------|
+| `:<prefix>`            | Always the server name (e.g. `irc.example.org`)                             |
+| `<command>` or `<numeric>` | Either a command name (e.g. `NOTICE`) or a numeric reply (`001`, `433`, `464`, etc.) |
+| `<target>`             | Typically the user's nickname, or `*` if the client is not yet registered   |
+| `:<message>`           | Human-readable message text (trailing parameter)                            |
+| `\r\n`                 | Required line ending in all IRC messages                                    |
+
+Example:
+
+```text
+:irc.example.org 001 Alex :Welcome to the IRC Network, Alex!alex@host
+```
+
+Before the client has sent both `NICK` and `USER`, there is no known nickname. In that case, IRC uses `*` as the target:
+
+```text
+:irc.example.org 464 * :Password incorrect
+```
+
+#### Function: `sendReply()`
+
+The following helper method of the `User` class ensures the reply is properly formatted and sent:
+
+```cpp
+void User::sendReply(const std::string& message)
+{
+	std::string fullMessage = ":" + serverName + " " + message + "\r\n";
+	send(_fd, fullMessage.c_str(), fullMessage.length(), 0);
+}
+```
+
+This function:
+
+ - Prepends the server name as the prefix
+ - Appends `\r\n` to comply with the IRC protocol
+ - Uses `send()` to transmit the message to the client’s socket
+
+Example usage:
+
+```cpp
+user->sendReply("001 Alex :Welcome to the IRC Network, Alex!alex@host");
+```
+
+Which sends this over the network:
+
+```text
+:irc.example.org 001 Alex :Welcome to the IRC Network, Alex!alex@host
+```
 
 ---
 
