@@ -60,9 +60,14 @@ void	Server::run()
 
 		// New incoming connection?
 		if (FD_ISSET(_fd, &readFds))
-			acceptNewUser();
+			acceptNewUser(); // Adds user to `_usersFd`
 
 		// Handle user input for all active connections (messages, disconnections)
 		handleReadyUsers(readFds);
 	}
+}
+
+std::string	Server::getPassword() const
+{
+	return _password;
 }

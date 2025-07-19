@@ -32,14 +32,14 @@ public:
 	bool is_user_operator(const std::string& user_nick);
 
 
-	bool Channel::can_user_join(const std::string& user_nick, const std::string& provided_key) const;
+	bool can_user_join(const std::string& user_nick, const std::string& provided_key) const;
 
 	void set_topic(const std::string& topic);
 	bool has_topic_protection() const;
 	std::string get_topic() const;
 	
 	bool has_user_limit() const;
-	bool Channel::is_at_user_limit() const;
+	bool is_at_user_limit() const;
 	void set_user_limit(const int new_limit);
 	int get_user_limit() const;
 

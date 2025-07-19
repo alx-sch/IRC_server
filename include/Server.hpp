@@ -13,7 +13,8 @@ class Server
 		Server(int port, const std::string& password);
 		~Server();
 
-		void	run();
+		void		run();
+		std::string	getPassword() const; // is used in Command class
 
 	private:
 		// Disable default constructor and copying (makes no sense for a server)
@@ -29,25 +30,29 @@ class Server
 
 		// === ServerSocket.cpp ===
 
-		void	initSocket();
-		void	createSocket();
-		void	setSocketOptions();
-		void	bindSocket();
-		void	startListening();
-		int		prepareReadSet(fd_set& readFds);
+		void		initSocket();
+		void		createSocket();
+		void		setSocketOptions();
+		void		bindSocket();
+		void		startListening();
+		int			prepareReadSet(fd_set& readFds);
 
 		// === ServerUser.cpp ===
 
-		void	acceptNewUser();
-		void	handleReadyUsers(fd_set& readFds);
-		bool	handleUserInput(int fd);
-		void	broadcastMessage(int senderFd, const std::string& nick, const std::string& message);
-		void	handleSendError(int fd, const std::string& nick);
+		void		acceptNewUser();
+		void		handleReadyUsers(fd_set& readFds);
+		bool		handleUserInput(int fd);
+		void		extractMessagesFromBuffer(int fd, User* user);
+		void		broadcastMessage(int senderFd, const std::string& nick, const std::string& message);
+		void		handleSendError(int fd, const std::string& nick);
+		void		handleDisconnection(int fd, const std::string& reason);
 
-		void	deleteUser(int fd);
-		void	deleteUser(const std::string& nickname);
-		User*	getUser(int fd) const;
-		User*	getUser(const std::string& nickname) const;
+		void		deleteUser(int fd);
+		void		deleteUser(const std::string& nickname);
+
+		User*		getUser(int fd) const;
+		User*		getUser(const std::string& nickname) const;
+		std::string	getUserNickSafe(int fd) const;
 };
 
 # endif
