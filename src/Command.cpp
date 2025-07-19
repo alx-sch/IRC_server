@@ -62,27 +62,53 @@ bool	Command::handleCommand(Server* server, User* user, int fd, const std::strin
 	return true;
 }
 
-// Handles the NICK command for a user. Also part of the initial client registration.
-// Command: NICK <nickname>
+// Handles the  `NICK` command for a user. Also part of the initial client registration.
+// Command:  `NICK <nickname> `
 bool	Command::handleNick(User* user, const std::vector<std::string>& tokens)
 {
 	if (tokens.size() < 2)
-		return false; // No nickname provided
+		return false;
 
 	const std::string&	nick = tokens[1];
 	user->setNickname(nick);
 	return true;
 }
 
-// Handles the USER command for a user. Also part of the initial client registration.
-// Command: USER <username> <hostname> <servername> :<realname>
+// Handles the  `USER` command for a user. Also part of the initial client registration.
+// Command:  `USER <username> <hostname> <servername> :<realname> `
 bool	Command::handleUser(User* user, const std::vector<std::string>& tokens)
 {
 	if (tokens.size() < 5)
-		return false; // USER <username> <hostname> <servername> :<realname>
+		return false;
 
 	user->setUsername(tokens[1]);
 	user->setRealname(tokens[4]);
+	return true;
+}
+
+// Handles the `PASS` command for a user. This is used to authenticate the user with the server.
+// Command: `PASS <password>`
+bool	Command::handlePass(Server* server, User* user, const std::vector<std::string>& tokens)
+{
+	// Reject if user already completed registration
+	if (user->isRegistered())
+	{
+		user->replyError(462, "You may not reregister");
+		return false; // Not sure if to return false here, might kick user from server?
+	}
+
+	// Reject if password argument is missing
+	if (tokens.size() < 2)
+		return false;
+
+	// Validate the provided password
+	const std::string&	password = tokens[1];
+	if (password != server->getPassword())
+	{
+		user->replyError(464, "Password incorrect");
+		return false;
+	}
+
 	return true;
 }
 

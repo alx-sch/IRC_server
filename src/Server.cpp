@@ -10,9 +10,13 @@
 #include "../include/Server.hpp"
 #include "../include/defines.hpp"	// color formatting
 #include "../include/signal.hpp"	// g_running variable
+#include "../include/utils.hpp"		// getFormattedTime()
 
 Server::Server(int port, const std::string& password) 
-	: _port(port), _fd(-1), _password(password)
+	:	_name(SERVER_NAME), _version(VERSION), _network(NETWORK),
+		_creationTime(getFormattedTime()), _port(port),
+		_password(password), _cModes(C_MODES), _uModes(U_MODES),
+		_fd(-1)
 {
 	initSocket();
 }
@@ -67,7 +71,41 @@ void	Server::run()
 	}
 }
 
-std::string	Server::getPassword() const
+/////////////
+// Getters //
+/////////////
+
+const std::string&	Server::getServerName() const
+{
+	return _name;
+}
+
+const std::string&	Server::getVersion() const
+{
+	return _version;
+}
+
+const std::string&	Server::getNetwork() const
+{
+	return _network;
+}
+
+const std::string&	Server::getCreationTime() const
+{
+	return _creationTime;
+}
+
+const std::string&	Server::getPassword() const
 {
 	return _password;
+}
+
+const std::string&	Server::getCModes() const
+{
+	return _cModes;
+}
+
+const std::string&	Server::getUModes() const
+{
+	return _uModes;
 }

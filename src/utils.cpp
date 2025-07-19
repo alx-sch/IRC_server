@@ -14,3 +14,23 @@ int	parsePort(const char* arg)
 
 	return static_cast<int>(port);
 }
+
+/**
+ Returns the current server time formatted as a human-readable UTC string.
+
+ Example output:
+	`Fri Jul 19 2025 at 21:47:30 UTC`
+
+ @return 	A string containing the current date and time in UTC format.
+*/
+std::string	getFormattedTime()
+{
+	std::time_t	now = std::time(NULL);		// Get current time as time_t (seconds since epoch)
+	std::tm*	gmt = std::gmtime(&now);	// Convert to UTC time (struct tm)
+
+	char		buffer[128];
+	// Format: AbbrWeekday AbbrMonth Day Year at HH:MM:SS UTC
+	std::strftime(buffer, sizeof(buffer), "%a %b %d %Y at %H:%M:%S UTC", gmt);
+
+	return std::string(buffer);
+}

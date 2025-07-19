@@ -1,8 +1,19 @@
-
 #include "../include/User.hpp"
 
-User::User() {}
+User::User(Server* server)
+	: _fd(-1), _isRegistered(false), _server(server) {}
+
 User::~User() {}
+
+/////////////
+// Setters //
+/////////////
+
+// This sets the file descriptor to -1, indicating the user is no longer connected.
+void	User::markDisconnected()
+{
+	_fd = -1;
+}
 
 void	User::setNickname(const std::string& nickname)
 {
@@ -18,6 +29,10 @@ void	User::setRealname(const std::string& realname)
 {
 	_realname = realname;
 }
+
+/////////////
+// Getters //
+/////////////
 
 const int&	User::getFd() const
 {
@@ -42,4 +57,9 @@ const std::string&	User::getRealname() const
 std::string&	User::getInputBuffer()
 {
 	return _inputBuffer;
+}
+
+bool	User::isRegistered() const
+{
+	return _isRegistered;
 }

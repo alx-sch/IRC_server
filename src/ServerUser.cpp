@@ -39,7 +39,7 @@ void	Server::acceptNewUser()
 				<< ":" << ntohs(userAddr.sin_port)	<< RESET	// Port (convert from network order)
 				<< " (" << MAGENTA << "fd " << userFd << RESET << ")\n";
 
-	User* newUser = new User();
+	User* newUser = new User(this);
 	_usersFd[userFd] = newUser;
 }
 
@@ -144,7 +144,7 @@ void	Server::extractMessagesFromBuffer(int fd, User* user)
 void	Server::broadcastMessage(int senderFd, const std::string& nick, const std::string& message)
 {
 	// Format the message with color and sender nickname --> LIKELY HANDLED BY IRC CLIENT
-	std::string output =	nick+ ": " + message + "\n";
+	std::string	output = nick + ": " + message + "\n";
 
 	// Loop through all connected users
 	std::map<int, User*>::iterator	it = _usersFd.begin();
@@ -257,7 +257,7 @@ User*	Server::getUser(const std::string& nickname) const
 */
 std::string	Server::getUserNickSafe(int fd) const
 {
-	User* user = getUser(fd);
+	User*	user = getUser(fd);
 	if (!user || user->getNickname().empty())
 		return "Guest#" + toString(fd); // Return a safe default if user not found or nickname not set yet
 	else
@@ -271,11 +271,12 @@ std::string	Server::getUserNickSafe(int fd) const
 // Deletes a user from the server (`_usersFd`, `_usersNick`) using their file descriptor.
 void	Server::deleteUser(int fd)
 {
-	User* user = getUser(fd);
+	User*	user = getUser(fd);
 	if (!user)
 		return;
 
 	close(fd);
+	user->markDisconnected();
 	_usersFd.erase(fd);
 	_usersNick.erase(user->getNickname());
 	delete user;
@@ -284,11 +285,12 @@ void	Server::deleteUser(int fd)
 // Deletes a user from the server (`_usersFd`, `_usersNick`) using their nickname.
 void	Server::deleteUser(const std::string& nickname)
 {
-	User* user = getUser(nickname);
+	User*	user = getUser(nickname);
 	if (!user)
 		return;
 
 	close(user->getFd());
+	user->markDisconnected();
 	_usersNick.erase(nickname);
 	_usersFd.erase(user->getFd());
 	delete user;
