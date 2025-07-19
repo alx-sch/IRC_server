@@ -15,8 +15,6 @@
 #include "../include/defines.hpp"
 #include "../include/utils.hpp"	// toString()
 
-static void	logDisconnection(const std::string& nick, int fd, const std::string& reason);
-
 ///////////////////////////////
 // Accepting Users on Server //
 ///////////////////////////////
@@ -41,7 +39,6 @@ void	Server::acceptNewUser()
 				<< " (" << MAGENTA << "fd " << userFd << RESET << ")\n";
 
 	User* newUser = new User();
-	newUser->setNickname("Guest" + toString(userFd));	// Set a default nickname; should come from user input eventually
 	_usersFd[userFd] = newUser;
 }
 
@@ -92,35 +89,38 @@ bool	Server::handleUserInput(int fd)
 	User*		user = _usersFd[fd];
 	char		buffer[MAX_BUFFER_SIZE];	// Temp buffer on the stack for incoming data
 	ssize_t		bytesRead = recv(fd, buffer, sizeof(buffer) - 1, 0);	// Read from user socket
-	size_t		newlinePos;					// Position of newline char
-	std::string	message;					// Extracted message
-
-	// Retrieve the sender's User object to get their nickname
-	User*		sender = getUser(fd);
-	std::string	nick = (sender ? sender->getNickname() : "Unknown");
 
 	if (bytesRead <= 0)
 	{
 		// Log the disconnection / error immediately
-		logDisconnection(nick, fd, (bytesRead == 0 ? "Connection closed" : strerror(errno)));
-		return false; // User removed in 'handleReadyUsers()'
+		handleDisconnection(fd, (bytesRead == 0 ? "Connection closed" : strerror(errno)));
+		return false; // User removed in `handleReadyUsers()`
 	}
 
 	// Append the received bytes to the user's input buffer
 	user->getInputBuffer().append(buffer, bytesRead);
 
-	// Process all complete messages (ending with '\n') from the buffer
-	while ((newlinePos = user->getInputBuffer().find('\n')) != std::string::npos)
-	{
-		// Extract the message up to the newline character, and remove it from the buffer
-		message = user->getInputBuffer().substr(0, newlinePos);
-		user->getInputBuffer().erase(0, newlinePos + 1);
+	extractMessagesFromBuffer(fd, user);
 
-		// Broadcast the message to all other users
-		broadcastMessage(fd, nick, message); // send to others
-	}
-	// Longer messages without newline are kept in the buffer for next read
 	return true;
+}
+
+void	Server::extractMessagesFromBuffer(int fd, User* user)
+{
+	std::string&	buffer = user->getInputBuffer();
+	std::string		message;
+	std::string		nick;
+	size_t			newlinePos;
+
+	while ((newlinePos = buffer.find('\n')) != std::string::npos)
+	{
+		message = buffer.substr(0, newlinePos);
+		buffer.erase(0, newlinePos + 1);
+
+		// You could also parse commands here (e.g. NICK, USER) in future
+		nick = getUserNickSafe(fd);
+		broadcastMessage(fd, nick, message);
+	}
 }
 
 /**
@@ -174,23 +174,33 @@ void	Server::handleSendError(int fd, const std::string& nick)
 	if (errno == EPIPE || errno == ECONNRESET)
 	{
 		// Log the disconnection, remove the user from the server
-		logDisconnection(nick, fd, strerror(errno));
+		handleDisconnection(fd, strerror(errno));
 		deleteUser(fd);
 	}
 }
 
-// Helper function to log user disconnection with color formatting
-static void	logDisconnection(const std::string& nick, int fd, const std::string& reason)
+/**
+ Logs a disconnection event for a user.
+
+ This function is called when a user disconnects or an error occurs.
+ It prints the user's nickname and fd, along with the reason for disconnection.
+
+ @param fd 		The file descriptor of the disconnected user.
+ @param reason 	The reason for disconnection (e.g., "Connection closed", "Broken pipe").
+*/
+void	Server::handleDisconnection(int fd, const std::string& reason)
 {
+	std::string	nick = getUserNickSafe(fd);
+
 	std::cerr	<< RED << "Removing user "
 				<< GREEN << nick << RED
 				<< " (" << MAGENTA << "fd " << fd << RED << "): "
 				<< reason << RESET << std::endl;
 }
 
-////////////////////
-// Retrieve Users //
-////////////////////
+/////////////////////
+// Get User (info) //
+/////////////////////
 
 /**
  Retrieves an `User` object by its file descriptor (fd) in a safe manner.
@@ -224,6 +234,23 @@ User*	Server::getUser(const std::string& nickname) const
 	if (it != _usersNick.end())
 		return it->second;
 	return NULL;
+}
+
+/**
+ Retrieves the nickname of a user in a safe manner.
+
+ If the user is not found or their nickname is empty, returns a default "Guest#<fd>" string.
+
+ @param fd 	The file descriptor (socket) of the user to retrieve the nickname for.
+ @return 	A safe nickname string.
+*/
+std::string	Server::getUserNickSafe(int fd) const
+{
+	User* user = getUser(fd);
+	if (!user || user->getNickname().empty())
+		return "Guest#" + toString(fd); // Return a safe default if user not found or nickname not set yet
+	else
+		return (user->getNickname());
 }
 
 //////////////////
