@@ -14,6 +14,7 @@ class Server
 		~Server();
 
 		void		run();
+		std::string	getPassword() const; // is used in Command class
 
 	private:
 		// Disable default constructor and copying (makes no sense for a server)
@@ -48,6 +49,7 @@ class Server
 
 		void		deleteUser(int fd);
 		void		deleteUser(const std::string& nickname);
+
 		User*		getUser(int fd) const;
 		User*		getUser(const std::string& nickname) const;
 		std::string	getUserNickSafe(int fd) const;

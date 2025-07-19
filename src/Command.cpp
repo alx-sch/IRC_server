@@ -1,5 +1,94 @@
 #include <sstream>
+
 #include "../include/Command.hpp"
+#include "../include/Server.hpp"
+#include "../include/User.hpp"
+
+/////////////////////
+// Handle Commands //
+///////////////////// 
+
+bool	Command::handleCommand(Server* server, User* user, int fd, const std::string& message)
+{
+	if (message.empty())
+		return false;
+
+	std::vector<std::string>	tokens = Command::tokenize(message);
+	if (tokens.empty())
+		return false;
+
+	Command::Type				cmdType = Command::getType(message);
+
+	(void)server; // prob needed by other commands?
+	(void)fd; // prob needed by other commands?
+
+	switch (cmdType)
+	{
+		case NICK:		return handleNick(user, tokens);
+		case USER:		return handleUser(user, tokens);
+		case PASS:
+			// Handle PASS command
+			break;
+		case PING:
+			// Handle PING command
+			break;
+		case JOIN:
+			// Handle JOIN command
+			break;
+		case PART:
+			// Handle PART command
+			break;
+		case QUIT:
+			// Handle QUIT command
+			break;
+		case PRIVMSG:
+			// Handle PRIVMSG command
+			break;
+		case TOPIC:
+			// Handle TOPIC command
+			break;
+		case KICK:
+			// Handle KICK command
+			break;
+		case INVITE:
+			// Handle INVITE command
+			break;
+		case MODE:
+			// Handle MODE command
+			break;
+		default:
+			return false;
+	}
+	return true;
+}
+
+// Handles the NICK command for a user. Also part of the initial client registration.
+// Command: NICK <nickname>
+bool	Command::handleNick(User* user, const std::vector<std::string>& tokens)
+{
+	if (tokens.size() < 2)
+		return false; // No nickname provided
+
+	const std::string&	nick = tokens[1];
+	user->setNickname(nick);
+	return true;
+}
+
+// Handles the USER command for a user. Also part of the initial client registration.
+// Command: USER <username> <hostname> <servername> :<realname>
+bool	Command::handleUser(User* user, const std::vector<std::string>& tokens)
+{
+	if (tokens.size() < 5)
+		return false; // USER <username> <hostname> <servername> :<realname>
+
+	user->setUsername(tokens[1]);
+	user->setRealname(tokens[4]);
+	return true;
+}
+
+///////////
+// Utils //
+///////////
 
 /**
  Tokenizes a raw IRC message into space-separated parts,
@@ -48,35 +137,20 @@ Command::Type Command::getType(const std::string& message)
 	std::vector<std::string>	tokens = tokenize(message);
 	if (tokens.empty())
 		return UNKNOWN;
-
 	const std::string&			cmd = tokens[0];
 
-	if (cmd == "NICK")
-		return NICK;
-	if (cmd == "USER")
-		return USER;
-	if (cmd == "PASS")
-		return PASS;
-	if (cmd == "PING")
-		return PING;
-	if (cmd == "JOIN")
-		return JOIN;
-	if (cmd == "PART")
-		return PART;
-	if (cmd == "QUIT")
-		return QUIT;
-	if (cmd == "PRIVMSG")
-		return PRIVMSG;
-	if (cmd == "TOPIC")
-		return TOPIC;
-	if (cmd == "KICK")
-		return KICK;
-	if (cmd == "INVITE")
-		return INVITE;
-	if (cmd == "MODE")
-		return MODE;
+	if (cmd == "NICK")		return NICK;
+	if (cmd == "USER")		return USER;
+	if (cmd == "PASS")		return PASS;
+	if (cmd == "PING")		return PING;
+	if (cmd == "JOIN")		return JOIN;
+	if (cmd == "PART")		return PART;
+	if (cmd == "QUIT")		return QUIT;
+	if (cmd == "PRIVMSG")	return PRIVMSG;
+	if (cmd == "TOPIC")		return TOPIC;
+	if (cmd == "KICK")		return KICK;
+	if (cmd == "INVITE")	return INVITE;
+	if (cmd == "MODE")		return MODE;
 
 	return UNKNOWN;
 }
-
-

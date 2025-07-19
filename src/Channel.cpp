@@ -122,6 +122,6 @@ void Channel::set_password(const std::string &password)
 bool Channel::validate_password(const std::string &password) const
 {
 	if( !has_password() || (password == _channel_key))
-		true;
+		return true;
 	return false;
 }

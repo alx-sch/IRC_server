@@ -12,6 +12,7 @@
 
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
+#include "../include/Command.hpp"
 #include "../include/defines.hpp"
 #include "../include/utils.hpp"	// toString()
 
@@ -86,11 +87,13 @@ void	Server::handleReadyUsers(fd_set& readFds)
 */
 bool	Server::handleUserInput(int fd)
 {
-	User*		user = _usersFd[fd];
 	char		buffer[MAX_BUFFER_SIZE];	// Temp buffer on the stack for incoming data
 	ssize_t		bytesRead = recv(fd, buffer, sizeof(buffer) - 1, 0);	// Read from user socket
+	User*		user = getUser(fd);
+	if (!user)
+		return false;
 
-	if (bytesRead <= 0)
+	if (bytesRead <= 0) // recv() failed
 	{
 		// Log the disconnection / error immediately
 		handleDisconnection(fd, (bytesRead == 0 ? "Connection closed" : strerror(errno)));
@@ -121,9 +124,12 @@ void	Server::extractMessagesFromBuffer(int fd, User* user)
 		if (!message.empty() && message[message.size() - 1] == '\r')
 			message.erase(message.size() - 1);
 
-		// You could also parse commands here (e.g. NICK, USER) in future
-		nick = getUserNickSafe(fd);
-		broadcastMessage(fd, nick, message);
+		if (!Command::handleCommand(this, user, fd, message))
+		{	// Just for testing, in a proper IRC implementation, below would be a "Command unknown" response
+			// (Also broadcast / channel messages have a command prefix)
+			nick = getUserNickSafe(fd);
+			broadcastMessage(fd, nick, message); // allows testing without full IRC client (works with telnet, nc)
+		}
 	}
 }
 
@@ -138,8 +144,7 @@ void	Server::extractMessagesFromBuffer(int fd, User* user)
 void	Server::broadcastMessage(int senderFd, const std::string& nick, const std::string& message)
 {
 	// Format the message with color and sender nickname --> LIKELY HANDLED BY IRC CLIENT
-	std::string output =	std::string(MAGENTA) + std::string(BOLD) + nick
-							+ ": " + std::string(RESET) + message + "\n";
+	std::string output =	nick+ ": " + message + "\n";
 
 	// Loop through all connected users
 	std::map<int, User*>::iterator	it = _usersFd.begin();
@@ -198,6 +203,8 @@ void	Server::handleDisconnection(int fd, const std::string& reason)
 
 	std::cerr	<< RED << "Removing user "
 				<< GREEN << nick << RED
+				<< GREEN << " " << getUser(fd)->getUsername() << RED
+				<< GREEN << " " << getUser(fd)->getRealname() << RED
 				<< " (" << MAGENTA << "fd " << fd << RED << "): "
 				<< reason << RESET << std::endl;
 }

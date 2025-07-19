@@ -25,7 +25,7 @@ CXXFLAGS :=		-std=c++98
 CXXFLAGS +=		-Werror -Wextra -Wall
 CXXFLAGS +=		-Wshadow	# Warns about shadowed variables.
 CXXFLAGS +=		-Wpedantic	# Enforces strict ISO C++ compliance.
-#CXXFLAGS +=	-g
+CXXFLAGS +=		-g -O0
 
 # Used for progress bar
 TOTAL_SRCS :=	$(words $(SRCS))
