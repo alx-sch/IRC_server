@@ -121,7 +121,7 @@ When a user connects to an IRC server via a client, they register by sending a s
 Once the server receives all required fields ( `NICK `, `USER `, and  `PASS ` if required), the client is marked as registered, and the server typically
 responds with welcome messages (numeric replies  `001` through  `004`), for example:
 
-```ruby
+```text
 001 Alex :Welcome to the IRC Network, Alex!alex@your-ip
 002 Alex :Your host is irc.example.org, running version ircd-1.0
 003 Alex :This server was created Fri Jul 19 2024 at 15:00:00 UTC
