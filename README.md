@@ -98,6 +98,22 @@ This project is a collaboration between:
 
 ---
 
+## IRC Client
+
+### Initial registration (sent by client on connect):
+To register as a user, the client must send both of:
+
+1. `NICK <nickname>`   
+     - Sets the user's nickname    
+     - Server must validate it and make sure it's not already in use
+
+2. `USER <username> <hostname> <servername> :<realname>`    
+    - Only `username` and `realname` are relevant. In modern IRC usage, `hostname` and `servername` are mostly obsolete and ignored by the server.
+
+Only once both are received is the client considered registered, and the server may send welcome messages (reply code: `001–004`).
+
+---
+
 ## Commands to Implement
 
  Command: USER 
