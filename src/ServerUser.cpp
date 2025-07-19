@@ -117,6 +117,10 @@ void	Server::extractMessagesFromBuffer(int fd, User* user)
 		message = buffer.substr(0, newlinePos);
 		buffer.erase(0, newlinePos + 1);
 
+		// Remove trailing carriage return if present (from \r\n, as sent by IRC clients)
+		if (!message.empty() && message[message.size() - 1] == '\r')
+			message.erase(message.size() - 1);
+
 		// You could also parse commands here (e.g. NICK, USER) in future
 		nick = getUserNickSafe(fd);
 		broadcastMessage(fd, nick, message);
