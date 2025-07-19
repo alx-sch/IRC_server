@@ -101,16 +101,39 @@ This project is a collaboration between:
 ## IRC Client
 
 ### Initial registration (sent by client on connect):
-To register as a user, the client must send both of:
+When a client connects to an IRC server, it must register by sending a specific sequence of commands to be recognized as a valid user.
 
-1. `NICK <nickname>`   
-     - Sets the user's nickname    
-     - Server must validate it and make sure it's not already in use
+1. `PASS <password>`
+    - Optional, but must come first.
+    - If the server requires a password and it is not sent or incorrect, it replies with `464 ERR_PASSWDMISMATCH` and closes the connection.
+    - If `PASS` is sent after `NICK` or `USER`, the server replies with `462 ERR_ALREADYREGISTRED`.
+      
+2. `NICK <nickname>`   
+     - Sets the user's nickname.
+     - The nickname must be unique and valid (e.g. no spaces, limited symbols).
+     - If the nickname is already in use, the server replies with `433 ERR_NICKNAMEINUSE`.
 
-2. `USER <username> <hostname> <servername> :<realname>`    
-    - Only `username` and `realname` are relevant. In modern IRC usage, `hostname` and `servername` are mostly obsolete and ignored by the server.
+3. `USER <username> <hostname> <servername> :<realname>`
+    - Despite four fields, only `username` and `realname` are used in modern IRC servers.
+    - `hostname` and `servername` are obsolete and typically ignored.
+    - The  `realname ` must be prefixed with a colon ( `:`), because everything after it is treated as a single token, even if it contains spaces.
 
-Only once both are received is the client considered registered, and the server may send welcome messages (reply code: `001–004`).
+Once the server receives all required fields ( `NICK `, `USER `, and  `PASS ` if required), the client is marked as registered, and the server typically
+responds with welcome messages (numeric replies  `001` through  `004`), for example:
+
+```ruby
+001 Alex :Welcome to the IRC Network, Alex!alex@your-ip
+002 Alex :Your host is irc.example.org, running version ircd-1.0
+003 Alex :This server was created Fri Jul 19 2024 at 15:00:00 UTC
+004 Alex irc.example.org ircd-1.0 aiowrs
+```
+
+| Code | Meaning                                                                 |
+|------|-------------------------------------------------------------------------|
+| 001  | Welcome message – confirms the nickname and shows your identity (`nick!username@host`) |
+| 002  | Server hostname and version                                             |
+| 003  | Server creation date/time                                               |
+| 004  | Server name, version, supported user and channel modes                 |
 
 ---
 
