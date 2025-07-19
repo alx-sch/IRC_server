@@ -1,6 +1,58 @@
-Let me note the logic behind the execution of every command
+Let me note the logic behind the execution of irc commands - pavlos
+
+
+ALL check for the minimum required parameters
+
+
+USER (4 params)
+	this is a command used internally (I think) to establish the identity of the user 
+	<username> <hostname> <servername> <realname>
+
+	check if all 4 parameters are present 
+	is user already registered? 
+		yes -> some kind of error
+		no -> set user identity info 
+
+KICK
+are there at least two parameters?
+
+	does the first parameter correspond to an active channel?
+	server checks if sender is operator 
+	does the second parameter correspond to the nickname of a user in the channel?
+	server removes user from channel 
+	
+ 
+INVITE
+
+
+TOPIC (min. 1 parameter)
+	this can be used both for viewing the topic and changing it 
+	<channel> [<topic>]
+	does the channel exist 
+	is the sender a member 
+	if the second parameter is defined AND topic protection is enable 
+		- is sended the channel operator?
+
+
+ 
+ Command: MODE
+  `Parameters: <channel> {[+|-]|o|p|s|i|t|n|b|v} [<limit>] [<user>]`
+               `[<ban mask>]`
+OR
+` Parameters: <nickname> {[+|-]|i|w|s|o}`
+https://www.rfc-editor.org/rfc/rfc1459#section-4.2.3
+ 
+LIST
+ [<channel>{,<channel>}][<server>] -- note the parameters here are optional
+ for every channel in channel parameters that exists 
+	return channel 
+for every server in server parameters that is valid 
+	return server 
+	
+
 
 MSG
+ <target> <text>
  server checks
 	are there at least two parameters?
 	does the first parameter correspond to the nickname of a user in the channel?
@@ -17,3 +69,29 @@ JOIN
 	   add the client nickname to the set of users in the channel 
 	if no then create channel 
 	add client to channel
+
+
+PART
+   Parameters: <channel>{,<channel>}
+   The PART message causes the client sending the message to be removed
+   from the list of active users for all given channels listed in the
+   parameter string.
+
+   Numeric Replies:
+
+           ERR_NEEDMOREPARAMS              ERR_NOSUCHCHANNEL
+           ERR_NOTONCHANNEL
+
+OPER
+   Parameters: <user> <password>
+
+   OPER message is used by a normal user to obtain operator privileges.
+   The combination of <user> and <password> are required to gain
+   Operator privileges.
+
+
+
+Command: NICK
+   Parameters: <nickname> [ <hopcount> ]
+
+*the hopcount is weird and I don't fully get it*
