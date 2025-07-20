@@ -20,8 +20,13 @@ private:
 	std::string _channel_key; // password set by k
 
 public:
-	Channel(/* args */);
+	Channel(std::string name);
 	~Channel();
+
+    // Getters
+    const std::string& get_name() const;
+
+    Channel* get_channel(const std::string& channelName) const;
 
 	void add_user(const std::string& user_nick);
 	void remove_user(const std::string& user_nick);
@@ -53,13 +58,5 @@ public:
 	bool validate_password(const std::string& password) const;
 
 };
-
-Channel::Channel(/* args */)
-{
-}
-
-Channel::~Channel()
-{
-}
 
 #endif

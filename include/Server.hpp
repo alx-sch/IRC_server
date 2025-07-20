@@ -6,7 +6,10 @@
 # include <vector>
 # include <sys/select.h>	// for fd_set
 
+#include "Channel.hpp"    // Include Channel class for channel management
+
 class	User;	// no include needed as only pointer is used
+
 
 class Server
 {
@@ -28,6 +31,8 @@ class Server
 		std::map<std::string, User*>&	getNickMap();
 		void				removeNickMapping(const std::string& nickname);
 
+        Channel*    getChannel(const std::string& channelName) const;
+        void		addChannel(Channel* channel);
 	private:
 		// Disable default constructor and copying (makes no sense for a server)
 		Server();
@@ -46,7 +51,8 @@ class Server
 		int								_fd;		// server socket fd (listening socket)
 		std::map<int, User*>			_usersFd;	// Keep track of active users by fd
 		std::map<std::string, User*>	_usersNick;	// Keep track of active users by nickname
-
+        
+        std::map<std::string, Channel*>	_channels;	// Keep track of channels by name
 		// === ServerSocket.cpp ===
 
 		void		initSocket();
@@ -70,6 +76,7 @@ class Server
 
 		User*		getUser(int fd) const;
 		User*		getUser(const std::string& nickname) const;
+
 
 };
 

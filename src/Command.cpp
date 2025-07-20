@@ -143,6 +143,73 @@ bool	Command::handlePass(Server* server, User* user, const std::vector<std::stri
 	return true;
 }
 
+bool     Command::handleJoin(Server* server, User* user, const std::vector<std::string>& tokens)
+{
+    if (tokens.size() < 2)
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") " << "sent JOIN without a channel name\n";
+        user->replyError(403, "", "No channel specified");
+        return false;
+    }
+    const std::string& channelName = tokens[1];
+    if (channelName.empty() || channelName[0] != '#')
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") " << "sent JOIN with invalid channel name: " << channelName << "\n";
+        user->replyError(403, channelName, "Invalid channel name");
+        return false;
+    }
+    Channel* channel = server->getChannel(channelName);
+    if (!channel)
+    {
+        channel = new Channel( channelName);
+        if (!channel)
+        {
+            std::cerr << "Failed to create channel: " << channelName << std::endl;
+            user->replyError(500, "", "Internal server error");
+            return false;
+        }
+        server->addChannel(channel);
+        std::cout << "Channel " << channelName << " created.\n";
+    }
+    if (tokens.size() > 2 && tokens[2][0] == ':')
+    {
+        std::string providedKey = tokens[2].substr(1); 
+        if (!channel->validate_password(providedKey))
+        {
+            std::cout << GREEN << user->getNickname() << RESET
+                      << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                      << ") " << "tried to join channel " << channelName
+                      << " with incorrect password\n";
+            user->replyError(475, channelName, "Cannot join channel (bad password)");
+            return false;
+        }
+    }
+    else if (!channel->can_user_join(user->getNickname(), ""))
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") " << "tried to join channel " << channelName << " but cannot join\n";
+        if (channel->is_invite_only() && !channel->is_invited(user->getNickname()))
+            user->replyError(473, channelName, "Cannot join channel (invite only)");
+        else if (channel->has_user_limit() && channel->is_at_user_limit())
+            user->replyError(471, channelName, "Cannot join channel (user limit reached)");
+        return false;
+    }
+    channel->add_user(user->getNickname());
+    std::cout << GREEN << user->getNickname() << RESET
+              << " (" << MAGENTA << "fd " << user->getFd() << RESET
+              << ") " << "joined channel " << channelName << "\n";
+    user->getInputBuffer() += "JOIN " + channelName + "\r\n";
+    user->replyWelcome(); 
+    return true;
+    
+
+}
+
 ///////////
 // Utils //
 ///////////

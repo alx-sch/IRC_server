@@ -129,3 +129,25 @@ void	Server::removeNickMapping(const std::string& nickname)
 {
 	_usersNick.erase(nickname);
 }
+
+void Server::addChannel(Channel* channel)
+{
+    if (!channel)
+        throw std::invalid_argument("Cannot add a null channel");
+
+    const std::string& channelName = channel->get_name();
+    if (_channels.find(channelName) != _channels.end())
+    {
+        std::cerr << "Channel " << channelName << " already exists!" << std::endl;
+        return;
+    }
+
+    _channels[channelName] = channel;
+}
+
+Channel* Server::getChannel(const std::string& channelName) const
+{
+    if (_channels.find(channelName) != _channels.end())
+        return _channels.find(channelName)->second;
+    return 0; // Channel not found
+}
