@@ -75,37 +75,57 @@ void	Server::run()
 // Getters //
 /////////////
 
+// Returns the server name.
 const std::string&	Server::getServerName() const
 {
 	return _name;
 }
 
+// Returns the server version.
 const std::string&	Server::getVersion() const
 {
 	return _version;
 }
 
+// Returns the network name.
 const std::string&	Server::getNetwork() const
 {
 	return _network;
 }
 
+// Returns the server creation time.
 const std::string&	Server::getCreationTime() const
 {
 	return _creationTime;
 }
 
+// Returns the server password.
 const std::string&	Server::getPassword() const
 {
 	return _password;
 }
 
+// Returns the channel modes string.
 const std::string&	Server::getCModes() const
 {
 	return _cModes;
 }
 
+// Returns the user modes string.
 const std::string&	Server::getUModes() const
 {
 	return _uModes;
+}
+
+// Returns a map of active users by nickname.
+std::map<std::string, User*>&	Server::getNickMap()
+{
+	return _usersNick;
+}
+
+// Removes a nickname mapping from the server's user map.
+// Used when user changes their nickname.
+void	Server::removeNickMapping(const std::string& nickname)
+{
+	_usersNick.erase(nickname);
 }

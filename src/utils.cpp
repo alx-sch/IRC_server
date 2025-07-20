@@ -34,3 +34,28 @@ std::string	getFormattedTime()
 
 	return std::string(buffer);
 }
+
+// Checks if a character is a letter (`a-z`, `A-Z`)
+// Returns true if the character is a letter, false otherwise.
+bool	isLetter(char c)
+{
+	const std::string	letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	return letters.find(c) != std::string::npos;
+}
+
+// Checks if a character is a digit (`0-9`)
+// Returns true if the character is a digit, false otherwise.
+bool	isDigit(char c)
+{
+	const std::string	numbers = "0123456789";
+	return numbers.find(c) != std::string::npos;
+}
+
+// Checks if a character is a special character
+// (`-`, `[`, `]`, `\`, `` ` ``, `^`, `{`, `}`)
+// Returns true if the character is a special character, false otherwise.
+bool	isSpecial(char c)
+{
+	const std::string	specials = "-[]\\`^{}";
+	return specials.find(c) != std::string::npos;
+}

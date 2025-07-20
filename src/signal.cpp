@@ -3,7 +3,7 @@
 
 volatile sig_atomic_t	g_running = 1;
 
-// Handles SIGINT (Ctrl+C)
+// Handles `SIGINT` (Ctrl+C)
 static void	handleSignal(int signum)
 {
 	(void)signum;
@@ -12,7 +12,7 @@ static void	handleSignal(int signum)
 	g_running = 0;
 }
 
-// Sets up a signal handler for SIGINT to gracefully shut down the server.
+// Sets up a signal handler for `SIGINT` to gracefully shut down the server.
 void	setupSignalHandler()
 {
 	if (std::signal(SIGINT, handleSignal) == SIG_ERR)

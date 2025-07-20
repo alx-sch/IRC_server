@@ -3,26 +3,27 @@
 
 #include "../include/User.hpp"
 #include "../include/Server.hpp"
-#include "../include/defines.hpp"
 
 /**
  Sends the standard IRC welcome messages (numeric `001`–`004`)
  after a user successfully completes registration.
 
+ Source: https://dd.ircdocs.horse/refs/numerics/
+
  @param server 	Pointer to the Server object (used to get server name, version, modes, etc.)
 */
 void	User::replyWelcome()
 {
-	sendReply("001 " + _nickname + " :Welcome to the " + NETWORK + " Network, "
-		+ _nickname	 + "!" + _username + "@" + _host); // username@host might be not needed, check with HexChat
+	sendReply("001 " + _nickname + " :Welcome to the " + _server->getNetwork()
+		+ " Network, " + _nickname	 + "!" + _username + "@" + _host); // username@host might be not needed, check with HexChat
 
 	sendReply("002 " + _nickname + " :Your host is " + _server->getServerName()
-		+ ", running version " + VERSION);
+		+ ", running version " + _server->getVersion());
 
 	sendReply("003 " + _nickname + " :This server was created " + _server->getCreationTime());
 
-	sendReply("004 " + _nickname + " " + _server->getServerName() + " " + VERSION
-		+ " " + _server->getCModes() + " " + _server->getUModes());
+	sendReply("004 " + _nickname + " " + _server->getServerName() + " "
+		+ _server->getVersion() + " " + _server->getCModes() + " " + _server->getUModes());
 }
 
 /**
@@ -32,14 +33,17 @@ void	User::replyWelcome()
  @param code 		Numeric IRC error code (e.g. 464, 462, 433)
  @param message 	Human-readable message to display
 */
-void	User::replyError(int code, const std::string& message)
+void	User::replyError(int code, const std::string& param, const std::string& message)
 {
 	// If the user has no nickname yet, use '*'
 	std::string			target = isRegistered() ? _nickname : "*";
 
 	// Build message: <code> <target> :<message>
 	std::ostringstream	oss;
-	oss << code << " " << target << " :" << message;
+	oss << code << " " << target;
+	if (!param.empty())
+		oss << " " << param;
+	oss << " :" << message;
 
 	sendReply(oss.str());
 }
@@ -57,5 +61,8 @@ void	User::sendReply(const std::string& message)
 
 	std::string	fullMessage = ":" + _server->getServerName() + " " + message + "\r\n";
 	if (send(_fd, fullMessage.c_str(), fullMessage.length(), 0) == -1)
+	{
 		_server->handleSendError(_fd, _nickname);
+		return;
+	}
 }

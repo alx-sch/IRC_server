@@ -9,6 +9,9 @@
 
 int			parsePort(const char* arg);
 std::string	getFormattedTime();
+bool		isLetter(char c);
+bool		isDigit(char c);
+bool		isSpecial(char c);
 
 // Converts any type to a `std::string` using stringstream
 template <typename T>

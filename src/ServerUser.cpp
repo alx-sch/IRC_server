@@ -3,6 +3,8 @@
 #include <cstring>		// strerror()
 #include <cerrno>		// errno
 #include <stdexcept>	// std::runtime_error()
+#include <map>
+#include <vector>
 
 #include <unistd.h>		// close()
 #include <sys/types.h>	// size_t, ssize_t
@@ -39,13 +41,13 @@ void	Server::acceptNewUser()
 				<< ":" << ntohs(userAddr.sin_port)	<< RESET	// Port (convert from network order)
 				<< " (" << MAGENTA << "fd " << userFd << RESET << ")\n";
 
-	User* newUser = new User(this);
+	User* newUser = new User(userFd, this);
 	_usersFd[userFd] = newUser;
 }
 
-///////////////////////////////////
-// Input Handling & Broadcasting //
-///////////////////////////////////
+/////////////////////////
+// Handling User Input //
+/////////////////////////
 
 /**
  Handles input readiness for all connected users.
@@ -68,7 +70,7 @@ void	Server::handleReadyUsers(fd_set& readFds)
 		++it;
 
 		if (FD_ISSET(userFd, &readFds))
-		{	
+		{
 			if (!handleUserInput(userFd)) // User disconnected or error
 				deleteUser(userFd);
 		}
@@ -87,9 +89,10 @@ void	Server::handleReadyUsers(fd_set& readFds)
 */
 bool	Server::handleUserInput(int fd)
 {
-	char		buffer[MAX_BUFFER_SIZE];	// Temp buffer on the stack for incoming data
-	ssize_t		bytesRead = recv(fd, buffer, sizeof(buffer) - 1, 0);	// Read from user socket
-	User*		user = getUser(fd);
+	char						buffer[MAX_BUFFER_SIZE]; // Temp buffer on the stack for incoming data
+	ssize_t						bytesRead = recv(fd, buffer, sizeof(buffer) - 1, 0); // Read from user socket
+	std::vector<std::string>	messages;
+	User*						user = getUser(fd);
 	if (!user)
 		return false;
 
@@ -103,37 +106,58 @@ bool	Server::handleUserInput(int fd)
 	// Append the received bytes to the user's input buffer
 	user->getInputBuffer().append(buffer, bytesRead);
 
-	extractMessagesFromBuffer(fd, user);
+	messages = extractMessagesFromBuffer(user);
+
+	// Process each complete message
+	for (size_t i = 0; i < messages.size(); ++i)
+	{
+		if (!Command::handleCommand(this, user, fd, messages[i]))
+		{	// Just for testing, in a proper IRC implementation, below would be a "Command unknown" response
+			// (Also broadcast / channel messages have a command prefix)
+			// prob return false here when it's "kickable" user behavior
+			std::string	nick = user->getNickname();
+			broadcastMessage(fd, nick, messages[i]); // allows testing without full IRC client (works with telnet, nc)
+		}
+	}
 
 	return true;
 }
 
-void	Server::extractMessagesFromBuffer(int fd, User* user)
-{
-	std::string&	buffer = user->getInputBuffer();
-	std::string		message;
-	std::string		nick;
-	size_t			newlinePos;
+/**
+Extracts complete IRC messages from the user's input buffer.
 
+ @param user 	Pointer to the user whose input buffer is being processed.
+ @return 		A vector of complete, cleaned IRC messages.
+*/
+std::vector<std::string>	Server::extractMessagesFromBuffer(User* user)
+{
+	std::string&				buffer = user->getInputBuffer(); // Reference to the user's input buffer
+	std::vector<std::string>	messages;
+	std::string					msg;
+	std::string					nick;
+	size_t						newlinePos;
+
+	// Extract complete messages (terminated by '\n')
 	while ((newlinePos = buffer.find('\n')) != std::string::npos)
 	{
-		message = buffer.substr(0, newlinePos);
+		// Get the next full line (up to the newline)
+		msg = buffer.substr(0, newlinePos);
+
+		// Remove it from the input buffer (including the newline)
 		buffer.erase(0, newlinePos + 1);
 
-		// Remove trailing carriage return if present (from \r\n, as sent by IRC clients)
-		if (!message.empty() && message[message.size() - 1] == '\r')
-			message.erase(message.size() - 1);
+		// Handle optional carriage return (\r) for \r\n line endings
+		// (as per IRC spec for server-client communication)
+		if (!msg.empty() && msg[msg.size() - 1] == '\r')
+			msg.erase(msg.size() - 1);
 
-		if (!Command::handleCommand(this, user, fd, message))
-		{	// Just for testing, in a proper IRC implementation, below would be a "Command unknown" response
-			// (Also broadcast / channel messages have a command prefix)
-			nick = getUserNickSafe(fd);
-			broadcastMessage(fd, nick, message); // allows testing without full IRC client (works with telnet, nc)
-		}
+		// Store the clean message in vector
+		messages.push_back(msg);
 	}
+	return messages;
 }
 
-/**
+/** TESTING! WON'T BE IN FINAL VERSION (chat via terminal: telnet, nc)
  Broadcasts a message from one user to all other connected users.
 
  If a `send()` operation fails, it calls `handleSendError()` to log and handle the error.
@@ -162,7 +186,7 @@ void	Server::broadcastMessage(int senderFd, const std::string& nick, const std::
 	}
 }
 
-/**
+/** PROB MOVE TO COMMAND --> WHEN HANDLING MESSAGES THERE
  Handles a failed `send()` operation to a user.
 
  Logs the error to the server terminal.
@@ -199,12 +223,10 @@ void	Server::handleSendError(int fd, const std::string& nick)
 */
 void	Server::handleDisconnection(int fd, const std::string& reason)
 {
-	std::string	nick = getUserNickSafe(fd);
+	std::string	nick = getUser(fd)->getNickname();
 
 	std::cerr	<< RED << "Removing user "
 				<< GREEN << nick << RED
-				<< GREEN << " " << getUser(fd)->getUsername() << RED
-				<< GREEN << " " << getUser(fd)->getRealname() << RED
 				<< " (" << MAGENTA << "fd " << fd << RED << "): "
 				<< reason << RESET << std::endl;
 }
@@ -245,23 +267,6 @@ User*	Server::getUser(const std::string& nickname) const
 	if (it != _usersNick.end())
 		return it->second;
 	return NULL;
-}
-
-/**
- Retrieves the nickname of a user in a safe manner.
-
- If the user is not found or their nickname is empty, returns a default "Guest#<fd>" string.
-
- @param fd 	The file descriptor (socket) of the user to retrieve the nickname for.
- @return 	A safe nickname string.
-*/
-std::string	Server::getUserNickSafe(int fd) const
-{
-	User*	user = getUser(fd);
-	if (!user || user->getNickname().empty())
-		return "Guest#" + toString(fd); // Return a safe default if user not found or nickname not set yet
-	else
-		return (user->getNickname());
 }
 
 //////////////////

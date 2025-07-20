@@ -3,6 +3,7 @@
 
 # include <string>
 # include <map>
+# include <vector>
 # include <sys/select.h>	// for fd_set
 
 class	User;	// no include needed as only pointer is used
@@ -24,6 +25,8 @@ class Server
 		const std::string&	getPassword() const;
 		const std::string&	getCModes() const;
 		const std::string&	getUModes() const;
+		std::map<std::string, User*>&	getNickMap();
+		void				removeNickMapping(const std::string& nickname);
 
 	private:
 		// Disable default constructor and copying (makes no sense for a server)
@@ -58,8 +61,8 @@ class Server
 		void		acceptNewUser();
 		void		handleReadyUsers(fd_set& readFds);
 		bool		handleUserInput(int fd);
-		void		extractMessagesFromBuffer(int fd, User* user);
-		void		broadcastMessage(int senderFd, const std::string& nick, const std::string& message);
+		std::vector<std::string>	extractMessagesFromBuffer(User* user);
+		void		broadcastMessage(int senderFd, const std::string& nick, const std::string& message); // TESTIN ONLY
 		void		handleDisconnection(int fd, const std::string& reason);
 
 		void		deleteUser(int fd);
@@ -67,7 +70,7 @@ class Server
 
 		User*		getUser(int fd) const;
 		User*		getUser(const std::string& nickname) const;
-		std::string	getUserNickSafe(int fd) const;
+
 };
 
 # endif

@@ -1,8 +1,10 @@
-#include <sstream>
+#include <iostream>
+#include <sstream>	// std::istringstream
 
 #include "../include/Command.hpp"
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
+#include "../include/defines.hpp"	// color definitions
 
 /////////////////////
 // Handle Commands //
@@ -26,7 +28,7 @@ bool	Command::handleCommand(Server* server, User* user, int fd, const std::strin
 	{
 		case NICK:		return handleNick(user, tokens);
 		case USER:		return handleUser(user, tokens);
-		case PASS:
+		case PASS:		return handlePass(server, user, tokens);
 			// Handle PASS command
 			break;
 		case PING:
@@ -67,7 +69,14 @@ bool	Command::handleCommand(Server* server, User* user, int fd, const std::strin
 bool	Command::handleNick(User* user, const std::vector<std::string>& tokens)
 {
 	if (tokens.size() < 2)
+	{
+		std::cout	<< GREEN << user->getNickname() << RESET
+					<< " (" << MAGENTA << "fd " << user->getFd() << RESET
+					<< ") " << "sent NICK without a nickname\n";
+
+		user->replyError(431, "", "No nickname given");
 		return false;
+	}
 
 	const std::string&	nick = tokens[1];
 	user->setNickname(nick);
@@ -78,6 +87,16 @@ bool	Command::handleNick(User* user, const std::vector<std::string>& tokens)
 // Command:  `USER <username> <hostname> <servername> :<realname> `
 bool	Command::handleUser(User* user, const std::vector<std::string>& tokens)
 {
+	if (user->isRegistered())
+	{
+		std::cout	<< GREEN << user->getNickname() << RESET
+					<< " (" << MAGENTA << "fd " << user->getFd() << RESET
+					<< ") " << "tried to resend USER after registration\n";
+
+		user->replyError(462, "", "You may not reregister");
+		return false;
+	}
+
 	if (tokens.size() < 5)
 		return false;
 
@@ -93,7 +112,11 @@ bool	Command::handlePass(Server* server, User* user, const std::vector<std::stri
 	// Reject if user already completed registration
 	if (user->isRegistered())
 	{
-		user->replyError(462, "You may not reregister");
+		std::cout	<< GREEN << user->getNickname() << RESET
+					<< " (" << MAGENTA << "fd " << user->getFd() << RESET
+					<< ") " << "tried to resend PASS after registration\n";
+
+		user->replyError(462, "", "You may not reregister");
 		return false; // Not sure if to return false here, might kick user from server?
 	}
 
@@ -102,13 +125,21 @@ bool	Command::handlePass(Server* server, User* user, const std::vector<std::stri
 		return false;
 
 	// Validate the provided password
+	// If server password is empty, any password is accepted
 	const std::string&	password = tokens[1];
-	if (password != server->getPassword())
+	if (server->getPassword() != "" && password != server->getPassword())
 	{
-		user->replyError(464, "Password incorrect");
+		std::cout	<< GREEN << user->getNickname() << RESET
+					<< " (" << MAGENTA << "fd " << user->getFd() << RESET
+					<< ") " << "provided incorrect password\n";
+
+		user->replyError(464, "", "Password incorrect");
 		return false;
 	}
 
+	// Password check passed
+	user->setHasPassed(true);
+	user->tryRegister();
 	return true;
 }
 
