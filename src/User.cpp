@@ -3,6 +3,7 @@
 
 User::User() {}
 User::~User() {}
+User::User(int fd) : _fd(fd) {}
 
 void	User::setNickname(const std::string& nickname)
 {
