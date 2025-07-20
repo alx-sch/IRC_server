@@ -10,9 +10,13 @@
 #include "../include/Server.hpp"
 #include "../include/defines.hpp"	// color formatting
 #include "../include/signal.hpp"	// g_running variable
+#include "../include/utils.hpp"		// getFormattedTime()
 
 Server::Server(int port, const std::string& password) 
-	: _port(port), _fd(-1), _password(password)
+	:	_name(SERVER_NAME), _version(VERSION), _network(NETWORK),
+		_creationTime(getFormattedTime()), _port(port),
+		_password(password), _cModes(C_MODES), _uModes(U_MODES),
+		_fd(-1)
 {
 	initSocket();
 }
@@ -67,7 +71,61 @@ void	Server::run()
 	}
 }
 
-std::string	Server::getPassword() const
+/////////////
+// Getters //
+/////////////
+
+// Returns the server name.
+const std::string&	Server::getServerName() const
+{
+	return _name;
+}
+
+// Returns the server version.
+const std::string&	Server::getVersion() const
+{
+	return _version;
+}
+
+// Returns the network name.
+const std::string&	Server::getNetwork() const
+{
+	return _network;
+}
+
+// Returns the server creation time.
+const std::string&	Server::getCreationTime() const
+{
+	return _creationTime;
+}
+
+// Returns the server password.
+const std::string&	Server::getPassword() const
 {
 	return _password;
+}
+
+// Returns the channel modes string.
+const std::string&	Server::getCModes() const
+{
+	return _cModes;
+}
+
+// Returns the user modes string.
+const std::string&	Server::getUModes() const
+{
+	return _uModes;
+}
+
+// Returns a map of active users by nickname.
+std::map<std::string, User*>&	Server::getNickMap()
+{
+	return _usersNick;
+}
+
+// Removes a nickname mapping from the server's user map.
+// Used when user changes their nickname.
+void	Server::removeNickMapping(const std::string& nickname)
+{
+	_usersNick.erase(nickname);
 }
