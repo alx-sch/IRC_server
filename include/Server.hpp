@@ -33,6 +33,8 @@ class Server
 
         Channel*    getChannel(const std::string& channelName) const;
         void		addChannel(Channel* channel);
+
+        User*		getUser(const std::string& nickname) const;
 	private:
 		// Disable default constructor and copying (makes no sense for a server)
 		Server();
@@ -75,7 +77,7 @@ class Server
 		void		deleteUser(const std::string& nickname);
 
 		User*		getUser(int fd) const;
-		User*		getUser(const std::string& nickname) const;
+
 
 
 };

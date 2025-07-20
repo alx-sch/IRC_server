@@ -210,6 +210,69 @@ bool     Command::handleJoin(Server* server, User* user, const std::vector<std::
 
 }
 
+bool Command::handlePrivmsg(Server *server, User *user, const std::vector<std::string> &tokens)
+{
+    if (tokens.size() < 3)
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") " << "sent PRIVMSG without enough arguments\n";
+        user->replyError(411, "", "No recipient given");
+        return false;
+    }
+    const std::string& targetName = tokens[1];
+    if(targetName[0] == '#')
+    {
+          // It's a channel
+            Channel *channel = server->getChannel(targetName);
+            if (!channel)
+            {
+                std::cout << GREEN << user->getNickname() << RESET
+                        << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                        << ") " << "tried to PRIVMSG non-existing channel: " << targetName << "\n";
+                user->replyError(403, targetName, "No such nick/channel");
+            }
+            else if (!channel->is_user_member(user->getNickname()))
+            {
+                std::cout << GREEN << user->getNickname() << RESET
+                        << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                        << ") " << "tried to PRIVMSG channel " << targetName
+                        << " but is not a member\n";
+                user->replyError(404, targetName, "Cannot send to channel (not a member)");
+                return false;
+            }
+            // If we reach here, it's a valid channel and user is a member
+            std::string message = tokens[2];
+
+            std::cout << GREEN << user->getNickname() << RESET
+                    << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                    << ") " << "sent PRIVMSG to channel " << targetName << "\n";
+            return true;
+    }
+    else
+        {
+             // It's a user
+    User *targetUser = server->getUser(targetName);
+    if (!targetUser)
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") " << "tried to PRIVMSG non-existing user: " << targetName << "\n";
+        user->replyError(401, targetName, "No such nick/channel");
+        return false;
+    }
+    // If we reach here, it's a valid user
+    std::string message = tokens[2];
+    targetUser->getInputBuffer() += "PRIVMSG " + targetName + " :" + message + "\r\n";
+    std::cout << GREEN << user->getNickname() << RESET
+              << " (" << MAGENTA << "fd " << user->getFd() << RESET
+              << ") " << "sent PRIVMSG to user " << targetName << "\n";
+    return true;
+        }
+}
+
+
+
 ///////////
 // Utils //
 ///////////
