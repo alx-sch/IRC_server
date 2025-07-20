@@ -31,6 +31,7 @@ void	User::replyWelcome()
  If the user is not yet registered, the target is replaced with `*`.
 
  @param code 		Numeric IRC error code (e.g. 464, 462, 433)
+ @param param 		Optional parameter for the error (e.g. nickname when invalid)
  @param message 	Human-readable message to display
 */
 void	User::replyError(int code, const std::string& param, const std::string& message)
