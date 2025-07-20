@@ -34,8 +34,7 @@ bool	Command::handleCommand(Server* server, User* user, int fd, const std::strin
 		case PING:
 			// Handle PING command
 			break;
-		case JOIN:
-			// Handle JOIN command
+		case JOIN:      return handleJoin(server, user, tokens);        
 			break;
 		case PART:
 			// Handle PART command
@@ -43,17 +42,14 @@ bool	Command::handleCommand(Server* server, User* user, int fd, const std::strin
 		case QUIT:
 			// Handle QUIT command
 			break;
-		case PRIVMSG:
-			// Handle PRIVMSG command
+		case PRIVMSG:   return handlePrivmsg(server, user, tokens);
 			break;
-		case TOPIC:
-			// Handle TOPIC command
+		case TOPIC:     return handleTopic(server, user, tokens);
 			break;
 		case KICK:
 			// Handle KICK command
 			break;
-		case INVITE:
-			// Handle INVITE command
+		case INVITE:    return handleInvite(server, user, tokens);
 			break;
 		case MODE:
 			// Handle MODE command
@@ -270,6 +266,159 @@ bool Command::handlePrivmsg(Server *server, User *user, const std::vector<std::s
     return true;
         }
 }
+
+bool handleTopic(Server *server, User *user, const std::vector<std::string> &tokens)
+{
+    if (tokens.size() < 2)
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") " << "sent TOPIC without a channel name\n";
+        user->replyError(403, "", "No channel specified");
+        return false;
+    }
+    const std::string& channelName = tokens[1];
+    Channel* channel = server->getChannel(channelName);
+    if (!channel)
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") " << "tried to set topic for non-existing channel: " << channelName << "\n";
+        user->replyError(403, channelName, "No such channel");
+        return false;
+    }
+    if (!channel->is_user_member(user->getNickname()))
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") " << "tried to set topic for channel "
+                  << channelName << ", but is not a member\n";
+        user->replyError(442, channelName, "You're not on that channel");
+        return false;
+    }
+    if (tokens.size() > 2)
+    {
+        std::string newTopic = tokens[2];
+        if (newTopic[0] == ':')
+            newTopic = newTopic.substr(1); // Remove leading ':'
+        if (channel->has_topic_protection() && !channel->is_user_operator(user->getNickname()))
+        {
+            std::cout << GREEN << user->getNickname() << RESET
+                      << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                      << ") " << "tried to set topic for channel "
+                      << channelName << ", but is not an operator\n";
+            user->replyError(482, channelName, "You're not channel operator");
+            return false;
+        }
+        channel->set_topic(newTopic);
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") set topic for channel "
+                  << channelName
+                  << ": \"" + newTopic + "\"\n";
+        return true;
+    }
+    else
+    {
+        // No new topic provided, just show current topic
+        std::string currentTopic = channel->get_topic();
+        if (currentTopic.empty())
+            currentTopic = "(no topic)";
+        user->getInputBuffer() += ":"
+                                  + server->getServerName() + " TOPIC "
+                                  + channelName + " :" + currentTopic + "\r\n";
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") requested topic for channel "
+                  << channelName << ": \"" + currentTopic + "\"\n";
+        return true;
+    }
+}
+
+bool Command::handleInvite(Server* server, User* user, const std::vector<std::string>& tokens)
+{
+    if (tokens.size() < 3)
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") " << "sent INVITE without enough arguments\n";
+        user->replyError(461, "", "Not enough parameters");
+        return false;
+    }
+    
+    const std::string& targetNick = tokens[1];
+    const std::string& channelName = tokens[2];
+    
+    // Check if channel exists
+    Channel* channel = server->getChannel(channelName);
+    if (!channel)
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") tried to invite to non-existing channel: " << channelName << "\n";
+        user->replyError(403, channelName, "No such channel");
+        return false;
+    }
+    
+    // Check if user is on the channel (required to invite others)
+    if (!channel->is_user_member(user->getNickname()))
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") tried to invite to channel " << channelName
+                  << " but is not a member\n";
+        user->replyError(442, channelName, "You're not on that channel");
+        return false;
+    }
+    
+    // For invite-only channels, check if user is operator
+    if (channel->is_invite_only() && !channel->is_user_operator(user->getNickname()))
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") tried to invite to invite-only channel "
+                  << channelName << " but is not an operator\n";
+        user->replyError(482, channelName, "You're not channel operator");
+        return false;
+    }
+    
+    // Check if target user exists
+    User* targetUser = server->getUser(targetNick);
+    if (!targetUser)
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") tried to invite non-existing user: " << targetNick << "\n";
+        user->replyError(401, targetNick, "No such nick/channel");
+        return false;
+    }
+    
+    // Check if target is already on the channel
+    if (channel->is_user_member(targetNick))
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") tried to invite already member " << targetNick
+                  << " to channel " << channelName << "\n";
+        user->replyError(443, targetNick + " " + channelName, "is already on channel");
+        return false;
+    }
+    
+    // Add to invite list (for invite-only channels)
+    if (channel->is_invite_only())
+    {
+        channel->add_invite(targetNick);
+    }
+    
+// here we need to send the invite message to the target user
+// and also a reply success number
+    std::cout << GREEN << user->getNickname() << RESET
+              << " (" << MAGENTA << "fd " << user->getFd() << RESET
+              << ") invited " << targetNick << " to channel " << channelName << "\n";
+    
+    return true;
+}
+
 
 
 

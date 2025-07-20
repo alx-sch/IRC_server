@@ -43,6 +43,9 @@ class	Command
         static bool     handleJoin(Server* server, User* user, const std::vector<std::string>& tokens);
         static bool     handlePrivmsg(Server *server, User *user, const std::vector<std::string> &tokens);
 
+        static bool		handleTopic(Server* server, User* user, const std::vector<std::string>& tokens);
+        static bool		handleInvite(Server* server, User* user, const std::vector<std::string>& tokens);
+
         static std::vector<std::string>	tokenize(const std::string& message);
 		static Type		getType(const std::string& message);
 };

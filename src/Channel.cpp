@@ -107,6 +107,12 @@ bool Channel::is_invited(const std::string& nickname) const
 	return true;
 }
 
+void Channel::add_invite(const std::string &nickname)
+{
+    if (_channel_invitation_list.find(nickname) == _channel_invitation_list.end())
+        _channel_invitation_list.insert(nickname);
+}
+
 bool Channel::has_password() const
 {
 	if (!_channel_key.empty())

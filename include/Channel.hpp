@@ -51,6 +51,7 @@ public:
 	void set_invite_only();
 	bool is_invite_only() const;
 	bool is_invited(const std::string& nickname) const;
+    void add_invite(const std::string& nickname);
 
 
 	bool has_password() const;
