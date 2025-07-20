@@ -39,7 +39,7 @@ void	User::replyError(int code, const std::string& param, const std::string& mes
 	// If the user has no nickname yet, use '*'
 	std::string			target = isRegistered() ? _nickname : "*";
 
-	// Build message: <code> <target> :<message>
+	// Build message: <code> <target> [<param>] :<message>
 	std::ostringstream	oss;
 	oss << code << " " << target;
 	if (!param.empty())
