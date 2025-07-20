@@ -11,6 +11,7 @@ class	User
 	public:
 		User();
 		~User();
+        User(int fd) : _fd(fd) {};
 
 		void				setNickname(const std::string& nickname);
 		void				setUsername(const std::string& username);
