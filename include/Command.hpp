@@ -36,12 +36,12 @@ class	Command
 			MODE
 		};
 
-		static bool						handleNick(User* user, const std::vector<std::string>& tokens);
-		static bool						handleUser(User* user, const std::vector<std::string>& tokens);
+		static bool		handleNick(User* user, const std::vector<std::string>& tokens);
+		static bool		handleUser(User* user, const std::vector<std::string>& tokens);
+		static bool		handlePass(Server* server, User* user, const std::vector<std::string>& tokens);
 		
 		static std::vector<std::string>	tokenize(const std::string& message);
-		static Type						getType(const std::string& message);
-	
+		static Type		getType(const std::string& message);
 };
 
 #endif
