@@ -1,7 +1,7 @@
 #include <iostream>
 
 #include "../include/User.hpp"
-#include "../include/defines.hpp"	// color definitions
+#include "../include/utils.hpp"	// logUserAction()
 
 // Sets status of whether the user has passed the password check to `b`.
 void	User::setHasPassed(bool b)
@@ -24,11 +24,7 @@ void	User::tryRegister()
 	if (_hasNick && _hasUser && _hasPassed)
 	{
 		_isRegistered = true;
-
-		std::cout	<< GREEN << getNickname() << RESET
-					<< " (" << MAGENTA << "fd " << _fd << RESET
-					<< ") successfully registered" << std::endl;
-
+		logUserAction(_nickname, _fd, "successfully registered");
 		replyWelcome();	// Send welcome messages
 	}
 }

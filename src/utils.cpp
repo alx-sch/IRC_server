@@ -1,4 +1,5 @@
 #include "../include/utils.hpp"
+#include "../include/defines.hpp"	// MAX_NICK_LENGTH, color formatting
 
 // Parses and validates a port number from a C-style string (argument)
 int	parsePort(const char* arg)
@@ -16,7 +17,7 @@ int	parsePort(const char* arg)
 }
 
 /**
- Returns the current server time formatted as a human-readable UTC string.
+ Returns the current time formatted as a readable string.
 
  Example output:
 	`Fri Jul 19 2025 at 21:47:30 UTC`
@@ -37,7 +38,7 @@ std::string	getFormattedTime()
 
 // Checks if a character is a letter (`a-z`, `A-Z`)
 // Returns true if the character is a letter, false otherwise.
-bool	isLetter(char c)
+static bool	isLetter(char c)
 {
 	const std::string	letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 	return letters.find(c) != std::string::npos;
@@ -45,7 +46,7 @@ bool	isLetter(char c)
 
 // Checks if a character is a digit (`0-9`)
 // Returns true if the character is a digit, false otherwise.
-bool	isDigit(char c)
+static bool	isDigit(char c)
 {
 	const std::string	numbers = "0123456789";
 	return numbers.find(c) != std::string::npos;
@@ -54,8 +55,52 @@ bool	isDigit(char c)
 // Checks if a character is a special character
 // (`-`, `[`, `]`, `\`, `` ` ``, `^`, `{`, `}`)
 // Returns true if the character is a special character, false otherwise.
-bool	isSpecial(char c)
+static bool	isSpecial(char c)
 {
 	const std::string	specials = "-[]\\`^{}";
 	return specials.find(c) != std::string::npos;
+}
+
+/**
+ Check if the nickname is valid according to IRC rules
+ - Must not be empty
+ - Max length is 9 characters
+ - Must start with a letter
+ - Can contain letters, digits, and special characters
+
+ <nick> ::= <letter> { <letter> | <number> | <special> }
+*/
+bool	isValidNick(const std::string& nick)
+{
+	if (nick.empty() || nick.length() > MAX_NICK_LENGTH)
+		return false;
+
+	if (!isLetter(nick[0])) // IRC rule: must start with a letter
+		return false;
+
+	for (unsigned int i = 1; i < nick.length(); ++i)
+	{
+		char	c = nick[i];
+		if (!isLetter(c) && !isDigit(c) && !isSpecial(c))
+			return false;
+	}
+	return true;
+}
+
+/**
+ Formats a log line with aligned nickname and fd columns.
+
+ @param nick 		The user's nickname
+ @param fd 			The user's socket fd
+ @param message 	The message to log
+*/
+void	logUserAction(const std::string& nick, int fd, const std::string& message)
+{
+	std::ostringstream	oss;
+
+	oss	<< GREEN << std::left << std::setw(MAX_NICK_LENGTH + 1) << nick << RESET // pad nick + some space
+		<< "(" << MAGENTA << "fd " << std::right << std::setw(3) << fd << RESET << ") "
+		<< message;
+
+	std::cout << oss.str() << std::endl;
 }
