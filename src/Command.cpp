@@ -11,7 +11,20 @@
 // Handle Commands //
 ///////////////////// 
 
-bool	Command::handleCommand(Server* server, User* user, int fd, const std::string& message)
+/**
+ Handles a single IRC command received from a client.
+
+ This function tokenizes the raw input `message`, determines the command type,
+ and calls the appropriate handler (e.g. handleNick, handleUser, etc.).
+
+ @param server		Pointer to the IRC server instance.
+ @param user		Pointer to the User object.
+ @param message		The raw IRC message line received from the user/client.
+
+ @return 			`true` if the command was successfully recognized and handled;
+ 					`false` if the message was empty, command was unknown, or command execution failed.
+*/
+bool	Command::handleCommand(Server* server, User* user, const std::string& message)
 {
 	if (message.empty())
 		return false;
@@ -22,12 +35,9 @@ bool	Command::handleCommand(Server* server, User* user, int fd, const std::strin
 
 	Command::Type				cmdType = Command::getType(message);
 
-	(void)server; // prob needed by other commands?
-	(void)fd; // prob needed by other commands?
-
 	switch (cmdType)
 	{
-		case NICK:		return handleNick(user, tokens);
+		case NICK:		return handleNick(server, user, tokens);
 		case USER:		return handleUser(user, tokens);
 		case PASS:		return handlePass(server, user, tokens);
 			// Handle PASS command
@@ -67,7 +77,7 @@ bool	Command::handleCommand(Server* server, User* user, int fd, const std::strin
 
 // Handles the `NICK` command for a user. Also part of the initial client registration.
 // Command: `NICK <nickname>`
-bool	Command::handleNick(User* user, const std::vector<std::string>& tokens)
+bool	Command::handleNick(Server* server, User* user, const std::vector<std::string>& tokens)
 {
 	if (tokens.size() < 2)
 	{
@@ -88,7 +98,7 @@ bool	Command::handleNick(User* user, const std::vector<std::string>& tokens)
 	}
 
 	// Nickname is already in use?
-	if (user->getServer()->getNickMap().count(nick) > 0)
+	if (server->getNickMap().count(nick) > 0)
 	{
 		logUserAction(user->getNickname(), user->getFd(),
 			std::string("tried to set a nickname already in use: ") + YELLOW + nick + RESET);
@@ -129,7 +139,6 @@ bool	Command::handleUser(User* user, const std::vector<std::string>& tokens)
 // Command: `PASS <password>`
 bool	Command::handlePass(Server* server, User* user, const std::vector<std::string>& tokens)
 {
-	// Reject if user already completed registration
 	if (user->isRegistered())
 	{
 		logUserAction(user->getNickname(), user->getFd(), "tried to resend PASS after registration");
@@ -137,7 +146,6 @@ bool	Command::handlePass(Server* server, User* user, const std::vector<std::stri
 		return false;
 	}
 
-	// Reject if password argument is missing
 	if (tokens.size() < 2)
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent invalid PASS command (missing password)");
@@ -156,7 +164,6 @@ bool	Command::handlePass(Server* server, User* user, const std::vector<std::stri
 		return false;
 	}
 
-	// Password check passed
 	user->setHasPassed(true);
 	user->tryRegister();
 	return true;

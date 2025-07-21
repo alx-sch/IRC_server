@@ -111,7 +111,7 @@ bool	Server::handleUserInput(int fd)
 	// Process each complete message
 	for (size_t i = 0; i < messages.size(); ++i)
 	{
-		if (!Command::handleCommand(this, user, fd, messages[i]))
+		if (!Command::handleCommand(this, user, messages[i]))
 		{	// Just for testing, in a proper IRC implementation, below would be a "Command unknown" response
 			// (Also broadcast / channel messages have a command prefix)
 			// prob return false here when it's "kickable" user behavior

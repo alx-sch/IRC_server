@@ -24,7 +24,6 @@ class	User
 		std::string&		getInputBuffer();
 		const std::string&	getNickname() const;
 		const std::string&	getUsername() const;
-		Server*				getServer() const;
 
 		// === UserReply.cpp ===
 
@@ -34,7 +33,7 @@ class	User
 
 		// === UserRegistration.cpp ===
 
-		void				setHasPassed(bool b);
+		void				setHasPassed(bool b);	// Used in handlePass() command handler
 		bool				isRegistered() const;
 		void				tryRegister();
 

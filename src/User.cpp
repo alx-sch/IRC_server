@@ -86,9 +86,3 @@ std::string&	User::getInputBuffer()
 {
 	return _inputBuffer;
 }
-
-// Returns pointer to the server this user is connected to.
-Server*	User::getServer() const
-{
-	return _server;
-}

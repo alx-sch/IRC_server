@@ -10,7 +10,7 @@ class	User;
 class	Command
 {
 	public:
-		static bool	handleCommand(Server* server, User* user, int fd, const std::string& message);
+		static bool	handleCommand(Server* server, User* user, const std::string& message);
 
 	private:
 		// Pure utility class, no need for instantiation
@@ -36,7 +36,7 @@ class	Command
 			MODE
 		};
 
-		static bool		handleNick(User* user, const std::vector<std::string>& tokens);
+		static bool		handleNick(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleUser(User* user, const std::vector<std::string>& tokens);
 		static bool		handlePass(Server* server, User* user, const std::vector<std::string>& tokens);
 		
