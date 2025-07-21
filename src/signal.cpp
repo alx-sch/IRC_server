@@ -8,7 +8,7 @@ static void	handleSignal(int signum)
 {
 	(void)signum;
 
-	std::cout << "\n";	// line break after "^C"
+	std::cout << "\nShutting down server...\n";
 	g_running = 0;
 }
 

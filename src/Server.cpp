@@ -31,7 +31,7 @@ Server::~Server()
 	while (!_usersFd.empty())
 		deleteUser(_usersFd.begin()->first);
 
-	std::cout << "Shutting down server...\n";
+	std::cout << "Server shutdown complete\n";
 }
 
 /**
