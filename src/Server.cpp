@@ -30,6 +30,8 @@ Server::~Server()
 	// Delete all dynamically allocated User objects
 	while (!_usersFd.empty())
 		deleteUser(_usersFd.begin()->first);
+
+	std::cout << "Shutting down server...\n";
 }
 
 /**
