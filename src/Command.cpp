@@ -121,16 +121,17 @@ bool	Command::handleUser(User* user, const std::vector<std::string>& tokens)
 		return false;
 	}
 
-	if (tokens.size() < 5)
+	// Enough arguments? Does realname talen start with a colon?
+	if (tokens.size() < 5 || tokens[4][0] != ':')
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent invalid USER command (too few arguments)");
 		user->replyError(461, "USER", "Not enough parameters");
 		return false;
 	}
-
+	
 	user->setUsername(tokens[1]);
 	user->setHost(tokens[2]);
-	user->setRealname(tokens[4]);
+	user->setRealname(tokens[4].substr(1)); // Remove leading colon from realname
 
 	return true;
 }
@@ -175,12 +176,12 @@ bool	Command::handlePass(Server* server, User* user, const std::vector<std::stri
 
 /**
  Tokenizes a raw IRC message into space-separated parts,
- preserving the trailing parameter(after a colon `:`).
+ preserving the trailing parameter (after a colon `:`).
  
  This function splits an IRC line like:
 	"USER max 0 * :Max Power the Third"
  into:
- 	["USER", "max", "0", "*", "Max Power the Third"]
+ 	["USER", "max", "0", "*", ":Max Power the Third"]
 
  If a token starts with a colon (`:`), the rest of the line (including spaces) is treated
  as a single argument (the trailing parameter), as per IRC protocol.
@@ -201,10 +202,9 @@ std::vector<std::string>	Command::tokenize(const std::string& message)
 		// Assume "USER max 0 * :Max Power the Third"
 		if (token[0] == ':') // token: ":Max"
 		{
-			std::string	trailing = token.substr(1); // strip leading ':' -> token: "Max"
 			std::string	rest;
 			std::getline(iss, rest); // read rest of the line -> rest: " Power the Third"
-			tokens.push_back(trailing + rest); // Combine and add to tokens -> tokens: ["Max Power the Third"]
+			tokens.push_back(token + rest); // Combine and add to tokens -> tokens: [":Max Power the Third"]
 			break; // After processing ':', stop reading more tokens (':' indicates last token)
 		}
 		else
