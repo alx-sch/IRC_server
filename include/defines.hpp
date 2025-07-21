@@ -1,13 +1,16 @@
 #ifndef DEFINES_HPP
 # define DEFINES_HPP
 
-# define SERVER_NAME		"IRC_Rebels"
+# define SERVER_NAME		"42ircRebels"
 # define NETWORK			"42 IRC"
 # define VERSION			"eval-42.42"
 # define C_MODES			"abc"	// Channel modes
 # define U_MODES			"xyz"	// User modes
 
-# define MAX_BUFFER_SIZE	512	// As defined in RFC 1459: IRC messages should not exceed 512 bytes
+// Below is all according to RFC 1459:
+
+# define MAX_BUFFER_SIZE	512 // You can send longer messages, 'recv' just reads in 512-byte chunks.
+# define MAX_NICK_LENGTH	9
 
 # define RED				"\033[31m"
 # define GREEN				"\033[32m"

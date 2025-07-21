@@ -63,7 +63,7 @@ class Server
 		bool		handleUserInput(int fd);
 		std::vector<std::string>	extractMessagesFromBuffer(User* user);
 		void		broadcastMessage(int senderFd, const std::string& nick, const std::string& message); // TESTIN ONLY
-		void		handleDisconnection(int fd, const std::string& reason);
+		void		handleDisconnection(int fd, const std::string& reason, const std::string& source);
 
 		void		deleteUser(int fd);
 		void		deleteUser(const std::string& nickname);
