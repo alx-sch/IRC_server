@@ -121,8 +121,8 @@ bool	Command::handleUser(User* user, const std::vector<std::string>& tokens)
 		return false;
 	}
 
-	// Enough arguments? Does realname talen start with a colon?
-	if (tokens.size() < 5 || tokens[4][0] != ':')
+	// Enough arguments? Does realname token start with a colon?
+	if (tokens.size() < 5 || tokens[4].size() < 2 || tokens[4][0] != ':')
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent invalid USER command (too few arguments)");
 		user->replyError(461, "USER", "Not enough parameters");
