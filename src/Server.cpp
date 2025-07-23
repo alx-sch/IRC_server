@@ -45,7 +45,7 @@ Server::~Server()
 */
 void	Server::run()
 {
-	fd_set	readFds;	// Set of fds to monitor for readability
+	fd_set	readFds, writeFds;	// Sets of fds to monitor for readability and writability
 	int		maxFd;		// Highest fd in the set
 	int		ready;		// Number of ready fds returned by select()
 
@@ -54,9 +54,11 @@ void	Server::run()
 	while (g_running)
 	{
 		maxFd = prepareReadSet(readFds);
+		int writeMaxFd = prepareWriteSet(writeFds);
+		if (writeMaxFd > maxFd) maxFd = writeMaxFd;
 
-		// Pause the program until a socket becomes readable (messages or new connections)
-		ready = select(maxFd + 1, &readFds, NULL, NULL, NULL); // returns number of ready fds
+		// Pause the program until a socket becomes readable or writable
+		ready = select(maxFd + 1, &readFds, &writeFds, NULL, NULL);
 		if (ready == -1)
 		{
 			if (errno == EINTR) // If interrupted by signal (SIGINT), just return to main.
@@ -70,6 +72,9 @@ void	Server::run()
 
 		// Handle user input for all active connections (messages, disconnections)
 		handleReadyUsers(readFds);
+		
+		// Handle user output for all users with pending data
+		handleWriteReadyUsers(writeFds);
 	}
 }
 

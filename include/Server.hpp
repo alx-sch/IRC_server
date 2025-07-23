@@ -63,11 +63,13 @@ class Server
 		void		bindSocket();
 		void		startListening();
 		int			prepareReadSet(fd_set& readFds);
+		int			prepareWriteSet(fd_set& writeFds);
 
 		// === ServerUser.cpp ===
 
 		void		acceptNewUser();
 		void		handleReadyUsers(fd_set& readFds);
+		void		handleWriteReadyUsers(fd_set& writeFds);
 		bool		handleUserInput(int fd);
 		std::vector<std::string>	extractMessagesFromBuffer(User* user);
 		void		broadcastMessage(int senderFd, const std::string& nick, const std::string& message); // TESTIN ONLY

@@ -23,6 +23,7 @@ class	User
 
 		const int&			getFd() const;
 		std::string&		getInputBuffer();
+		std::string&		getOutputBuffer();
 		const std::string&	getNickname() const;
 		const std::string&	getUsername() const;
 
@@ -53,6 +54,7 @@ class	User
 
 		Server*						_server;		// Pointer to the server user is connected to (to use 'Server' methods)
 		std::string					_inputBuffer;	// buffer for incoming messages, accumulated until a full message is formed
+		std::string					_outputBuffer;	// buffer for outgoing messages, to be sent when socket is ready
 		std::vector<std::string>	_opChannels;	// channels where this user has operator privileges
 
 		bool						_hasNick;		// true if user has sent NICK command (got nickname)

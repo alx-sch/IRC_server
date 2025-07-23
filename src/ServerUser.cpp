@@ -309,3 +309,46 @@ void	Server::deleteUser(const std::string& nickname)
 	_usersFd.erase(user->getFd());
 	delete user;
 }
+
+/**
+ Handles output readiness for all connected users.
+
+ This function iterates through all user file descriptors and checks if any are marked
+ as ready for writing (based on `select()` populating `writeFds`). For each ready user
+ with data in their output buffer, it attempts to send the data. If sending fails,
+ the user may be disconnected based on the error type.
+
+ @param writeFds 	A set of file descriptors marked as ready to write by `select()`.
+*/
+void	Server::handleWriteReadyUsers(fd_set& writeFds)
+{
+	std::map<int, User*>::iterator	it = _usersFd.begin();
+
+	// Iterate through all active users and check if they're ready for writing
+	while (it != _usersFd.end())
+	{
+		int		userFd = it->first;
+		User*	user = it->second;
+		++it;
+
+		if (FD_ISSET(userFd, &writeFds) && user && !user->getOutputBuffer().empty())
+		{
+			std::string& outputBuffer = user->getOutputBuffer();
+			ssize_t bytesSent = send(userFd, outputBuffer.c_str(), outputBuffer.length(), 0);
+			
+			if (bytesSent == -1)
+			{
+				// Handle send error - may disconnect user
+				handleSendError(userFd, user->getNickname());
+				if (errno == EPIPE || errno == ECONNRESET)
+					continue; // User was deleted by handleSendError
+			}
+			else if (bytesSent > 0)
+			{
+				// Remove sent data from buffer
+				outputBuffer.erase(0, bytesSent);
+			}
+			// If bytesSent == 0, no data was sent (shouldn't happen with select)
+		}
+	}
+}

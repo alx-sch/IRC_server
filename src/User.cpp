@@ -87,3 +87,9 @@ std::string&	User::getInputBuffer()
 {
 	return _inputBuffer;
 }
+
+// Returns the output buffer where outgoing messages are queued.
+std::string&	User::getOutputBuffer()
+{
+	return _outputBuffer;
+}
