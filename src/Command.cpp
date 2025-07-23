@@ -368,6 +368,18 @@ bool Command::handleTopic(Server *server, User *user, const std::vector<std::str
             return false;
         }
         channel->set_topic(newTopic);
+        
+        // Broadcast topic change to all channel members
+        const std::set<std::string>& members = channel->get_members();
+        std::string topicLine = ":" + user->getNickname() + " TOPIC " + channelName + " :" + newTopic + "\r\n";
+        
+        for (std::set<std::string>::const_iterator it = members.begin(); it != members.end(); ++it) {
+            User* member = server->getUser(*it);
+            if (member) {
+                member->getOutputBuffer() += topicLine;
+            }
+        }
+        
         std::cout << GREEN << user->getNickname() << RESET
                   << " (" << MAGENTA << "fd " << user->getFd() << RESET
                   << ") set topic for channel "
