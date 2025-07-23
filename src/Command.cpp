@@ -294,7 +294,7 @@ bool Command::handlePrivmsg(Server *server, User *user, const std::vector<std::s
         }
 }
 
-bool handleTopic(Server *server, User *user, const std::vector<std::string> &tokens)
+bool Command::handleTopic(Server *server, User *user, const std::vector<std::string> &tokens)
 {
     if (tokens.size() < 2)
     {
