@@ -3,9 +3,10 @@
 
 #include "../include/User.hpp"
 #include "../include/Server.hpp"
-#include "../include/utils.hpp"		// isLetter, isDigit, isSpecial
-#include "../include/defines.hpp"	// color definitions
+#include "../include/utils.hpp"		// logUserAction
+#include "../include/defines.hpp"	// color formatting
 
+// '*' is default nickname for unregistered users
 User::User(int fd, Server* server)
 	:	_fd(fd), _nickname("*"), _server(server), _hasNick(false),
 		_hasUser(false), _hasPassed(false), _isRegistered(false)
@@ -25,48 +26,14 @@ void	User::markDisconnected()
 }
 
 /**
- Attempts to set the user's nickname, performing the following checks:
- - Validates nickname syntax according to IRC rules
- - Ensures the nickname is not already in use
+ Sets the user's nickname and updates server state accordingly.
 
- On failure, sends the appropriate numeric error reply:
-
- On success:
- - Updates the nickname
- - Updates the server's nickname registry
- - Triggers registration completion if all fields are set
+ This function assumes that the nickname has already been validated
+ for syntax and uniqueness by the caller (e.g., in the command handler).
 */
 void	User::setNickname(const std::string& nickname)
 {
-	// Check if the nickname is valid according to IRC rules
-	if (!isValidNick(nickname))
-	{
-		std::cout	<< GREEN << getNickname() << RESET
-					<< " (" << MAGENTA << "fd " << _fd << RESET
-					<< ") tried to set an invalid nickname: "
-					<< RED << nickname << RESET << std::endl;
-
-		replyError(432, nickname, "Erroneous nickname");
-		return;
-	}
-
-	// Nickname is already in use?
-	if (_server->getNickMap().count(nickname) > 0)
-	{
-		std::cout	<< GREEN << getNickname() << RESET
-					<< " (" << MAGENTA << "fd " << _fd << RESET << ") "
-					<< "tried to set a nickname already in use: "
-					<< YELLOW << nickname << RESET << std::endl;
-
-		replyError(433, nickname, "Nickname is already in use");
-		return;
-	}
-
-	// Valid and free — set the nickname; log the change in server terminal
-	std::cout	<< GREEN << getNickname() << RESET
-				<< " (" << MAGENTA << "fd " << _fd << RESET
-				<< ") set (new) nickname: "
-				<< CYAN << nickname << RESET << std::endl;
+	logUserAction(_nickname, _fd, std::string("set nickname to ") + CYAN + nickname + RESET);
 
 	// If the user already had a nickname, remove the old one
 	if (!_nickname.empty())
@@ -93,6 +60,12 @@ void	User::setRealname(const std::string& realname)
 	_realname = realname;
 }
 
+// Set the host for the user, most clients send '*' via USER command
+void	User::setHost(const std::string& host)
+{
+	_host = host;
+}
+
 /////////////
 // Getters //
 /////////////
@@ -113,34 +86,4 @@ const std::string&	User::getNickname() const
 std::string&	User::getInputBuffer()
 {
 	return _inputBuffer;
-}
-
-///////////
-// Utils //
-///////////
-
-/**
- Check if the nickname is valid according to IRC rules
- - Must not be empty
- - Max length is 9 characters
- - Must start with a letter
- - Can contain letters, digits, and special characters
-
- <nick> ::= <letter> { <letter> | <number> | <special> }
-*/
-bool	User::isValidNick(const std::string& nick)
-{
-	if (nick.empty() || nick.length() > 9)
-		return false;
-
-	if (!isLetter(nick[0])) // IRC rule: must start with a letter
-		return false;
-
-	for (unsigned int i = 1; i < nick.length(); ++i)
-	{
-		char	c = nick[i];
-		if (!isLetter(c) && !isDigit(c) && !isSpecial(c))
-			return false;
-	}
-	return true;
 }

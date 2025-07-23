@@ -16,7 +16,7 @@
 #include "../include/User.hpp"
 #include "../include/Command.hpp"
 #include "../include/defines.hpp"
-#include "../include/utils.hpp"	// toString()
+#include "../include/utils.hpp"	// toString(), logUserAction
 
 ///////////////////////////////
 // Accepting Users on Server //
@@ -36,10 +36,8 @@ void	Server::acceptNewUser()
 	if (userFd == -1)
 		throw std::runtime_error("accept() failed: " + std::string(strerror(errno)));
 
-	std::cout	<< "New connection from "
-				<< YELLOW << inet_ntoa(userAddr.sin_addr)		// IP address as string
-				<< ":" << ntohs(userAddr.sin_port)	<< RESET	// Port (convert from network order)
-				<< " (" << MAGENTA << "fd " << userFd << RESET << ")\n";
+	logUserAction("*", userFd, std::string("connected from ") + YELLOW
+		+ std::string(inet_ntoa(userAddr.sin_addr)) + RESET);
 
 	User* newUser = new User(userFd, this);
 	_usersFd[userFd] = newUser;
@@ -96,11 +94,13 @@ bool	Server::handleUserInput(int fd)
 	if (!user)
 		return false;
 
-	if (bytesRead <= 0) // recv() failed
+	if (bytesRead == 0) // Connection closed by the user
+		return false;
+
+	if (bytesRead < 0) // recv() failed (bytesRead == -1)
 	{
-		// Log the disconnection / error immediately
-		handleDisconnection(fd, (bytesRead == 0 ? "Connection closed" : strerror(errno)));
-		return false; // User removed in `handleReadyUsers()`
+		handleDisconnection(fd, strerror(errno), "recv()");
+		return false;
 	}
 
 	// Append the received bytes to the user's input buffer
@@ -111,7 +111,7 @@ bool	Server::handleUserInput(int fd)
 	// Process each complete message
 	for (size_t i = 0; i < messages.size(); ++i)
 	{
-		if (!Command::handleCommand(this, user, fd, messages[i]))
+		if (!Command::handleCommand(this, user, messages[i]))
 		{	// Just for testing, in a proper IRC implementation, below would be a "Command unknown" response
 			// (Also broadcast / channel messages have a command prefix)
 			// prob return false here when it's "kickable" user behavior
@@ -197,19 +197,18 @@ void	Server::broadcastMessage(int senderFd, const std::string& nick, const std::
 */
 void	Server::handleSendError(int fd, const std::string& nick)
 {
-	// Log the send error with color formatting
-	std::cerr	<< RED << "Failed to send to "
-				<< GREEN << nick << RED
-				<< " (" << MAGENTA << "fd " << fd << RED << "): "
-				<< strerror(errno) << RESET << std::endl;
-
-	// If the error was a broken pipe or connection reset, treat it as a disconnect
+	// Critical errors that mean the user is gone
 	if (errno == EPIPE || errno == ECONNRESET)
 	{
-		// Log the disconnection, remove the user from the server
-		handleDisconnection(fd, strerror(errno));
+		handleDisconnection(fd, strerror(errno), "send()");
 		deleteUser(fd);
+		return;
 	}
+
+	// Non‑critical send error (temporary): log it but do not disconnect
+	// e.g. EAGAIN or EWOULDBLOCK (“Resource temporarily unavailable”)
+	logUserAction(nick, fd, RED + std::string("Error sending message to user: ")
+		+ strerror(errno) + RESET);
 }
 
 /**
@@ -220,15 +219,19 @@ void	Server::handleSendError(int fd, const std::string& nick)
 
  @param fd 		The file descriptor of the disconnected user.
  @param reason 	The reason for disconnection (e.g., "Connection closed", "Broken pipe").
+ @param source 	The source of the disconnection (who called this function).
 */
-void	Server::handleDisconnection(int fd, const std::string& reason)
+void	Server::handleDisconnection(int fd, const std::string& reason, const std::string& source)
 {
-	std::string	nick = getUser(fd)->getNickname();
+	// Just for safety,in case User was already deleted
+	User*		user = getUser(fd);
+	std::string	nick = user ? user->getNickname() : "*";
 
-	std::cerr	<< RED << "Removing user "
+	std::cerr	<< RED << BOLD << "Error: " << source << " failed for user "
 				<< GREEN << nick << RED
 				<< " (" << MAGENTA << "fd " << fd << RED << "): "
-				<< reason << RESET << std::endl;
+				<< reason << std::endl
+				<< "Removing user from server.\n" << RESET;
 }
 
 /////////////////////
@@ -280,6 +283,9 @@ void	Server::deleteUser(int fd)
 	if (!user)
 		return;
 
+	// Log before we close and erase everything
+	logUserAction(user->getNickname(), fd, "disconnected");
+
 	close(fd);
 	user->markDisconnected();
 	_usersFd.erase(fd);
@@ -293,6 +299,9 @@ void	Server::deleteUser(const std::string& nickname)
 	User*	user = getUser(nickname);
 	if (!user)
 		return;
+
+	// Log before we close and erase everything
+	logUserAction(user->getNickname(), user->getFd(), "disconnected");
 
 	close(user->getFd());
 	user->markDisconnected();

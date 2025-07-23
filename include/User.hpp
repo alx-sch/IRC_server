@@ -18,6 +18,7 @@ class	User
 		void				setNickname(const std::string& nickname);
 		void				setUsername(const std::string& username);
 		void				setRealname(const std::string& realname);
+		void				setHost(const std::string& host);
 		void				markDisconnected(); // Sets _fd to -1 after deleting from server
 
 		const int&			getFd() const;
@@ -33,7 +34,7 @@ class	User
 
 		// === UserRegistration.cpp ===
 
-		void				setHasPassed(bool b);
+		void				setHasPassed(bool b);	// Used in handlePass() command handler
 		bool				isRegistered() const;
 		void				tryRegister();
 
@@ -48,7 +49,7 @@ class	User
 		std::string					_nickname;
 		std::string					_username;
 		std::string					_realname;		// usually unused
-		std::string					_host;			// used??
+		std::string					_host;			// rather obsolete, most clients use '*' -> but get from USER command nevertheless
 
 		Server*						_server;		// Pointer to the server user is connected to (to use 'Server' methods)
 		std::string					_inputBuffer;	// buffer for incoming messages, accumulated until a full message is formed
@@ -60,7 +61,6 @@ class	User
 		bool						_isRegistered;	// true if user has sent NICK, USER commands to server
 
 		void						sendReply(const std::string& message);	// UserReply.cpp
-		bool						isValidNick(const std::string& nick);
 };
 
 #endif
