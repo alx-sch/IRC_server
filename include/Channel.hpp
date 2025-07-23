@@ -28,6 +28,9 @@ public:
 
     Channel* get_channel(const std::string& channelName) const;
 
+	const std::set<std::string>& get_members() const;
+	
+
 	void add_user(const std::string& user_nick);
 	void remove_user(const std::string& user_nick);
 	bool is_user_member(const std::string& user_nick);

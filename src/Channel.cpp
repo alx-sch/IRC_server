@@ -137,3 +137,9 @@ const std::string& Channel::get_name() const { return _channel_name; }
 Channel::Channel(std::string name)
     : _channel_name(name), _connected_user_number(0), _user_limit(0),
         _invite_only(false), _topic_protection(false) {}
+
+
+const std::set<std::string>& Channel::get_members() const 
+{
+	return _channel_members_by_nickname;
+}
