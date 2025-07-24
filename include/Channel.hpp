@@ -20,8 +20,16 @@ private:
 	std::string _channel_key; // password set by k
 
 public:
-	Channel(/* args */);
+	Channel(std::string name);
 	~Channel();
+
+    // Getters
+    const std::string& get_name() const;
+
+    Channel* get_channel(const std::string& channelName) const;
+
+	const std::set<std::string>& get_members() const;
+	
 
 	void add_user(const std::string& user_nick);
 	void remove_user(const std::string& user_nick);
@@ -46,6 +54,7 @@ public:
 	void set_invite_only();
 	bool is_invite_only() const;
 	bool is_invited(const std::string& nickname) const;
+    void add_invite(const std::string& nickname);
 
 
 	bool has_password() const;
@@ -53,13 +62,5 @@ public:
 	bool validate_password(const std::string& password) const;
 
 };
-
-Channel::Channel(/* args */)
-{
-}
-
-Channel::~Channel()
-{
-}
 
 #endif

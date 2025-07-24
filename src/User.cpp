@@ -13,6 +13,7 @@ User::User(int fd, Server* server)
 {}
 
 User::~User() {}
+User::User(int fd) : _fd(fd) {}
 
 /////////////
 // Setters //
@@ -85,4 +86,10 @@ const std::string&	User::getNickname() const
 std::string&	User::getInputBuffer()
 {
 	return _inputBuffer;
+}
+
+// Returns the output buffer where outgoing messages are queued.
+std::string&	User::getOutputBuffer()
+{
+	return _outputBuffer;
 }

@@ -8,6 +8,7 @@
 #include <netinet/in.h>	// sockaddr_in, INADDR_ANY, htons()
 
 #include "../include/Server.hpp"
+#include "../include/User.hpp"
 #include "../include/utils.hpp"	// toString()
 
 /////////////////
@@ -107,6 +108,33 @@ int	Server::prepareReadSet(fd_set& readFds)
 		FD_SET(it->first, &readFds);
 		if (it->first > maxFd) // Update maxFd if this user fd is larger
 			maxFd = it->first;
+	}
+
+	return maxFd;
+}
+
+/**
+ Prepares the write fd_set for use with select().
+ Only includes users that have data in their output buffer.
+
+ @param writeFds 	Reference to the fd_set to be passed to select().
+ @return			The highest file descriptor value among all monitored fds.
+*/
+int	Server::prepareWriteSet(fd_set& writeFds)
+{
+	FD_ZERO(&writeFds);		// Clear the set before each select call
+	int maxFd = -1;
+
+	// Add user sockets with pending output to writeFds for monitoring
+	for (std::map<int, User*>::const_iterator it = _usersFd.begin(); it != _usersFd.end(); ++it)
+	{
+		User* user = it->second;
+		if (user && !user->getOutputBuffer().empty())
+		{
+			FD_SET(it->first, &writeFds);
+			if (it->first > maxFd)
+				maxFd = it->first;
+		}
 	}
 
 	return maxFd;
