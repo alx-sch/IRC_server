@@ -45,8 +45,13 @@ class	Command
 
         static bool		handleTopic(Server* server, User* user, const std::vector<std::string>& tokens);
         static bool		handleInvite(Server* server, User* user, const std::vector<std::string>& tokens);
-
-        static std::vector<std::string>	tokenize(const std::string& message);
+		static bool 	handleQuit(Server* server, User* user, const std::vector<std::string>& tokens);
+		static bool 	handleKick(Server* server, User* user, const std::vector<std::string>& tokens);
+		static bool 	handleMode(Server* server, User* user, const std::vector<std::string>& tokens);
+		static bool 	handlePart(Server* server, User* user, const std::vector<std::string>& tokens);
+		static bool		handlePing(Server* server, User* user, const std::vector<std::string>& tokens);
+		
+		static std::vector<std::string>	tokenize(const std::string& message);
 		static Type		getType(const std::string& message);
 };
 

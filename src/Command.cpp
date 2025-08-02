@@ -42,33 +42,91 @@ bool	Command::handleCommand(Server* server, User* user, const std::string& messa
 		case PASS:		return handlePass(server, user, tokens);
 			// Handle PASS command
 			break;
-		case PING:
+		case PING:      return handlePing(server, user, tokens);
 			// Handle PING command
 			break;
 		case JOIN:      return handleJoin(server, user, tokens);        
 			break;
-		case PART:
+		case PART:      return handlePart(server, user, tokens);
 			// Handle PART command
 			break;
-		case QUIT:
+		case QUIT:      return handleQuit(server, user, tokens);
 			// Handle QUIT command
 			break;
 		case PRIVMSG:   return handlePrivmsg(server, user, tokens);
 			break;
 		case TOPIC:     return handleTopic(server, user, tokens);
 			break;
-		case KICK:
+		case KICK:      return handleKick(server, user, tokens);
 			// Handle KICK command
 			break;
 		case INVITE:    return handleInvite(server, user, tokens);
 			break;
-		case MODE:
+		case MODE:       return handleMode(server, user, tokens);
 			// Handle MODE command
 			break;
 		default:
 			return false;
 	}
 	return true;
+}
+
+bool Command::handleQuit(Server* server, User* user, const std::vector<std::string>& tokens)
+{
+    if (tokens.size() > 2)
+    {
+        //send quit message to all channels prepended with : Quit :
+    }
+    // the user is quitting, so we need to remove them from all channels
+    // remove them from all channels
+    // remove them from the server's user map
+    // remove them from the server's nick map
+    // remove them from the server's user list
+    // remove them from the server's user list
+}
+
+bool Command::handlePing(Server* server, User* user, const std::vector<std::string>& tokens)
+{
+  /*
+  The PING command is sent by either clients or servers to check the other side
+of the connection is still connected and/or to check for connection latency, at
+the application layer.
+
+The <token> may be any non-empty string.
+
+When receiving a PING message, clients or servers must reply to it with a PONG
+message with the same <token> value. This allows either to match PONG with the
+PING they reply to, for example to compute latency.
+
+Clients should not send PING during connection registration, though servers may
+accept it. Servers may send PING during connection registration and clients must
+reply to them.
+  */
+  return false;
+}
+
+bool Command::handlePart(Server* server, User* user, const std::vector<std::string>& tokens)
+{
+    /*
+    The PART command is used to leave a channel.
+    */
+    return false;
+}
+
+bool Command::handleKick(Server* server, User* user, const std::vector<std::string>& tokens)
+{
+    /*
+    The KICK command is used to remove a user from a channel.
+    */
+    return false;
+}
+
+bool Command::handleMode(Server* server, User* user, const std::vector<std::string>& tokens)
+{
+    /*
+    The MODE command is used to set or change a channel's mode.
+    */
+    return false;
 }
 
 // Handles the `NICK` command for a user. Also part of the initial client registration.
