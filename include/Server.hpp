@@ -30,7 +30,7 @@ class Server
 		const std::string&	getUModes() const;
 		std::map<std::string, User*>&	getNickMap();
 		void				removeNickMapping(const std::string& nickname);
-
+		void				removeUserMapping(const std::string& nickname);
         Channel*    getChannel(const std::string& channelName) const;
         void		addChannel(Channel* channel);
 

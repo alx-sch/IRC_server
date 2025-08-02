@@ -42,9 +42,9 @@ class	Command
 		static bool		handlePass(Server* server, User* user, const std::vector<std::string>& tokens);
 		
         static bool     handleJoin(Server* server, User* user, const std::vector<std::string>& tokens);
-        static void sndMsgAllInChannel(Server *&server, User *&user,
-                              const std::string &targetName,
-                              std::string &message, Channel *&channel);
+        static void broadcastToChannel(Server* server, Channel* channel,
+                                      const std::string& message,
+                                      const std::string& excludeNick = "");
         static bool handlePrivmsg(Server *server, User *user,
                                   const std::vector<std::string> &tokens);
 
