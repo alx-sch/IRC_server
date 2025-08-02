@@ -1,5 +1,6 @@
 #include <iostream>
 #include "../include/signal.hpp"
+#include "../include/utils.hpp"		// logServerMessage()
 
 volatile sig_atomic_t	g_running = 1;
 
@@ -8,7 +9,8 @@ static void	handleSignal(int signum)
 {
 	(void)signum;
 
-	std::cout << "\nShutting down server...\n";
+	std::cout << std::endl;  // Just a newline for clean output after Ctrl+C
+	logServerMessage("Shutting down server...");
 	g_running = 0;
 }
 

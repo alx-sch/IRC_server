@@ -3,6 +3,7 @@
 #ifndef USER_HPP
 # define USER_HPP
 
+#include <set>
 #include <string>
 #include <vector>
 
@@ -26,6 +27,10 @@ class	User
 		std::string&		getOutputBuffer();
 		const std::string&	getNickname() const;
 		const std::string&	getUsername() const;
+
+		const std::set<std::string>&	getChannels() const;
+		void						addChannel(const std::string& channel);
+		void						removeChannel(const std::string& channel);
 
 		// === UserReply.cpp ===
 
@@ -56,7 +61,7 @@ class	User
 		std::string					_inputBuffer;	// buffer for incoming messages, accumulated until a full message is formed
 		std::string					_outputBuffer;	// buffer for outgoing messages, to be sent when socket is ready
 		std::vector<std::string>	_opChannels;	// channels where this user has operator privileges
-
+		std::set<std::string>		_channels;		// channels where this user is
 		bool						_hasNick;		// true if user has sent NICK command (got nickname)
 		bool						_hasUser;		// true if user has sent USER command (got username)
 		bool						_hasPassed;		// true if user has sent PASS command successfully

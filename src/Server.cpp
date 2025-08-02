@@ -10,7 +10,7 @@
 #include "../include/Server.hpp"
 #include "../include/defines.hpp"	// color formatting
 #include "../include/signal.hpp"	// g_running variable
-#include "../include/utils.hpp"		// getFormattedTime()
+#include "../include/utils.hpp"		// getFormattedTime(), logServerMessage()
 
 Server::Server(int port, const std::string& password) 
 	:	_name(SERVER_NAME), _version(VERSION), _network(NETWORK),
@@ -31,7 +31,7 @@ Server::~Server()
 	while (!_usersFd.empty())
 		deleteUser(_usersFd.begin()->first);
 
-	std::cout << "Server shutdown complete\n";
+	logServerMessage("Server shutdown complete");
 }
 
 /**
@@ -49,7 +49,7 @@ void	Server::run()
 	int		maxFd;		// Highest fd in the set
 	int		ready;		// Number of ready fds returned by select()
 
-	std::cout << "Server running on port " << YELLOW << _port << RESET << std::endl;
+	logServerMessage("Server running on port " + toString(_port));
 
 	while (g_running)
 	{
