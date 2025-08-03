@@ -13,6 +13,7 @@ User::User(int fd, Server* server)
 {}
 
 User::~User() {}
+User::User(int fd) : _fd(fd) {}
 
 /////////////
 // Setters //
@@ -86,3 +87,25 @@ std::string&	User::getInputBuffer()
 {
 	return _inputBuffer;
 }
+
+// Returns the output buffer where outgoing messages are queued.
+std::string&	User::getOutputBuffer()
+{
+	return _outputBuffer;
+}
+
+const std::set<std::string>&	User::getChannels() const
+{
+	return _channels;
+}
+
+void	User::addChannel(const std::string& channel)
+{
+	_channels.insert(channel);
+}
+
+void	User::removeChannel(const std::string& channel)
+{
+	_channels.erase(channel);
+}
+

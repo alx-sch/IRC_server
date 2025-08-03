@@ -107,6 +107,12 @@ bool Channel::is_invited(const std::string& nickname) const
 	return true;
 }
 
+void Channel::add_invite(const std::string &nickname)
+{
+    if (_channel_invitation_list.find(nickname) == _channel_invitation_list.end())
+        _channel_invitation_list.insert(nickname);
+}
+
 bool Channel::has_password() const
 {
 	if (!_channel_key.empty())
@@ -124,4 +130,16 @@ bool Channel::validate_password(const std::string &password) const
 	if( !has_password() || (password == _channel_key))
 		return true;
 	return false;
+}
+
+const std::string& Channel::get_name() const { return _channel_name; }
+
+Channel::Channel(std::string name)
+    : _channel_name(name), _connected_user_number(0), _user_limit(0),
+        _invite_only(false), _topic_protection(false) {}
+
+
+const std::set<std::string>& Channel::get_members() const 
+{
+	return _channel_members_by_nickname;
 }

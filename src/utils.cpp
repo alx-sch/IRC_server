@@ -88,7 +88,7 @@ bool	isValidNick(const std::string& nick)
 }
 
 /**
- Formats a log line with aligned nickname and fd columns.
+ Formats a log line with timestamp, aligned nickname and fd columns.
 
  @param nick 		The user's nickname
  @param fd 			The user's socket fd
@@ -98,9 +98,20 @@ void	logUserAction(const std::string& nick, int fd, const std::string& message)
 {
 	std::ostringstream	oss;
 
-	oss	<< GREEN << std::left << std::setw(MAX_NICK_LENGTH + 1) << nick << RESET // pad nick + some space
+	oss	<< "[" << CYAN << getFormattedTime() << RESET << "] "
+		<< GREEN << std::left << std::setw(MAX_NICK_LENGTH + 1) << nick << RESET // pad nick + some space
 		<< "(" << MAGENTA << "fd " << std::right << std::setw(3) << fd << RESET << ") "
 		<< message;
 
 	std::cout << oss.str() << std::endl;
+}
+
+/**
+ Logs a general server message with timestamp.
+
+ @param message 	The message to log
+*/
+void	logServerMessage(const std::string& message)
+{
+	std::cout << "[" << CYAN << getFormattedTime() << RESET << "] " << message << std::endl;
 }

@@ -10,7 +10,7 @@
 #include "../include/Server.hpp"
 #include "../include/defines.hpp"	// color formatting
 #include "../include/signal.hpp"	// g_running variable
-#include "../include/utils.hpp"		// getFormattedTime()
+#include "../include/utils.hpp"		// getFormattedTime(), logServerMessage()
 
 Server::Server(int port, const std::string& password) 
 	:	_name(SERVER_NAME), _version(VERSION), _network(NETWORK),
@@ -31,7 +31,7 @@ Server::~Server()
 	while (!_usersFd.empty())
 		deleteUser(_usersFd.begin()->first);
 
-	std::cout << "Server shutdown complete\n";
+	logServerMessage("Server shutdown complete");
 }
 
 /**
@@ -45,18 +45,20 @@ Server::~Server()
 */
 void	Server::run()
 {
-	fd_set	readFds;	// Set of fds to monitor for readability
+	fd_set	readFds, writeFds;	// Sets of fds to monitor for readability and writability
 	int		maxFd;		// Highest fd in the set
 	int		ready;		// Number of ready fds returned by select()
 
-	std::cout << "Server running on port " << YELLOW << _port << RESET << std::endl;
+	logServerMessage("Server running on port " + toString(_port));
 
 	while (g_running)
 	{
 		maxFd = prepareReadSet(readFds);
+		int writeMaxFd = prepareWriteSet(writeFds);
+		if (writeMaxFd > maxFd) maxFd = writeMaxFd;
 
-		// Pause the program until a socket becomes readable (messages or new connections)
-		ready = select(maxFd + 1, &readFds, NULL, NULL, NULL); // returns number of ready fds
+		// Pause the program until a socket becomes readable or writable
+		ready = select(maxFd + 1, &readFds, &writeFds, NULL, NULL);
 		if (ready == -1)
 		{
 			if (errno == EINTR) // If interrupted by signal (SIGINT), just return to main.
@@ -70,6 +72,9 @@ void	Server::run()
 
 		// Handle user input for all active connections (messages, disconnections)
 		handleReadyUsers(readFds);
+		
+		// Handle user output for all users with pending data
+		handleWriteReadyUsers(writeFds);
 	}
 }
 
@@ -130,4 +135,26 @@ std::map<std::string, User*>&	Server::getNickMap()
 void	Server::removeNickMapping(const std::string& nickname)
 {
 	_usersNick.erase(nickname);
+}
+
+void Server::addChannel(Channel* channel)
+{
+    if (!channel)
+        throw std::invalid_argument("Cannot add a null channel");
+
+    const std::string& channelName = channel->get_name();
+    if (_channels.find(channelName) != _channels.end())
+    {
+        std::cerr << "Channel " << channelName << " already exists!" << std::endl;
+        return;
+    }
+
+    _channels[channelName] = channel;
+}
+
+Channel* Server::getChannel(const std::string& channelName) const
+{
+    if (_channels.find(channelName) != _channels.end())
+        return _channels.find(channelName)->second;
+    return 0; // Channel not found
 }
