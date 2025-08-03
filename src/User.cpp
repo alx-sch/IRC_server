@@ -33,7 +33,7 @@ void	User::markDisconnected()
 */
 void	User::setNickname(const std::string& nickname)
 {
-	logUserAction(_nickname, _fd, std::string("set nickname to ") + CYAN + nickname + RESET);
+	logUserAction(_nickname, _fd, std::string("set nickname to ") + GREEN + nickname + RESET);
 
 	// If the user already had a nickname, remove the old one
 	if (!_nickname.empty())

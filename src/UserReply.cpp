@@ -28,7 +28,6 @@ void	User::replyWelcome()
 
 /**
  Sends an IRC numeric error to the user.
- If the user is not yet registered, the target is replaced with `*`.
 
  @param code 		Numeric IRC error code (e.g. 464, 462, 433)
  @param param 		Optional parameter for the error (e.g. nickname when invalid)

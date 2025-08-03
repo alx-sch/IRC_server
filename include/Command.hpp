@@ -25,12 +25,11 @@ class	Command
 			UNKNOWN,
 			NICK,		// Set user nickname
 			USER,		// Set user username and realname
-			PASS,
-			PING,
-			JOIN,
-			PART,
-			QUIT,
+			PASS,		// Try to authenticate with server password
 			PRIVMSG,	// Message to a user or channel
+			NOTICE,		// Notice to a user or channel
+			JOIN,		// Join a channel
+			PART,		// Leave a channel
 			TOPIC,
 			KICK,
 			INVITE,
@@ -41,20 +40,18 @@ class	Command
 		static bool		handleUser(User* user, const std::vector<std::string>& tokens);
 		static bool		handlePass(Server* server, User* user, const std::vector<std::string>& tokens);
 		
-        static bool     handleJoin(Server* server, User* user, const std::vector<std::string>& tokens);
-        static void broadcastToChannel(Server* server, Channel* channel,
-                                      const std::string& message,
-                                      const std::string& excludeNick = "");
-        static bool handlePrivmsg(Server *server, User *user,
-                                  const std::vector<std::string> &tokens);
+		static bool		handleJoin(Server* server, User* user, const std::vector<std::string>& tokens);
+		static bool		handlePart(Server* server, User* user, const std::vector<std::string>& tokens);
+		
+		static void		broadcastToChannel(Server* server, Channel* channel,
+							const std::string& message, const std::string& excludeNick = "");
+		static bool		handlePrivmsg(Server *server, User *user, const std::vector<std::string> &tokens);
+		static bool		handleNotice(Server* server, User* user, const std::vector<std::string>& tokens);
 
-        static bool		handleTopic(Server* server, User* user, const std::vector<std::string>& tokens);
-        static bool		handleInvite(Server* server, User* user, const std::vector<std::string>& tokens);
-		static bool 	handleQuit(Server* server, User* user, const std::vector<std::string>& tokens);
-		static bool 	handleKick(Server* server, User* user, const std::vector<std::string>& tokens);
-		static bool 	handleMode(Server* server, User* user, const std::vector<std::string>& tokens);
-		static bool 	handlePart(Server* server, User* user, const std::vector<std::string>& tokens);
-		static bool		handlePing(Server* server, User* user, const std::vector<std::string>& tokens);
+		static bool		handleInvite(Server* server, User* user, const std::vector<std::string>& tokens);
+		static bool		handleTopic(Server* server, User* user, const std::vector<std::string>& tokens);
+		static bool		handleKick(Server* server, User* user, const std::vector<std::string>& tokens);
+		static bool		handleMode(Server* server, User* user, const std::vector<std::string>& tokens);
 
 		static std::vector<std::string>	tokenize(const std::string& message);
 		static Type		getType(const std::string& message);

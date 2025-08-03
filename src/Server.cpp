@@ -47,6 +47,7 @@ void	Server::run()
 {
 	fd_set	readFds, writeFds;	// Sets of fds to monitor for readability and writability
 	int		maxFd;		// Highest fd in the set
+	int		writeMaxFd;	// Highest fd in the write set
 	int		ready;		// Number of ready fds returned by select()
 
 	logServerMessage("Server running on port " + toString(_port));
@@ -54,7 +55,7 @@ void	Server::run()
 	while (g_running)
 	{
 		maxFd = prepareReadSet(readFds);
-		int writeMaxFd = prepareWriteSet(writeFds);
+		writeMaxFd = prepareWriteSet(writeFds);
 		if (writeMaxFd > maxFd) maxFd = writeMaxFd;
 
 		// Pause the program until a socket becomes readable or writable

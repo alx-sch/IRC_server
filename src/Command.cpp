@@ -40,107 +40,301 @@ bool	Command::handleCommand(Server* server, User* user, const std::string& messa
 		case NICK:		return handleNick(server, user, tokens);
 		case USER:		return handleUser(user, tokens);
 		case PASS:		return handlePass(server, user, tokens);
-			// Handle PASS command
-			break;
-		case PING:      return handlePing(server, user, tokens);
-			// Handle PING command
-			break;
-		case JOIN:      return handleJoin(server, user, tokens);        
-			break;
-		case PART:      return handlePart(server, user, tokens);
-			// Handle PART command
-			break;
-		case QUIT:      return handleQuit(server, user, tokens);
-			// Handle QUIT command
-			break;
-		case PRIVMSG:   return handlePrivmsg(server, user, tokens);
-			break;
-		case TOPIC:     return handleTopic(server, user, tokens);
-			break;
-		case KICK:      return handleKick(server, user, tokens);
-			// Handle KICK command
-			break;
-		case INVITE:    return handleInvite(server, user, tokens);
-			break;
-		case MODE:       return handleMode(server, user, tokens);
-			// Handle MODE command
-			break;
+		case JOIN:		return handleJoin(server, user, tokens);
+		case PART:		return handlePart(server, user, tokens);
+		case PRIVMSG:	return handlePrivmsg(server, user, tokens);
+		case NOTICE:	return handleNotice(server, user, tokens);
+		case TOPIC:		return handleTopic(server, user, tokens);
+		case KICK:		return handleKick(server, user, tokens);
+		case INVITE:	return handleInvite(server, user, tokens);
+		case MODE:		return handleMode(server, user, tokens);
 		default:
 			return false;
 	}
 	return true;
 }
 
-bool Command::handleQuit(Server* server, User* user, const std::vector<std::string>& tokens)
+///////////////////////////
+// REGISTRATION COMMANDS //
+///////////////////////////
+
+// Handles the `NICK` command for a user. Also part of the initial client registration.
+// Command: `NICK <nickname>`
+bool	Command::handleNick(Server* server, User* user, const std::vector<std::string>& tokens)
 {
-    // Extract quit message if provided
-    std::string quitMessage = "Client Quit";
-    if (tokens.size() > 1)
-    {
-        // Reconstruct the quit message from tokens[1] onward
-        quitMessage = "";
-        for (size_t i = 1; i < tokens.size(); ++i)
-        {
-            if (i > 1)
-                quitMessage += " ";
-            quitMessage += tokens[i];
-        }
-        // Remove leading ':' if present (trailing parameter)
-        if (!quitMessage.empty() && quitMessage[0] == ':')
-            quitMessage = quitMessage.substr(1);
-    }
+	if (tokens.size() < 2)
+	{
+		logUserAction(user->getNickname(), user->getFd(), "sent NICK without a nickname");
+		user->replyError(431, "", "No nickname given");
+		return false;
+	}
 
-    logUserAction(user->getNickname(), user->getFd(), "quit with message: " + quitMessage);
+	const std::string&	nick = tokens[1];
 
-    // Send quit message to all channels the user is in
-    std::set<std::string> channelsCopy = user->getChannels(); // Copy to avoid iterator invalidation
-    for (std::set<std::string>::const_iterator it = channelsCopy.begin();
-         it != channelsCopy.end(); ++it)
-    {
-        Channel* channel = server->getChannel(*it);
-        if (channel)
-        {
-            // Send quit message to all channel members (except the quitting user)
-            std::string quitLine = ":" + user->getNickname() + " QUIT :" + quitMessage + "\r\n";
-            broadcastToChannel(server, channel, quitLine, user->getNickname()); // Exclude quitting user
-            
-            // Remove user from the channel
-            channel->remove_user(user->getNickname());
-        }
-    }
+	// Check if the nickname is valid according to IRC rules
+	if (!isValidNick(nick))
+	{
+		logUserAction(user->getNickname(), user->getFd(), std::string("tried to set an invalid nickname: ")
+			+ RED + nick + RESET);
+		user->replyError(432, nick, "Erroneous nickname");
+		return false;
+	}
 
-    // Clear user's channel list (channels were already cleaned up above)
-    std::set<std::string> channelsClearCopy = user->getChannels();
-    for (std::set<std::string>::const_iterator it = channelsClearCopy.begin();
-         it != channelsClearCopy.end(); ++it)
-    {
-        user->removeChannel(*it);
-    }
+	// Nickname is already in use?
+	if (server->getNickMap().count(nick) > 0)
+	{
+		logUserAction(user->getNickname(), user->getFd(),
+			std::string("tried to set a nickname already in use: ") + YELLOW + nick + RESET);
+		user->replyError(433, nick, "Nickname is already in use");
+		return false;
+	}
 
-    //TODO:
-    // Mark the user for disconnection (don't delete immediately to avoid segfault)
-    // The server's main loop will handle the actual cleanup. -- maybe add the to be deleted users in a list and process the list at the main loop?
-    return true; // Command processed successfully, user will be disconnected
+	user->setNickname(nick);
+	return true;
 }
 
-bool Command::handlePing(Server*, User*, const std::vector<std::string>&)
+// Handles the `USER` command for a user. Also part of the initial client registration.
+// Command: `USER <username> <hostname> <servername> :<realname>`
+bool	Command::handleUser(User* user, const std::vector<std::string>& tokens)
 {
-  /*
-  The PING command is sent by either clients or servers to check the other side
-of the connection is still connected and/or to check for connection latency, at
-the application layer.
+	if (user->isRegistered())
+	{
+		logUserAction(user->getNickname(), user->getFd(), "tried to resend USER after registration");
+		user->replyError(462, "", "You may not reregister");
+		return false;
+	}
 
-The <token> may be any non-empty string.
+	// Enough arguments? Does realname token start with a colon?
+	if (tokens.size() < 5 || tokens[4].size() < 2 || tokens[4][0] != ':')
+	{
+		logUserAction(user->getNickname(), user->getFd(), "sent invalid USER command (too few arguments)");
+		user->replyError(461, "USER", "Not enough parameters");
+		return false;
+	}
+	
+	user->setUsername(tokens[1]);
+	user->setHost(tokens[2]);
+	user->setRealname(tokens[4].substr(1)); // Remove leading colon from realname
 
-When receiving a PING message, clients or servers must reply to it with a PONG
-message with the same <token> value. This allows either to match PONG with the
-PING they reply to, for example to compute latency.
+	return true;
+}
 
-Clients should not send PING during connection registration, though servers may
-accept it. Servers may send PING during connection registration and clients must
-reply to them.
-  */
-  return false; // TODO: Implement PING/PONG functionality
+// Handles the `PASS` command for a user. This is used to authenticate the user with the server.
+// Command: `PASS <password>`
+bool	Command::handlePass(Server* server, User* user, const std::vector<std::string>& tokens)
+{
+	if (user->isRegistered())
+	{
+		logUserAction(user->getNickname(), user->getFd(), "tried to resend PASS after registration");
+		user->replyError(462, "", "You may not reregister");
+		return false;
+	}
+
+	if (tokens.size() < 2)
+	{
+		logUserAction(user->getNickname(), user->getFd(), "sent invalid PASS command (missing password)");
+		user->replyError(461, "PASS", "Not enough parameters");
+		return false;
+	}
+
+	// Validate the provided password
+	// If server password is empty, any password is accepted
+	const std::string&	password = tokens[1];
+	bool				requiresPassword = !server->getPassword().empty();
+	if (requiresPassword && password != server->getPassword())
+	{
+		logUserAction(user->getNickname(), user->getFd(), "provided incorrect password");
+		user->replyError(464, "", "Password incorrect");
+		return false;
+	}
+
+	user->setHasPassed(true);
+	user->tryRegister();
+	return true;
+}
+
+////////////////////////
+// MESSAGING COMMANDS //
+////////////////////////
+
+bool Command::handlePrivmsg(Server *server, User *user,
+                            const std::vector<std::string> &tokens) {
+  if (tokens.size() < 3) {
+    std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
+              << "fd " << user->getFd() << RESET << ") "
+              << "sent PRIVMSG without enough arguments\n";
+    user->replyError(411, "", "No recipient given");
+    return false;
+  }
+
+  const std::string &targetName = tokens[1];
+
+  // Reconstruct the full message from tokens[2] onward
+  std::string message;
+  for (size_t i = 2; i < tokens.size(); ++i) {
+    if (i > 2)
+      message += " ";
+    message += tokens[i];
+  }
+
+  // Remove leading ':' if present (trailing parameter)
+  if (!message.empty() && message[0] == ':') {
+    message = message.substr(1);
+  }
+
+  if (targetName[0] == '#') {
+    // It's a channel
+    Channel *channel = server->getChannel(targetName);
+    if (!channel) {
+      std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
+                << "fd " << user->getFd() << RESET << ") "
+                << "tried to PRIVMSG non-existing channel: " << targetName
+                << "\n";
+      user->replyError(403, targetName, "No such nick/channel");
+      return false;
+    }
+
+    if (!channel->is_user_member(user->getNickname())) {
+      std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
+                << "fd " << user->getFd() << RESET << ") "
+                << "tried to PRIVMSG channel " << targetName
+                << " but is not a member\n";
+      user->replyError(404, targetName,
+                       "Cannot send to channel (not a member)");
+      return false;
+    }
+
+    // Broadcast message to all channel members except sender
+    std::string privmsgLine = ":" + user->getNickname() + " PRIVMSG " + targetName + " :" + message + "\r\n";
+    broadcastToChannel(server, channel, privmsgLine, user->getNickname());
+
+    std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
+              << "fd " << user->getFd() << RESET << ") "
+              << "sent PRIVMSG to channel " << targetName << ": " << message
+              << "\n";
+    return true;
+  } else {
+    // It's a user
+    User *targetUser = server->getUser(targetName);
+    if (!targetUser) {
+      std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
+                << "fd " << user->getFd() << RESET << ") "
+                << "tried to PRIVMSG non-existing user: " << targetName << "\n";
+      user->replyError(401, targetName, "No such nick/channel");
+      return false;
+    }
+
+    // Send private message to target user
+    std::string privmsgLine = ":" + user->getNickname() + " PRIVMSG " +
+                              targetName + " :" + message + "\r\n";
+    targetUser->getOutputBuffer() += privmsgLine;
+
+    std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
+              << "fd " << user->getFd() << RESET << ") "
+              << "sent PRIVMSG to user " << targetName << ": " << message
+              << "\n";
+    return true;
+  }
+}
+
+bool	Command::handleNotice(Server* server, User* user, const std::vector<std::string>& tokens)
+{
+	(void)server;
+	(void)user;
+	(void)tokens;
+
+	return true; // To be implemented
+}
+
+void Command::broadcastToChannel(Server* server, Channel* channel,
+                               const std::string& message,
+                               const std::string& excludeNick)
+{
+    const std::set<std::string>& members = channel->get_members();
+
+    for (std::set<std::string>::const_iterator it = members.begin();
+         it != members.end(); ++it)
+    {
+        // Skip excluded user if specified
+        if (!excludeNick.empty() && *it == excludeNick)
+            continue;
+
+        User* member = server->getUser(*it);
+        if (member)
+        {
+            member->getOutputBuffer() += message;
+        }
+    }
+}
+
+//////////////////////
+// CHANNEL COMMANDS //
+//////////////////////
+
+bool     Command::handleJoin(Server* server, User* user, const std::vector<std::string>& tokens)
+{
+    if (tokens.size() < 2)
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") " << "sent JOIN without a channel name\n";
+        user->replyError(403, "", "No channel specified");
+        return false;
+    }
+    const std::string& channelName = tokens[1];
+    if (channelName.empty() || channelName[0] != '#')
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") " << "sent JOIN with invalid channel name: " << channelName << "\n";
+        user->replyError(403, channelName, "Invalid channel name");
+        return false;
+    }
+    Channel* channel = server->getChannel(channelName);
+    if (!channel)
+    {
+        channel = new Channel( channelName);
+        if (!channel)
+        {
+            std::cerr << "Failed to create channel: " << channelName << std::endl;
+            user->replyError(500, "", "Internal server error");
+            return false;
+        }
+        server->addChannel(channel);
+        logServerMessage("Channel " + channelName + " created");
+    }
+    if (tokens.size() > 2 && tokens[2][0] == ':')
+    {
+        std::string providedKey = tokens[2].substr(1); 
+        if (!channel->validate_password(providedKey))
+        {
+            std::cout << GREEN << user->getNickname() << RESET
+                      << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                      << ") " << "tried to join channel " << channelName
+                      << " with incorrect password\n";
+            user->replyError(475, channelName, "Cannot join channel (bad password)");
+            return false;
+        }
+    }
+    else if (!channel->can_user_join(user->getNickname(), ""))
+    {
+        std::cout << GREEN << user->getNickname() << RESET
+                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
+                  << ") " << "tried to join channel " << channelName << " but cannot join\n";
+        if (channel->is_invite_only() && !channel->is_invited(user->getNickname()))
+            user->replyError(473, channelName, "Cannot join channel (invite only)");
+        else if (channel->has_user_limit() && channel->is_at_user_limit())
+            user->replyError(471, channelName, "Cannot join channel (user limit reached)");
+        return false;
+    }
+    channel->add_user(user->getNickname());
+    user->addChannel(channelName);
+    std::cout << GREEN << user->getNickname() << RESET
+              << " (" << MAGENTA << "fd " << user->getFd() << RESET
+              << ") " << "joined channel " << channelName << "\n";
+    // Send JOIN confirmation back to the user
+    user->getOutputBuffer() += ":" + user->getNickname() + " JOIN " + channelName + "\r\n";
+    return true;
 }
 
 bool Command::handlePart(Server* server, User* user, const std::vector<std::string>& tokens)
@@ -328,269 +522,6 @@ bool Command::handleMode(Server*, User*, const std::vector<std::string>&)
     return false; // TODO: Implement MODE functionality
 }
 
-// Handles the `NICK` command for a user. Also part of the initial client registration.
-// Command: `NICK <nickname>`
-bool	Command::handleNick(Server* server, User* user, const std::vector<std::string>& tokens)
-{
-	if (tokens.size() < 2)
-	{
-		logUserAction(user->getNickname(), user->getFd(), "sent NICK without a nickname");
-		user->replyError(431, "", "No nickname given");
-		return false;
-	}
-
-	const std::string&	nick = tokens[1];
-
-	// Check if the nickname is valid according to IRC rules
-	if (!isValidNick(nick))
-	{
-		logUserAction(user->getNickname(), user->getFd(), std::string("tried to set an invalid nickname: ")
-			+ RED + nick + RESET);
-		user->replyError(432, nick, "Erroneous nickname");
-		return false;
-	}
-
-	// Nickname is already in use?
-	if (server->getNickMap().count(nick) > 0)
-	{
-		logUserAction(user->getNickname(), user->getFd(),
-			std::string("tried to set a nickname already in use: ") + YELLOW + nick + RESET);
-		user->replyError(433, nick, "Nickname is already in use");
-		return false;
-	}
-
-	user->setNickname(nick);
-	return true;
-}
-
-// Handles the `USER` command for a user. Also part of the initial client registration.
-// Command: `USER <username> <hostname> <servername> :<realname>`
-bool	Command::handleUser(User* user, const std::vector<std::string>& tokens)
-{
-	if (user->isRegistered())
-	{
-		logUserAction(user->getNickname(), user->getFd(), "tried to resend USER after registration");
-		user->replyError(462, "", "You may not reregister");
-		return false;
-	}
-
-	// Enough arguments? Does realname token start with a colon?
-	if (tokens.size() < 5 || tokens[4].size() < 2 || tokens[4][0] != ':')
-	{
-		logUserAction(user->getNickname(), user->getFd(), "sent invalid USER command (too few arguments)");
-		user->replyError(461, "USER", "Not enough parameters");
-		return false;
-	}
-	
-	user->setUsername(tokens[1]);
-	user->setHost(tokens[2]);
-	user->setRealname(tokens[4].substr(1)); // Remove leading colon from realname
-
-	return true;
-}
-
-// Handles the `PASS` command for a user. This is used to authenticate the user with the server.
-// Command: `PASS <password>`
-bool	Command::handlePass(Server* server, User* user, const std::vector<std::string>& tokens)
-{
-	if (user->isRegistered())
-	{
-		logUserAction(user->getNickname(), user->getFd(), "tried to resend PASS after registration");
-		user->replyError(462, "", "You may not reregister");
-		return false;
-	}
-
-	if (tokens.size() < 2)
-	{
-		logUserAction(user->getNickname(), user->getFd(), "sent invalid PASS command (missing password)");
-		user->replyError(461, "PASS", "Not enough parameters");
-		return false;
-	}
-
-	// Validate the provided password
-	// If server password is empty, any password is accepted
-	const std::string&	password = tokens[1];
-	bool				requiresPassword = !server->getPassword().empty();
-	if (requiresPassword && password != server->getPassword())
-	{
-		logUserAction(user->getNickname(), user->getFd(), "provided incorrect password");
-		user->replyError(464, "", "Password incorrect");
-		return false;
-	}
-
-	user->setHasPassed(true);
-	user->tryRegister();
-	return true;
-}
-
-bool     Command::handleJoin(Server* server, User* user, const std::vector<std::string>& tokens)
-{
-    if (tokens.size() < 2)
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") " << "sent JOIN without a channel name\n";
-        user->replyError(403, "", "No channel specified");
-        return false;
-    }
-    const std::string& channelName = tokens[1];
-    if (channelName.empty() || channelName[0] != '#')
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") " << "sent JOIN with invalid channel name: " << channelName << "\n";
-        user->replyError(403, channelName, "Invalid channel name");
-        return false;
-    }
-    Channel* channel = server->getChannel(channelName);
-    if (!channel)
-    {
-        channel = new Channel( channelName);
-        if (!channel)
-        {
-            std::cerr << "Failed to create channel: " << channelName << std::endl;
-            user->replyError(500, "", "Internal server error");
-            return false;
-        }
-        server->addChannel(channel);
-        logServerMessage("Channel " + channelName + " created");
-    }
-    if (tokens.size() > 2 && tokens[2][0] == ':')
-    {
-        std::string providedKey = tokens[2].substr(1); 
-        if (!channel->validate_password(providedKey))
-        {
-            std::cout << GREEN << user->getNickname() << RESET
-                      << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                      << ") " << "tried to join channel " << channelName
-                      << " with incorrect password\n";
-            user->replyError(475, channelName, "Cannot join channel (bad password)");
-            return false;
-        }
-    }
-    else if (!channel->can_user_join(user->getNickname(), ""))
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") " << "tried to join channel " << channelName << " but cannot join\n";
-        if (channel->is_invite_only() && !channel->is_invited(user->getNickname()))
-            user->replyError(473, channelName, "Cannot join channel (invite only)");
-        else if (channel->has_user_limit() && channel->is_at_user_limit())
-            user->replyError(471, channelName, "Cannot join channel (user limit reached)");
-        return false;
-    }
-    channel->add_user(user->getNickname());
-    user->addChannel(channelName);
-    std::cout << GREEN << user->getNickname() << RESET
-              << " (" << MAGENTA << "fd " << user->getFd() << RESET
-              << ") " << "joined channel " << channelName << "\n";
-    // Send JOIN confirmation back to the user
-    user->getOutputBuffer() += ":" + user->getNickname() + " JOIN " + channelName + "\r\n";
-    return true;
-    
-
-}
-
-void Command::broadcastToChannel(Server* server, Channel* channel,
-                               const std::string& message,
-                               const std::string& excludeNick)
-{
-    const std::set<std::string>& members = channel->get_members();
-
-    for (std::set<std::string>::const_iterator it = members.begin();
-         it != members.end(); ++it)
-    {
-        // Skip excluded user if specified
-        if (!excludeNick.empty() && *it == excludeNick)
-            continue;
-
-        User* member = server->getUser(*it);
-        if (member)
-        {
-            member->getOutputBuffer() += message;
-        }
-    }
-}
-bool Command::handlePrivmsg(Server *server, User *user,
-                            const std::vector<std::string> &tokens) {
-  if (tokens.size() < 3) {
-    std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
-              << "fd " << user->getFd() << RESET << ") "
-              << "sent PRIVMSG without enough arguments\n";
-    user->replyError(411, "", "No recipient given");
-    return false;
-  }
-
-  const std::string &targetName = tokens[1];
-
-  // Reconstruct the full message from tokens[2] onward
-  std::string message;
-  for (size_t i = 2; i < tokens.size(); ++i) {
-    if (i > 2)
-      message += " ";
-    message += tokens[i];
-  }
-
-  // Remove leading ':' if present (trailing parameter)
-  if (!message.empty() && message[0] == ':') {
-    message = message.substr(1);
-  }
-
-  if (targetName[0] == '#') {
-    // It's a channel
-    Channel *channel = server->getChannel(targetName);
-    if (!channel) {
-      std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
-                << "fd " << user->getFd() << RESET << ") "
-                << "tried to PRIVMSG non-existing channel: " << targetName
-                << "\n";
-      user->replyError(403, targetName, "No such nick/channel");
-      return false;
-    }
-
-    if (!channel->is_user_member(user->getNickname())) {
-      std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
-                << "fd " << user->getFd() << RESET << ") "
-                << "tried to PRIVMSG channel " << targetName
-                << " but is not a member\n";
-      user->replyError(404, targetName,
-                       "Cannot send to channel (not a member)");
-      return false;
-    }
-
-    // Broadcast message to all channel members except sender
-    std::string privmsgLine = ":" + user->getNickname() + " PRIVMSG " + targetName + " :" + message + "\r\n";
-    broadcastToChannel(server, channel, privmsgLine, user->getNickname());
-
-    std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
-              << "fd " << user->getFd() << RESET << ") "
-              << "sent PRIVMSG to channel " << targetName << ": " << message
-              << "\n";
-    return true;
-  } else {
-    // It's a user
-    User *targetUser = server->getUser(targetName);
-    if (!targetUser) {
-      std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
-                << "fd " << user->getFd() << RESET << ") "
-                << "tried to PRIVMSG non-existing user: " << targetName << "\n";
-      user->replyError(401, targetName, "No such nick/channel");
-      return false;
-    }
-
-    // Send private message to target user
-    std::string privmsgLine = ":" + user->getNickname() + " PRIVMSG " +
-                              targetName + " :" + message + "\r\n";
-    targetUser->getOutputBuffer() += privmsgLine;
-
-    std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
-              << "fd " << user->getFd() << RESET << ") "
-              << "sent PRIVMSG to user " << targetName << ": " << message
-              << "\n";
-    return true;
-  }
-}
-
 bool Command::handleTopic(Server *server, User *user, const std::vector<std::string> &tokens)
 {
     if (tokens.size() < 2)
@@ -748,9 +679,6 @@ bool Command::handleInvite(Server* server, User* user, const std::vector<std::st
     return true;
 }
 
-
-
-
 ///////////
 // Utils //
 ///////////
@@ -806,11 +734,10 @@ Command::Type Command::getType(const std::string& message)
 	if (cmd == "NICK")		return NICK;
 	if (cmd == "USER")		return USER;
 	if (cmd == "PASS")		return PASS;
-	if (cmd == "PING")		return PING;
 	if (cmd == "JOIN")		return JOIN;
 	if (cmd == "PART")		return PART;
-	if (cmd == "QUIT")		return QUIT;
 	if (cmd == "PRIVMSG")	return PRIVMSG;
+	if (cmd == "NOTICE")	return NOTICE;
 	if (cmd == "TOPIC")		return TOPIC;
 	if (cmd == "KICK")		return KICK;
 	if (cmd == "INVITE")	return INVITE;

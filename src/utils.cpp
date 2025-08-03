@@ -18,6 +18,7 @@ int	parsePort(const char* arg)
 
 /**
  Returns the current time formatted as a readable string.
+ Used in server welcome message.
 
  Example output:
 	`Fri Jul 19 2025 at 21:47:30 UTC`
@@ -32,6 +33,27 @@ std::string	getFormattedTime()
 	char		buffer[128];
 	// Format: AbbrWeekday AbbrMonth Day Year at HH:MM:SS UTC
 	std::strftime(buffer, sizeof(buffer), "%a %b %d %Y at %H:%M:%S UTC", gmt);
+
+	return std::string(buffer);
+}
+
+ /**
+ Returns the current time formatted as a readable string.
+ Used in server logging.
+
+ Example output:
+	`2025-08-03 18:47:39 UTC`
+
+ @return 	A string containing the current date and time in UTC format.
+*/
+std::string	getTimestamp()
+{
+	std::time_t	now = std::time(NULL);		// Get current time as time_t (seconds since epoch)
+	std::tm*	gmt = std::gmtime(&now);	// Convert to UTC time (struct tm)
+
+	char		buffer[128];
+	// Format: YYYY-MM-DD HH:MM:SS UTC
+	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S UTC", gmt);
 
 	return std::string(buffer);
 }
@@ -98,7 +120,7 @@ void	logUserAction(const std::string& nick, int fd, const std::string& message)
 {
 	std::ostringstream	oss;
 
-	oss	<< "[" << CYAN << getFormattedTime() << RESET << "] "
+	oss	<< "[" << CYAN << getTimestamp() << RESET << "] "
 		<< GREEN << std::left << std::setw(MAX_NICK_LENGTH + 1) << nick << RESET // pad nick + some space
 		<< "(" << MAGENTA << "fd " << std::right << std::setw(3) << fd << RESET << ") "
 		<< message;
@@ -113,5 +135,5 @@ void	logUserAction(const std::string& nick, int fd, const std::string& message)
 */
 void	logServerMessage(const std::string& message)
 {
-	std::cout << "[" << CYAN << getFormattedTime() << RESET << "] " << message << std::endl;
+	std::cout << "[" << CYAN << getTimestamp() << RESET << "] " << message << std::endl;
 }

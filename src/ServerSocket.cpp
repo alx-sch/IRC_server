@@ -92,6 +92,9 @@ void	Server::startListening()
 
 /**
  Prepares the read fd_set for use with select().
+ Read set includes:
+ - Server listening socket: A new user wants to connect.
+ - User sockets: Clients have sent messages waiting to be read.
 
  @param readFds 	Reference to the fd_set to be passed to select().
  @return			The highest file descriptor value among all monitored fds.
@@ -116,6 +119,9 @@ int	Server::prepareReadSet(fd_set& readFds)
 /**
  Prepares the write fd_set for use with select().
  Only includes users that have data in their output buffer.
+
+ Write set includes:
+ - User sockets: Ready to accept outgoing data without blocking.
 
  @param writeFds 	Reference to the fd_set to be passed to select().
  @return			The highest file descriptor value among all monitored fds.

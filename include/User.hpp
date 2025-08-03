@@ -29,8 +29,8 @@ class	User
 		const std::string&	getUsername() const;
 
 		const std::set<std::string>&	getChannels() const;
-		void						addChannel(const std::string& channel);
-		void						removeChannel(const std::string& channel);
+		void							addChannel(const std::string& channel);
+		void							removeChannel(const std::string& channel);
 
 		// === UserReply.cpp ===
 
