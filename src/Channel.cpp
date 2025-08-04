@@ -1,9 +1,13 @@
 #include "../include/Channel.hpp"
 
+// Constructor: Initializes the channel with a name and default values.
 Channel::Channel(std::string name)
 	:	_channel_name(name), _connected_user_number(0), _user_limit(0),
 		_invite_only(false), _topic_protection(false)
 {}
+
+// Default destructor
+Channel::~Channel() {}
 
 // Adds a user to the channel and increments member count if successful.
 void	Channel::add_user(const std::string& user_nick)

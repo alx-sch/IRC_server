@@ -6,6 +6,7 @@ SRCS_FILES :=	main.cpp \
 				Server.cpp \
 				ServerUser.cpp \
 				ServerSocket.cpp \
+				ServerChannel.cpp \
 				User.cpp \
 				UserReply.cpp \
 				UserRegistration.cpp \

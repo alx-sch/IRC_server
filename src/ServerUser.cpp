@@ -196,31 +196,6 @@ void	Server::broadcastMessage(int senderFd, const std::string& nick, const std::
 	}
 }
 
-/** PROB MOVE TO COMMAND --> WHEN HANDLING MESSAGES THERE
- Handles a failed `send()` operation to a user.
-
- Logs the error to the server terminal.
- If the failure was due to a broken or reset connection (`EPIPE` or `ECONNRESET`),
- the user is considered disconnected and is removed from the server.
-
- @param fd 	The fd of the user for whom `send()` failed.
-*/
-void	Server::handleSendError(int fd, const std::string& nick)
-{
-	// Critical errors that mean the user is gone
-	if (errno == EPIPE || errno == ECONNRESET)
-	{
-		handleDisconnection(fd, strerror(errno), "send()");
-		deleteUser(fd);
-		return;
-	}
-
-	// Non‑critical send error (temporary): log it but do not disconnect
-	// e.g. EAGAIN or EWOULDBLOCK (“Resource temporarily unavailable”)
-	logUserAction(nick, fd, RED + std::string("Error sending message to user: ")
-		+ strerror(errno) + RESET);
-}
-
 /**
  Logs a disconnection event for a user.
 

@@ -12,12 +12,13 @@ class	Channel;
 class Server
 {
 	public:
+		// === Server.cpp ===
+
 		Server(int port, const std::string& password);
 		~Server();
 
 		void				run();
-
-		void				handleSendError(int fd, const std::string& nick); // Used in UserReplies.cpp
+		void				handleSendError(int fd, const std::string& nick);
 
 		const std::string&	getServerName() const;
 		const std::string&	getVersion() const;
@@ -30,14 +31,19 @@ class Server
 
 		std::map<std::string, User*>&	getNickMap();
 		void				removeNickMapping(const std::string& nickname);
-		void				removeUserMapping(const std::string& nickname);
+
+		// === ServerUser.cpp ===
+
+		User*				getUser(int fd) const;
+		User*				getUser(const std::string& nickname) const;
+
+		// === ServerChannel.cpp ===
 
 		Channel*			getChannel(const std::string& channelName) const;
 		Channel*			getOrCreateChannel(const std::string& channelName, User* user,
 								const std::string& key = "");
-		void				addChannel(Channel* channel);
+		void				deleteChannel(const std::string& channelName);
 
-        User*		getUser(const std::string& nickname) const;
 	private:
 		// Disable default constructor and copying (makes no sense for a server)
 		Server();
@@ -82,11 +88,6 @@ class Server
 
 		void		deleteUser(int fd);
 		void		deleteUser(const std::string& nickname);
-
-		User*		getUser(int fd) const;
-
-
-
 };
 
 # endif

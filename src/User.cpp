@@ -13,7 +13,6 @@ User::User(int fd, Server* server)
 {}
 
 User::~User() {}
-User::User(int fd) : _fd(fd) {}
 
 /////////////
 // Setters //
