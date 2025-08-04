@@ -39,41 +39,23 @@ void	Server::acceptNewUser()
 	logUserAction("*", userFd, std::string("connected from ") + YELLOW
 		+ std::string(inet_ntoa(userAddr.sin_addr)) + RESET);
 
-	User* newUser = new User(userFd, this);
-	_usersFd[userFd] = newUser;
+	try
+	{
+		User* newUser = new User(userFd, this); // 'new' throws std::bad_alloc on failure
+		_usersFd[userFd] = newUser;
+	}
+	catch(const std::bad_alloc&)
+	{
+		close(userFd);	// Close fd to prevent leak
+		logServerMessage(RED + std::string("ERROR: Failed to allocate memory for new user on ")
+			+ MAGENTA + "fd " + toString(userFd) + RED ". Connection closed." + RESET);
+		return; // Keep server running
+	}
 }
 
 /////////////////////////
 // Handling User Input //
 /////////////////////////
-
-/**
- Handles input readiness for all connected users.
-
- This function iterates through all user file descriptors and checks if any are marked
- as ready for reading (based on `select()` populating `readFds`). For each ready user,
- it attempts to read and process input using `handleUserInput()`. If a user has disconnected
- or an error occurred while reading, the user is removed from the server via `deleteUser()`.
-
- @param readFds 	A set of file descriptors marked as ready to read by `select()`.
-*/
-void	Server::handleReadyUsers(fd_set& readFds)
-{
-	std::map<int, User*>::iterator	it = _usersFd.begin();
-
-	// Iterate through all active users and check if they have data to read
-	while (it != _usersFd.end())
-	{
-		int	userFd = it->first;
-		++it;
-
-		if (FD_ISSET(userFd, &readFds))
-		{
-			if (!handleUserInput(userFd)) // User disconnected or error
-				deleteUser(userFd);
-		}
-	}
-}
 
 /**
  Handles incoming data from a user socket.
@@ -115,8 +97,8 @@ bool	Server::handleUserInput(int fd)
 		{	// Just for testing, in a proper IRC implementation, below would be a "Command unknown" response
 			// (Also broadcast / channel messages have a command prefix)
 			// prob return false here when it's "kickable" user behavior
-			std::string	nick = user->getNickname();
-			broadcastMessage(fd, nick, messages[i]); // allows testing without full IRC client (works with telnet, nc)
+			//std::string	nick = user->getNickname();
+			//broadcastMessage(fd, nick, messages[i]); // allows testing without full IRC client (works with telnet, nc)
 		}
 	}
 
@@ -186,40 +168,16 @@ void	Server::broadcastMessage(int senderFd, const std::string& nick, const std::
 	}
 }
 
-/** PROB MOVE TO COMMAND --> WHEN HANDLING MESSAGES THERE
- Handles a failed `send()` operation to a user.
-
- Logs the error to the server terminal.
- If the failure was due to a broken or reset connection (`EPIPE` or `ECONNRESET`),
- the user is considered disconnected and is removed from the server.
-
- @param fd 	The fd of the user for whom `send()` failed.
-*/
-void	Server::handleSendError(int fd, const std::string& nick)
-{
-	// Critical errors that mean the user is gone
-	if (errno == EPIPE || errno == ECONNRESET)
-	{
-		handleDisconnection(fd, strerror(errno), "send()");
-		deleteUser(fd);
-		return;
-	}
-
-	// Non‑critical send error (temporary): log it but do not disconnect
-	// e.g. EAGAIN or EWOULDBLOCK (“Resource temporarily unavailable”)
-	logUserAction(nick, fd, RED + std::string("Error sending message to user: ")
-		+ strerror(errno) + RESET);
-}
-
 /**
- Logs a disconnection event for a user.
+ Logs and handles an unexpected disconnection event.
 
- This function is called when a user disconnects or an error occurs.
- It prints the user's nickname and fd, along with the reason for disconnection.
+ This function is called when an I/O error occurs during communication
+ (e.g., recv() or send() fails). It logs the user's nickname and file descriptor,
+ along with the error source and reason.
 
  @param fd 		The file descriptor of the disconnected user.
  @param reason 	The reason for disconnection (e.g., "Connection closed", "Broken pipe").
- @param source 	The source of the disconnection (who called this function).
+ @param source 	A string indicating where the error occurred (e.g., "recv()", "send()").
 */
 void	Server::handleDisconnection(int fd, const std::string& reason, const std::string& source)
 {
@@ -234,80 +192,36 @@ void	Server::handleDisconnection(int fd, const std::string& reason, const std::s
 				<< "Removing user from server.\n" << RESET;
 }
 
-/////////////////////
-// Get User (info) //
-/////////////////////
+//////////////////////////
+// Handling Ready Users //
+//////////////////////////
 
 /**
- Retrieves an `User` object by its file descriptor (fd) in a safe manner.
+ Handles input readiness for all connected users.
 
- This method safely searches the `_usersFd` map using `.find()` (instead of `[]`)
- to avoid accidental insertion of invalid keys.
+ This function iterates through all user file descriptors and checks if any are marked
+ as ready for reading (based on `select()` populating `readFds`). For each ready user,
+ it attempts to read and process input using `handleUserInput()`. If a user has disconnected
+ or an error occurred while reading, the user is removed from the server via `deleteUser()`.
 
- @param fd 	The file descriptor (socket) of the user to retrieve.
- @return 	Pointer to the `User` object if found, `NULL` otherwise.
+ @param readFds 	A set of file descriptors marked as ready to read by `select()`.
 */
-User*	Server::getUser(int fd) const
+void	Server::handleReadyUsers(fd_set& readFds)
 {
-	std::map<int, User*>::const_iterator	it = _usersFd.find(fd);
-	if (it != _usersFd.end())
-		return it->second;
-	return NULL;
-}
+	std::map<int, User*>::iterator	it = _usersFd.begin();
 
-/**
- Retrieves an `User` object by its nickname in a safe manner.
+	// Iterate through all active users and check if they have data to read
+	while (it != _usersFd.end())
+	{
+		int	userFd = it->first;
+		++it;
 
- This method safely searches the `_usersNick` map using `.find()` (instead of `[]`)
- to avoid accidental insertion of invalid keys.
-
- @param nickname 	The nickname of the user to retrieve.
- @return 			Pointer to the `User` object if found, `NULL` otherwise.
-*/
-User*	Server::getUser(const std::string& nickname) const
-{
-	std::map<std::string, User*>::const_iterator	it = _usersNick.find(nickname);
-	if (it != _usersNick.end())
-		return it->second;
-	return NULL;
-}
-
-//////////////////
-// Remove Users //
-//////////////////
-
-// Deletes a user from the server (`_usersFd`, `_usersNick`) using their file descriptor.
-void	Server::deleteUser(int fd)
-{
-	User*	user = getUser(fd);
-	if (!user)
-		return;
-
-	// Log before we close and erase everything
-	logUserAction(user->getNickname(), fd, "disconnected");
-
-	close(fd);
-	user->markDisconnected();
-	_usersFd.erase(fd);
-	_usersNick.erase(user->getNickname());
-	delete user;
-}
-
-// Deletes a user from the server (`_usersFd`, `_usersNick`) using their nickname.
-void	Server::deleteUser(const std::string& nickname)
-{
-	User*	user = getUser(nickname);
-	if (!user)
-		return;
-
-	// Log before we close and erase everything
-	logUserAction(user->getNickname(), user->getFd(), "disconnected");
-
-	close(user->getFd());
-	user->markDisconnected();
-	_usersNick.erase(nickname);
-	_usersFd.erase(user->getFd());
-	delete user;
+		if (FD_ISSET(userFd, &readFds))
+		{
+			if (!handleUserInput(userFd)) // User disconnected or error
+				deleteUser(userFd, strerror(errno));
+		}
+	}
 }
 
 /**
@@ -351,4 +265,63 @@ void	Server::handleWriteReadyUsers(fd_set& writeFds)
 			// If bytesSent == 0, no data was sent (shouldn't happen with select)
 		}
 	}
+}
+
+//////////////
+// Get User //
+//////////////
+
+/**
+ Retrieves an `User` object by its file descriptor (fd) in a safe manner.
+
+ This method safely searches the `_usersFd` map using `.find()` (instead of `[]`)
+ to avoid accidental insertion of invalid keys.
+
+ @param fd 	The file descriptor (socket) of the user to retrieve.
+ @return 	Pointer to the `User` object if found, `NULL` otherwise.
+*/
+User*	Server::getUser(int fd) const
+{
+	std::map<int, User*>::const_iterator	it = _usersFd.find(fd);
+	if (it != _usersFd.end())
+		return it->second;
+	return NULL;
+}
+
+/**
+ Retrieves an `User` object by its nickname in a safe manner.
+
+ This method safely searches the `_usersNick` map using `.find()` (instead of `[]`)
+ to avoid accidental insertion of invalid keys.
+
+ @param nickname 	The nickname of the user to retrieve.
+ @return 			Pointer to the `User` object if found, `NULL` otherwise.
+*/
+User*	Server::getUser(const std::string& nickname) const
+{
+	std::map<std::string, User*>::const_iterator	it = _usersNick.find(nickname);
+	if (it != _usersNick.end())
+		return it->second;
+	return NULL;
+}
+
+//////////////////
+// Remove Users //
+//////////////////
+
+// Deletes a user from the server (`_usersFd`, `_usersNick`) using their file descriptor.
+void	Server::deleteUser(int fd, std::string reason)
+{
+	User*	user = getUser(fd);
+	if (!user)
+		return;
+
+	// Log before we close and erase everything
+	logUserAction(user->getNickname(), fd, "disconnected: " + reason);
+
+	close(fd);
+	user->markDisconnected();
+	_usersFd.erase(fd);
+	_usersNick.erase(user->getNickname());
+	delete user;
 }

@@ -8,19 +8,23 @@
 #include <sys/select.h>	// select(), fd_set, FD_* macros
 
 #include "../include/Server.hpp"
+#include "../include/User.hpp"
+#include "../include/Channel.hpp"
 #include "../include/defines.hpp"	// color formatting
 #include "../include/signal.hpp"	// g_running variable
 #include "../include/utils.hpp"		// getFormattedTime(), logServerMessage()
 
+/// Constructor: Initializes the server socket and sets up the server state.
 Server::Server(int port, const std::string& password) 
 	:	_name(SERVER_NAME), _version(VERSION), _network(NETWORK),
 		_creationTime(getFormattedTime()), _port(port),
-		_password(password), _cModes(C_MODES), _uModes(U_MODES),
-		_fd(-1)
+		_password(password), _fd(-1), _cModes(C_MODES), _uModes(U_MODES),
+		_maxChannels(MAX_CHANNELS)
 {
 	initSocket();
 }
 
+// Destructor: Closes the server socket and cleans up resources.
 Server::~Server()
 {
 	// Close the listening socket if open
@@ -29,7 +33,11 @@ Server::~Server()
 
 	// Delete all dynamically allocated User objects
 	while (!_usersFd.empty())
-		deleteUser(_usersFd.begin()->first);
+		deleteUser(_usersFd.begin()->first, "Server shutdown");
+
+	// Delete all dynamically allocated Channel objects
+	while (!_channels.empty())
+		deleteChannel(_channels.begin()->first);
 
 	logServerMessage("Server shutdown complete");
 }
@@ -79,6 +87,32 @@ void	Server::run()
 	}
 }
 
+/**
+ Handles a failed `send()` operation to a user.
+
+ Logs the error to the server terminal.
+ If the failure was due to a broken or reset connection (`EPIPE` or `ECONNRESET`),
+ the user is considered disconnected and is removed from the server.
+
+ @param fd 		The fd of the user for whom `send()` failed.
+ @param nick 	The nickname of the user for whom `send()` failed.
+*/
+void	Server::handleSendError(int fd, const std::string& nick)
+{
+	// Critical errors that mean the user is gone
+	if (errno == EPIPE || errno == ECONNRESET)
+	{
+		handleDisconnection(fd, strerror(errno), "send()");
+		deleteUser(fd, strerror(errno));
+		return;
+	}
+
+	// Non‑critical send error (temporary): log it but do not disconnect
+	// e.g. EAGAIN or EWOULDBLOCK (“Resource temporarily unavailable”)
+	logUserAction(nick, fd, RED + std::string("Error sending message to user: ")
+		+ strerror(errno) + RESET);
+}
+
 /////////////
 // Getters //
 /////////////
@@ -125,6 +159,16 @@ const std::string&	Server::getUModes() const
 	return _uModes;
 }
 
+// Returns the maximum number of channels a user can join.
+int	Server::getMaxChannels() const
+{
+	return _maxChannels;
+}
+
+//////////////////
+// Nick Mapping //
+//////////////////
+
 // Returns a map of active users by nickname.
 std::map<std::string, User*>&	Server::getNickMap()
 {
@@ -136,26 +180,4 @@ std::map<std::string, User*>&	Server::getNickMap()
 void	Server::removeNickMapping(const std::string& nickname)
 {
 	_usersNick.erase(nickname);
-}
-
-void Server::addChannel(Channel* channel)
-{
-    if (!channel)
-        throw std::invalid_argument("Cannot add a null channel");
-
-    const std::string& channelName = channel->get_name();
-    if (_channels.find(channelName) != _channels.end())
-    {
-        std::cerr << "Channel " << channelName << " already exists!" << std::endl;
-        return;
-    }
-
-    _channels[channelName] = channel;
-}
-
-Channel* Server::getChannel(const std::string& channelName) const
-{
-    if (_channels.find(channelName) != _channels.end())
-        return _channels.find(channelName)->second;
-    return 0; // Channel not found
 }

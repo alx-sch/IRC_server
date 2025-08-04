@@ -35,7 +35,7 @@ int	main(int argc, char** argv)
 	}
 	catch (const std::exception& e)
 	{
-		std::cerr << RED << BOLD << "Error: " << e.what() << "\n" << RESET;
+		std::cerr << RED << BOLD << "ERROR: " << e.what() << "\n" << RESET;
 		return 1; // Exit on error
 	}
 

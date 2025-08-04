@@ -1,9 +1,10 @@
-#include <set>
-#include <string>
-
 #ifndef CHANNEL_HPP
-#define CHANNEL_HPP
-class Channel
+# define CHANNEL_HPP
+
+# include <set>
+# include <string>
+
+class	Channel
 {
 private:
 	std::string _channel_name;
@@ -23,6 +24,13 @@ public:
 	Channel(std::string name);
 	~Channel();
 
+	enum	JoinResult
+	{
+		JOIN_INVITE_ONLY,
+		JOIN_FULL,
+		JOIN_BAD_KEY
+	};
+
     // Getters
     const std::string& get_name() const;
 
@@ -33,14 +41,15 @@ public:
 
 	void add_user(const std::string& user_nick);
 	void remove_user(const std::string& user_nick);
-	bool is_user_member(const std::string& user_nick);
+	bool is_user_member(const std::string& user_nick) const;
 
 	void make_user_operator(const std::string& user_nick);
 	void remove_user_operator_status(const std::string& user_nick);
-	bool is_user_operator(const std::string& user_nick);
+	bool is_user_operator(const std::string& user_nick) const;
 
 
-	bool can_user_join(const std::string& user_nick, const std::string& provided_key) const;
+	bool can_user_join(const std::string& user_nick, const std::string& provided_key,
+					JoinResult& result) const;
 
 	void set_topic(const std::string& topic);
 	bool has_topic_protection() const;
@@ -53,8 +62,8 @@ public:
 
 	void set_invite_only();
 	bool is_invite_only() const;
-	bool is_invited(const std::string& nickname) const;
-    void add_invite(const std::string& nickname);
+	bool is_invited(const std::string& user_nick) const;
+    void add_invite(const std::string& user_nick);
 
 
 	bool has_password() const;

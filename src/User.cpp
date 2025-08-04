@@ -13,7 +13,12 @@ User::User(int fd, Server* server)
 {}
 
 User::~User() {}
-User::User(int fd) : _fd(fd) {}
+
+// Returns the prefix in the format: nickname!username@host
+std::string	User::buildPrefix() const
+{
+	return _nickname + "!" + _username + "@" + _host;
+}
 
 /////////////
 // Setters //
@@ -43,7 +48,6 @@ void	User::setNickname(const std::string& nickname)
 	_server->getNickMap()[nickname] = this;
 	_nickname = nickname;
 	_hasNick = true;
-	tryRegister();
 }
 
 // Set the username for the user
@@ -51,7 +55,6 @@ void	User::setUsername(const std::string& username)
 {
 	_username = username;
 	_hasUser = true;
-	tryRegister();
 }
 
 // Set the real name for the user (usually unused)
@@ -82,6 +85,24 @@ const std::string&	User::getNickname() const
 		return _nickname;
 }
 
+// Returns the username of the user.
+const std::string&	User::getUsername() const
+{
+	return _username;
+}
+
+// Returns the real name of the user.
+const std::string&	User::getRealname() const
+{
+	return _realname;
+}
+
+// Returns the host of the user.
+const std::string&	User::getHost() const
+{
+	return _host;
+}
+
 // Returns the input buffer where incoming messages are stored.
 std::string&	User::getInputBuffer()
 {
@@ -93,6 +114,10 @@ std::string&	User::getOutputBuffer()
 {
 	return _outputBuffer;
 }
+
+////////////////////////
+// Channel management //
+////////////////////////
 
 const std::set<std::string>&	User::getChannels() const
 {
