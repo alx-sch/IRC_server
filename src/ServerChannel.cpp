@@ -42,9 +42,9 @@ Channel*	Server::getOrCreateChannel(const std::string& channelName, User* user, 
 		channel = new Channel(channelName);
 		if (!key.empty()) // If a key is provided, set it as the channel password
 			channel->set_password(key);
-		_channels[channelName] = channel;
-		logUserAction(user->getNickname(), user->getFd(),
-			std::string("created new channel: ") + BLUE + channelName + RESET);
+		_channels[channelName] = channel; // Add to the server's channel map
+		logUserAction(user->getNickname(), user->getFd(), std::string("created: ")
+			+ BLUE + channelName + RESET);
 	}
 	catch(const std::bad_alloc&)
 	{

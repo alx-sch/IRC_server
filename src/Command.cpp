@@ -66,7 +66,12 @@ bool	Command::handleQuit(Server* server, User* user, const std::vector<std::stri
 	if (tokens.size() < 2 || tokens[1].empty())
 		reason = "Client Quit";
 	else
+	{
 		reason = tokens[1];
+
+		if (reason[0] == ':')	// Remove leading ':' if present
+			reason = reason.substr(1);
+	}
 
 	// Get the list of channels the user is in
 	const std::set<std::string>&	channels = user->getChannels();
@@ -88,8 +93,7 @@ bool	Command::handleQuit(Server* server, User* user, const std::vector<std::stri
 			+ RESET + ": " + reason);
 	}
 
-	server->deleteUser(userNick);	// Remove the user from the server's user list
-	user->markDisconnected();		// Mark user as disconnected
+	server->deleteUser(user->getFd(), reason);	// Remove the user from the server's user list
 
 	return true;
 }
@@ -243,6 +247,7 @@ Command::Type Command::getType(const std::string& message)
 	if (cmd == "USER")		return USER;
 	if (cmd == "PASS")		return PASS;
 	if (cmd == "JOIN")		return JOIN;
+	if (cmd == "QUIT")		return QUIT;
 	if (cmd == "PART")		return PART;
 	if (cmd == "PRIVMSG")	return PRIVMSG;
 	if (cmd == "NOTICE")	return NOTICE;

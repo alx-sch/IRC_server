@@ -36,8 +36,7 @@ class Server
 
 		User*				getUser(int fd) const;
 		User*				getUser(const std::string& nickname) const;
-		void				deleteUser(int fd);
-		void				deleteUser(const std::string& nickname);
+		void				deleteUser(int fd, std::string reason);
 
 		// === ServerChannel.cpp ===
 

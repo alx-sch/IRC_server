@@ -14,7 +14,7 @@ User::User(int fd, Server* server)
 
 User::~User() {}
 
-// Returns the prefix in the format: `nickname!username@host`
+// Returns the prefix in the format: nickname!username@host
 std::string	User::buildPrefix() const
 {
 	return _nickname + "!" + _username + "@" + _host;

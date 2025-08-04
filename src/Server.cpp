@@ -33,7 +33,7 @@ Server::~Server()
 
 	// Delete all dynamically allocated User objects
 	while (!_usersFd.empty())
-		deleteUser(_usersFd.begin()->first);
+		deleteUser(_usersFd.begin()->first, "Server shutdown");
 
 	// Delete all dynamically allocated Channel objects
 	while (!_channels.empty())
@@ -103,7 +103,7 @@ void	Server::handleSendError(int fd, const std::string& nick)
 	if (errno == EPIPE || errno == ECONNRESET)
 	{
 		handleDisconnection(fd, strerror(errno), "send()");
-		deleteUser(fd);
+		deleteUser(fd, strerror(errno));
 		return;
 	}
 

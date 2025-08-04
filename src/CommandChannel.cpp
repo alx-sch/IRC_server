@@ -67,7 +67,7 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 	if (user->getChannels().count(channelName) > 0)
 	{
 		logUserAction(user->getNickname(), user->getFd(),
-			std::string("tried to join already joined channel: ") + BLUE + channelName + RESET);
+			std::string("tried to join already joined: ") + BLUE + channelName + RESET);
 		user->replyError(443, channelName, "is already on channel");
 		return false;
 	}
@@ -87,11 +87,13 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 					std::string("tried to join invite-only channel without being invited: ") + BLUE + channelName + RESET);
 				user->replyError(473, channelName, "Cannot join channel (+i)");
 				break;
+
 			case Channel::JOIN_FULL:
 				logUserAction(user->getNickname(), user->getFd(),
 					std::string("tried to join full channel: ") + BLUE + channelName + RESET);
 				user->replyError(471, channelName, "Cannot join channel (+l)");
 				break;
+
 			case Channel::JOIN_BAD_KEY:
 				logUserAction(user->getNickname(), user->getFd(),
 					std::string("tried to join channel with bad key: ") + BLUE + channelName + RESET);
@@ -168,44 +170,44 @@ bool	Command::handleJoin(Server* server, User* user, const std::vector<std::stri
 	return true;
 }
 
-bool Command::handlePart(Server* server, User* user, const std::vector<std::string>& tokens)
+bool	Command::handlePart(Server* server, User* user, const std::vector<std::string>& tokens)
 {
-    if (tokens.size() < 2)
-    {
-        logUserAction(user->getNickname(), user->getFd(), "sent PART without a channel name");
-        user->replyError(461, "PART", "Not enough parameters");
-        return false;
-    }
+	if (tokens.size() < 2)
+	{
+		logUserAction(user->getNickname(), user->getFd(), "sent PART without a channel name");
+		user->replyError(461, "PART", "Not enough parameters");
+		return false;
+	}
 
-    const std::string& channelName = tokens[1];
-    
-    // Validate channel name format
-    if (channelName.empty() || channelName[0] != '#')
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "sent PART with invalid channel name: " + channelName);
-        user->replyError(403, channelName, "No such channel");
-        return false;
-    }
+	const std::string& channelName = tokens[1];
 
-    // Check if channel exists
-    Channel* channel = server->getChannel(channelName);
-    if (!channel)
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "tried to PART non-existing channel: " + channelName);
-        user->replyError(403, channelName, "No such channel");
-        return false;
-    }
+	// Validate channel name format
+	if (!isValidChannelName(channelName))
+	{
+		logUserAction(user->getNickname(), user->getFd(),
+			std::string("sent PART with invalid channel name: ") + RED + channelName + RESET);
+		user->replyError(403, channelName, "No such channel");
+		return false;
+	}
 
-    // Check if user is actually in the channel
-    if (!channel->is_user_member(user->getNickname()))
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "tried to PART channel " + channelName + " but is not a member");
-        user->replyError(442, channelName, "You're not on that channel");
-        return false;
-    }
+	// Check if channel exists
+	Channel*	channel = server->getChannel(channelName);
+	if (!channel)
+	{
+		logUserAction(user->getNickname(), user->getFd(),
+			std::string("tried to leave non-existing channel: ") + RED + channelName + RESET);
+		user->replyError(403, channelName, "No such channel");
+		return false;
+	}
+
+	// Check if user is actually in the channel
+	if (!channel->is_user_member(user->getNickname()))
+	{
+		logUserAction(user->getNickname(), user->getFd(), std::string("tried to leave ")
+			+ BLUE + channelName + RESET + " but is not a member");
+		user->replyError(442, channelName, "You're not on that channel");
+		return false;
+	}
 
     // Extract part message if provided
     std::string partMessage = "";
