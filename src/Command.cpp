@@ -4,12 +4,13 @@
 #include "../include/Command.hpp"
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
+#include "../include/Channel.hpp"
 #include "../include/utils.hpp"		// logUserAction, isValidNick
 #include "../include/defines.hpp"	// color formatting
 
 /////////////////////
 // Handle Commands //
-///////////////////// 
+/////////////////////
 
 /**
  Handles a single IRC command received from a client.
@@ -19,10 +20,10 @@
 
  @param server		Pointer to the IRC server instance.
  @param user		Pointer to the User object.
- @param message		The raw IRC message line received from the user/client.
+ @param message	The raw IRC message line received from the user/client.
 
- @return 			`true` if the command was successfully recognized and handled;
- 					`false` if the message was empty, command was unknown, or command execution failed.
+ @return				`true` if the command was successfully recognized and handled;
+						`false` if the message was empty, command was unknown, or command execution failed.
 */
 bool	Command::handleCommand(Server* server, User* user, const std::string& message)
 {
@@ -51,105 +52,6 @@ bool	Command::handleCommand(Server* server, User* user, const std::string& messa
 		default:
 			return false;
 	}
-	return true;
-}
-
-///////////////////////////
-// REGISTRATION COMMANDS //
-///////////////////////////
-
-// Handles the `NICK` command for a user. Also part of the initial client registration.
-// Command: `NICK <nickname>`
-bool	Command::handleNick(Server* server, User* user, const std::vector<std::string>& tokens)
-{
-	if (tokens.size() < 2)
-	{
-		logUserAction(user->getNickname(), user->getFd(), "sent NICK without a nickname");
-		user->replyError(431, "", "No nickname given");
-		return false;
-	}
-
-	const std::string&	nick = tokens[1];
-
-	// Check if the nickname is valid according to IRC rules
-	if (!isValidNick(nick))
-	{
-		logUserAction(user->getNickname(), user->getFd(), std::string("tried to set an invalid nickname: ")
-			+ RED + nick + RESET);
-		user->replyError(432, nick, "Erroneous nickname");
-		return false;
-	}
-
-	// Nickname is already in use?
-	if (server->getNickMap().count(nick) > 0)
-	{
-		logUserAction(user->getNickname(), user->getFd(),
-			std::string("tried to set a nickname already in use: ") + YELLOW + nick + RESET);
-		user->replyError(433, nick, "Nickname is already in use");
-		return false;
-	}
-
-	user->setNickname(nick);
-	return true;
-}
-
-// Handles the `USER` command for a user. Also part of the initial client registration.
-// Command: `USER <username> <hostname> <servername> :<realname>`
-bool	Command::handleUser(User* user, const std::vector<std::string>& tokens)
-{
-	if (user->isRegistered())
-	{
-		logUserAction(user->getNickname(), user->getFd(), "tried to resend USER after registration");
-		user->replyError(462, "", "You may not reregister");
-		return false;
-	}
-
-	// Enough arguments? Does realname token start with a colon?
-	if (tokens.size() < 5 || tokens[4].size() < 2 || tokens[4][0] != ':')
-	{
-		logUserAction(user->getNickname(), user->getFd(), "sent invalid USER command (too few arguments)");
-		user->replyError(461, "USER", "Not enough parameters");
-		return false;
-	}
-	
-	user->setUsername(tokens[1]);
-	user->setHost(tokens[2]);
-	user->setRealname(tokens[4].substr(1)); // Remove leading colon from realname
-
-	return true;
-}
-
-// Handles the `PASS` command for a user. This is used to authenticate the user with the server.
-// Command: `PASS <password>`
-bool	Command::handlePass(Server* server, User* user, const std::vector<std::string>& tokens)
-{
-	if (user->isRegistered())
-	{
-		logUserAction(user->getNickname(), user->getFd(), "tried to resend PASS after registration");
-		user->replyError(462, "", "You may not reregister");
-		return false;
-	}
-
-	if (tokens.size() < 2)
-	{
-		logUserAction(user->getNickname(), user->getFd(), "sent invalid PASS command (missing password)");
-		user->replyError(461, "PASS", "Not enough parameters");
-		return false;
-	}
-
-	// Validate the provided password
-	// If server password is empty, any password is accepted
-	const std::string&	password = tokens[1];
-	bool				requiresPassword = !server->getPassword().empty();
-	if (requiresPassword && password != server->getPassword())
-	{
-		logUserAction(user->getNickname(), user->getFd(), "provided incorrect password");
-		user->replyError(464, "", "Password incorrect");
-		return false;
-	}
-
-	user->setHasPassed(true);
-	user->tryRegister();
 	return true;
 }
 
@@ -246,439 +148,6 @@ bool	Command::handleNotice(Server* server, User* user, const std::vector<std::st
 	return true; // To be implemented
 }
 
-void Command::broadcastToChannel(Server* server, Channel* channel,
-                               const std::string& message,
-                               const std::string& excludeNick)
-{
-    const std::set<std::string>& members = channel->get_members();
-
-    for (std::set<std::string>::const_iterator it = members.begin();
-         it != members.end(); ++it)
-    {
-        // Skip excluded user if specified
-        if (!excludeNick.empty() && *it == excludeNick)
-            continue;
-
-        User* member = server->getUser(*it);
-        if (member)
-        {
-            member->getOutputBuffer() += message;
-        }
-    }
-}
-
-//////////////////////
-// CHANNEL COMMANDS //
-//////////////////////
-
-bool     Command::handleJoin(Server* server, User* user, const std::vector<std::string>& tokens)
-{
-    if (tokens.size() < 2)
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") " << "sent JOIN without a channel name\n";
-        user->replyError(403, "", "No channel specified");
-        return false;
-    }
-    const std::string& channelName = tokens[1];
-    if (channelName.empty() || channelName[0] != '#')
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") " << "sent JOIN with invalid channel name: " << channelName << "\n";
-        user->replyError(403, channelName, "Invalid channel name");
-        return false;
-    }
-    Channel* channel = server->getChannel(channelName);
-    if (!channel)
-    {
-        channel = new Channel( channelName);
-        if (!channel)
-        {
-            std::cerr << "Failed to create channel: " << channelName << std::endl;
-            user->replyError(500, "", "Internal server error");
-            return false;
-        }
-        server->addChannel(channel);
-        logServerMessage("Channel " + channelName + " created");
-    }
-    if (tokens.size() > 2 && tokens[2][0] == ':')
-    {
-        std::string providedKey = tokens[2].substr(1); 
-        if (!channel->validate_password(providedKey))
-        {
-            std::cout << GREEN << user->getNickname() << RESET
-                      << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                      << ") " << "tried to join channel " << channelName
-                      << " with incorrect password\n";
-            user->replyError(475, channelName, "Cannot join channel (bad password)");
-            return false;
-        }
-    }
-    else if (!channel->can_user_join(user->getNickname(), ""))
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") " << "tried to join channel " << channelName << " but cannot join\n";
-        if (channel->is_invite_only() && !channel->is_invited(user->getNickname()))
-            user->replyError(473, channelName, "Cannot join channel (invite only)");
-        else if (channel->has_user_limit() && channel->is_at_user_limit())
-            user->replyError(471, channelName, "Cannot join channel (user limit reached)");
-        return false;
-    }
-    channel->add_user(user->getNickname());
-    user->addChannel(channelName);
-    std::cout << GREEN << user->getNickname() << RESET
-              << " (" << MAGENTA << "fd " << user->getFd() << RESET
-              << ") " << "joined channel " << channelName << "\n";
-    // Send JOIN confirmation back to the user
-    user->getOutputBuffer() += ":" + user->getNickname() + " JOIN " + channelName + "\r\n";
-    return true;
-}
-
-bool Command::handlePart(Server* server, User* user, const std::vector<std::string>& tokens)
-{
-    if (tokens.size() < 2)
-    {
-        logUserAction(user->getNickname(), user->getFd(), "sent PART without a channel name");
-        user->replyError(461, "PART", "Not enough parameters");
-        return false;
-    }
-
-    const std::string& channelName = tokens[1];
-    
-    // Validate channel name format
-    if (channelName.empty() || channelName[0] != '#')
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "sent PART with invalid channel name: " + channelName);
-        user->replyError(403, channelName, "No such channel");
-        return false;
-    }
-
-    // Check if channel exists
-    Channel* channel = server->getChannel(channelName);
-    if (!channel)
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "tried to PART non-existing channel: " + channelName);
-        user->replyError(403, channelName, "No such channel");
-        return false;
-    }
-
-    // Check if user is actually in the channel
-    if (!channel->is_user_member(user->getNickname()))
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "tried to PART channel " + channelName + " but is not a member");
-        user->replyError(442, channelName, "You're not on that channel");
-        return false;
-    }
-
-    // Extract part message if provided
-    std::string partMessage = "";
-    if (tokens.size() > 2)
-    {
-        // Reconstruct the part message from tokens[2] onward
-        for (size_t i = 2; i < tokens.size(); ++i)
-        {
-            if (i > 2)
-                partMessage += " ";
-            partMessage += tokens[i];
-        }
-        // Remove leading ':' if present (trailing parameter)
-        if (!partMessage.empty() && partMessage[0] == ':')
-            partMessage = partMessage.substr(1);
-    }
-
-    // Send PART message to all channel members (including the leaving user)
-    std::string partLine = ":" + user->getNickname() + " PART " + channelName;
-    if (!partMessage.empty())
-        partLine += " :" + partMessage;
-    partLine += "\r\n";
-
-    broadcastToChannel(server, channel, partLine); // No exclusion - everyone gets the message
-
-    // Remove user from the channel
-    channel->remove_user(user->getNickname());
-    user->removeChannel(channelName);
-
-    logUserAction(user->getNickname(), user->getFd(), 
-        "left channel " + channelName + 
-        (partMessage.empty() ? "" : " with message: " + partMessage));
-
-    return true;
-}
-
-bool Command::handleKick(Server* server, User* user, const std::vector<std::string>& tokens)
-{
-    if (tokens.size() < 3)
-    {
-        logUserAction(user->getNickname(), user->getFd(), "sent KICK without enough parameters");
-        user->replyError(461, "KICK", "Not enough parameters");
-        return false;
-    }
-
-    const std::string& channelName = tokens[1];
-    const std::string& targetNick = tokens[2];
-
-    // Validate channel name format
-    if (channelName.empty() || channelName[0] != '#')
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "sent KICK with invalid channel name: " + channelName);
-        user->replyError(403, channelName, "No such channel");
-        return false;
-    }
-
-    // Check if channel exists
-    Channel* channel = server->getChannel(channelName);
-    if (!channel)
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "tried to KICK from non-existing channel: " + channelName);
-        user->replyError(403, channelName, "No such channel");
-        return false;
-    }
-
-    // Check if kicker is in the channel
-    if (!channel->is_user_member(user->getNickname()))
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "tried to KICK from channel " + channelName + " but is not a member");
-        user->replyError(442, channelName, "You're not on that channel");
-        return false;
-    }
-
-    // Check if kicker has operator privileges
-    if (!channel->is_user_operator(user->getNickname()))
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "tried to KICK from channel " + channelName + " but is not an operator");
-        user->replyError(482, channelName, "You're not channel operator");
-        return false;
-    }
-
-    // Check if target user exists
-    User* targetUser = server->getUser(targetNick);
-    if (!targetUser)
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "tried to KICK non-existing user: " + targetNick);
-        user->replyError(401, targetNick, "No such nick/channel");
-        return false;
-    }
-
-    // Check if target is in the channel
-    if (!channel->is_user_member(targetNick))
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "tried to KICK user " + targetNick + " who is not in channel " + channelName);
-        user->replyError(441, targetNick + " " + channelName, "They aren't on that channel");
-        return false;
-    }
-
-    // Extract kick reason if provided
-    std::string kickReason = "";
-    if (tokens.size() > 3)
-    {
-        // Reconstruct the kick reason from tokens[3] onward
-        for (size_t i = 3; i < tokens.size(); ++i)
-        {
-            if (i > 3)
-                kickReason += " ";
-            kickReason += tokens[i];
-        }
-        // Remove leading ':' if present (trailing parameter)
-        if (!kickReason.empty() && kickReason[0] == ':')
-            kickReason = kickReason.substr(1);
-    }
-
-    // Send KICK message to all channel members (including kicker and victim)
-    std::string kickLine = ":" + user->getNickname() + " KICK " + channelName + " " + targetNick;
-    if (!kickReason.empty())
-        kickLine += " :" + kickReason;
-    kickLine += "\r\n";
-
-    broadcastToChannel(server, channel, kickLine); // Everyone sees the kick
-
-    // Remove target user from the channel
-    channel->remove_user(targetNick);
-    targetUser->removeChannel(channelName);
-
-    logUserAction(user->getNickname(), user->getFd(), 
-        "kicked " + targetNick + " from channel " + channelName + 
-        (kickReason.empty() ? "" : " with reason: " + kickReason));
-
-    return true;
-}
-
-bool Command::handleMode(Server*, User*, const std::vector<std::string>&)
-{
-    /*
-    The MODE command is used to set or change a channel's mode.
-    */
-    return false; // TODO: Implement MODE functionality
-}
-
-bool Command::handleTopic(Server *server, User *user, const std::vector<std::string> &tokens)
-{
-    if (tokens.size() < 2)
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") " << "sent TOPIC without a channel name\n";
-        user->replyError(403, "", "No channel specified");
-        return false;
-    }
-    const std::string& channelName = tokens[1];
-    Channel* channel = server->getChannel(channelName);
-    if (!channel)
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") " << "tried to set topic for non-existing channel: " << channelName << "\n";
-        user->replyError(403, channelName, "No such channel");
-        return false;
-    }
-    if (!channel->is_user_member(user->getNickname()))
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") " << "tried to set topic for channel "
-                  << channelName << ", but is not a member\n";
-        user->replyError(442, channelName, "You're not on that channel");
-        return false;
-    }
-    if (tokens.size() > 2)
-    {
-        std::string newTopic = tokens[2];
-        if (newTopic[0] == ':')
-            newTopic = newTopic.substr(1); // Remove leading ':'
-        if (channel->has_topic_protection() && !channel->is_user_operator(user->getNickname()))
-        {
-            std::cout << GREEN << user->getNickname() << RESET
-                      << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                      << ") " << "tried to set topic for channel "
-                      << channelName << ", but is not an operator\n";
-            user->replyError(482, channelName, "You're not channel operator");
-            return false;
-        }
-        channel->set_topic(newTopic);
-        
-        // Broadcast topic change to all channel members
-        std::string topicLine = ":" + user->getNickname() + " TOPIC " + channelName + " :" + newTopic + "\r\n";
-        broadcastToChannel(server, channel, topicLine); // Everyone gets the topic change
-        
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") set topic for channel "
-                  << channelName
-                  << ": \"" + newTopic + "\"\n";
-        return true;
-    }
-    else
-    {
-        // No new topic provided, just show current topic
-        std::string currentTopic = channel->get_topic();
-        if (currentTopic.empty())
-            currentTopic = "(no topic)";
-        user->getOutputBuffer() += ":"
-                                  + server->getServerName() + " TOPIC "
-                                  + channelName + " :" + currentTopic + "\r\n";
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") requested topic for channel "
-                  << channelName << ": \"" + currentTopic + "\"\n";
-        return true;
-    }
-}
-
-bool Command::handleInvite(Server* server, User* user, const std::vector<std::string>& tokens)
-{
-    if (tokens.size() < 3)
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") " << "sent INVITE without enough arguments\n";
-        user->replyError(461, "", "Not enough parameters");
-        return false;
-    }
-    
-    const std::string& targetNick = tokens[1];
-    const std::string& channelName = tokens[2];
-    
-    // Check if channel exists
-    Channel* channel = server->getChannel(channelName);
-    if (!channel)
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") tried to invite to non-existing channel: " << channelName << "\n";
-        user->replyError(403, channelName, "No such channel");
-        return false;
-    }
-    
-    // Check if user is on the channel (required to invite others)
-    if (!channel->is_user_member(user->getNickname()))
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") tried to invite to channel " << channelName
-                  << " but is not a member\n";
-        user->replyError(442, channelName, "You're not on that channel");
-        return false;
-    }
-    
-    // For invite-only channels, check if user is operator
-    if (channel->is_invite_only() && !channel->is_user_operator(user->getNickname()))
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") tried to invite to invite-only channel "
-                  << channelName << " but is not an operator\n";
-        user->replyError(482, channelName, "You're not channel operator");
-        return false;
-    }
-    
-    // Check if target user exists
-    User* targetUser = server->getUser(targetNick);
-    if (!targetUser)
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") tried to invite non-existing user: " << targetNick << "\n";
-        user->replyError(401, targetNick, "No such nick/channel");
-        return false;
-    }
-    
-    // Check if target is already on the channel
-    if (channel->is_user_member(targetNick))
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") tried to invite already member " << targetNick
-                  << " to channel " << channelName << "\n";
-        user->replyError(443, targetNick + " " + channelName, "is already on channel");
-        return false;
-    }
-    
-    // Add to invite list (for invite-only channels)
-    if (channel->is_invite_only())
-    {
-        channel->add_invite(targetNick);
-    }
-    
-// here we need to send the invite message to the target user
-// and also a reply success number
-    std::cout << GREEN << user->getNickname() << RESET
-              << " (" << MAGENTA << "fd " << user->getFd() << RESET
-              << ") invited " << targetNick << " to channel " << channelName << "\n";
-    
-    return true;
-}
-
 ///////////
 // Utils //
 ///////////
@@ -744,4 +213,44 @@ Command::Type Command::getType(const std::string& message)
 	if (cmd == "MODE")		return MODE;
 
 	return UNKNOWN;
+}
+
+// Checks if the user is registered before executing a command.
+// If not, sends an error reply and returns false
+bool	Command::checkRegistered(User* user, const std::string& command)
+{
+	if (!user->isRegistered())
+	{
+		logUserAction(user->getNickname(), user->getFd(),
+			"tried to execute " + command + " before registration");
+		user->replyError(451, "", "You have not registered");
+		return false;
+	}
+	return true;
+}
+
+/**
+ Sends a message to all members of a given channel, optionally excluding one user.
+
+ @param server 		Pointer to the server object for user lookup.
+ @param channel		Pointer to the channel whose members will receive the message.
+ @param message		The message to broadcast (without trailing "\r\n")
+ @param excludeNick	Optional nickname of a user to exclude from receiving the message.
+*/
+void	Command::broadcastToChannel(Server* server, Channel* channel, const std::string& message,
+									const std::string& excludeNick)
+{
+	const std::set<std::string>&	members = channel->get_members();
+	std::string						formattedMessage = message + "\r\n";
+
+	for (std::set<std::string>::const_iterator it = members.begin(); it != members.end(); ++it)
+	{
+		// Skip excluded user if specified
+		if (!excludeNick.empty() && *it == excludeNick)
+			continue;
+
+		User*	member = server->getUser(*it);
+		if (member)
+			member->getOutputBuffer() += formattedMessage;
+	}
 }

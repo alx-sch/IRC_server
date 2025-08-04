@@ -39,8 +39,18 @@ void	Server::acceptNewUser()
 	logUserAction("*", userFd, std::string("connected from ") + YELLOW
 		+ std::string(inet_ntoa(userAddr.sin_addr)) + RESET);
 
-	User* newUser = new User(userFd, this);
-	_usersFd[userFd] = newUser;
+	try
+	{
+		User* newUser = new User(userFd, this); // 'new' throws std::bad_alloc on failure
+		_usersFd[userFd] = newUser;
+	}
+	catch(const std::bad_alloc&)
+	{
+		close(userFd);	// Close fd to prevent leak
+		logServerMessage(RED + std::string("ERROR: Failed to allocate memory for new user on ")
+			+ MAGENTA + "fd " + toString(userFd) + RED ". Connection closed." + RESET);
+		return; // Keep server running
+	}
 }
 
 /////////////////////////

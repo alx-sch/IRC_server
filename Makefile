@@ -10,6 +10,8 @@ SRCS_FILES :=	main.cpp \
 				UserReply.cpp \
 				UserRegistration.cpp \
 				Command.cpp \
+				CommandRegistration.cpp \
+				CommandChannel.cpp \
 				Channel.cpp \
 				signal.cpp \
 				utils.cpp

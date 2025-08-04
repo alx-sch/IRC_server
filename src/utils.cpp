@@ -38,11 +38,11 @@ std::string	getFormattedTime()
 }
 
  /**
- Returns the current time formatted as a readable string.
+ Returns the current UTC formatted as a readable string.
  Used in server logging.
 
  Example output:
-	`2025-08-03 18:47:39 UTC`
+	`2025-08-03 18:47:39`
 
  @return 	A string containing the current date and time in UTC format.
 */
@@ -53,7 +53,7 @@ std::string	getTimestamp()
 
 	char		buffer[128];
 	// Format: YYYY-MM-DD HH:MM:SS UTC
-	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S UTC", gmt);
+	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", gmt);
 
 	return std::string(buffer);
 }
@@ -75,7 +75,7 @@ static bool	isDigit(char c)
 }
 
 // Checks if a character is a special character
-// (`-`, `[`, `]`, `\`, `` ` ``, `^`, `{`, `}`)
+// (`-`, `[`, `]`, `\`, `` ` ``, `^`, `{`, `}`).
 // Returns true if the character is a special character, false otherwise.
 static bool	isSpecial(char c)
 {
@@ -90,7 +90,9 @@ static bool	isSpecial(char c)
  - Must start with a letter
  - Can contain letters, digits, and special characters
 
+ See RFC 1459, section 2.3.1:
  <nick> ::= <letter> { <letter> | <number> | <special> }
+ <special> ::= '-' | '[' | ']' | '\' | '`' | '^' | '{' | '}'
 */
 bool	isValidNick(const std::string& nick)
 {
@@ -104,6 +106,39 @@ bool	isValidNick(const std::string& nick)
 	{
 		char	c = nick[i];
 		if (!isLetter(c) && !isDigit(c) && !isSpecial(c))
+			return false;
+	}
+	return true;
+}
+
+/**
+ Check if the channel name is valid according to IRC rules
+ - Must not be empty
+ - Max length is 200 characters (can be shorter, defined by server)
+ - Must start with '#' or '&'
+ - String after prefix cannot be empty
+ - May contain any characters except:
+	space, comma, ASCII bell (^G), null, carriage return, or line feed
+
+See RFC 1459, section 2.3.1:
+ <channel> ::= ('#' | '&') <chstring>
+ <chstring> ::= any 8bit except SPACE, BELL, NUL, CR, LF, comma
+*/
+bool	isValidChannelName(const std::string& channelName)
+{
+	if (channelName.length() < 2 || channelName.length() > MAX_CHANNEL_LENGTH)
+		return false;
+
+	if (channelName[0] != '#' && channelName[0] != '&')
+		return false;
+
+	// Check each character in the channel name (after prefix)
+	for (size_t i = 1; i < channelName.length(); ++i)
+	{
+		char	c = channelName[i];
+
+		// Reject SPACE, BELL, NUL, CR, LF, and comma
+		 if (c == ' ' || c == '\a' || c == '\0' || c == '\r' || c == '\n' || c == ',')
 			return false;
 	}
 	return true;

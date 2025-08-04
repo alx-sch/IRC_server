@@ -14,7 +14,7 @@ class	User
 	public:
 		User(int fd, Server* server);
 		~User();
-        User(int fd);
+        User(int fd); // needed? -> not private?
 
 		void				setNickname(const std::string& nickname);
 		void				setUsername(const std::string& username);

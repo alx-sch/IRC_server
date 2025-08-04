@@ -43,7 +43,6 @@ void	User::setNickname(const std::string& nickname)
 	_server->getNickMap()[nickname] = this;
 	_nickname = nickname;
 	_hasNick = true;
-	tryRegister();
 }
 
 // Set the username for the user
@@ -51,7 +50,6 @@ void	User::setUsername(const std::string& username)
 {
 	_username = username;
 	_hasUser = true;
-	tryRegister();
 }
 
 // Set the real name for the user (usually unused)

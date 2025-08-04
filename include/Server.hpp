@@ -6,10 +6,8 @@
 # include <vector>
 # include <sys/select.h>	// for fd_set
 
-#include "Channel.hpp"    // Include Channel class for channel management
-
 class	User;	// no include needed as only pointer is used
-
+class	Channel;
 
 class Server
 {
@@ -28,11 +26,16 @@ class Server
 		const std::string&	getPassword() const;
 		const std::string&	getCModes() const;
 		const std::string&	getUModes() const;
+		int					getMaxChannels() const;
+
 		std::map<std::string, User*>&	getNickMap();
 		void				removeNickMapping(const std::string& nickname);
 		void				removeUserMapping(const std::string& nickname);
-        Channel*    getChannel(const std::string& channelName) const;
-        void		addChannel(Channel* channel);
+
+		Channel*			getChannel(const std::string& channelName) const;
+		Channel*			getOrCreateChannel(const std::string& channelName, User* user,
+								const std::string& key = "");
+		void				addChannel(Channel* channel);
 
         User*		getUser(const std::string& nickname) const;
 	private:
@@ -47,14 +50,16 @@ class Server
 		const std::string				_creationTime;	// Server creation time, used in replies
 		const int						_port;		// Server port
 		const std::string				_password;	// Server password for client authentication
-		const std::string				_cModes;	// Channel modes, used in replies
-		const std::string				_uModes;	// User modes, used in replies
 
 		int								_fd;		// server socket fd (listening socket)
 		std::map<int, User*>			_usersFd;	// Keep track of active users by fd
 		std::map<std::string, User*>	_usersNick;	// Keep track of active users by nickname
-        
-        std::map<std::string, Channel*>	_channels;	// Keep track of channels by name
+
+		std::map<std::string, Channel*>	_channels;	// Keep track of channels by name
+		const std::string				_cModes;	// Channel modes, used in replies
+		const std::string				_uModes;	// User modes, used in replies
+		const int						_maxChannels;	// Max channels per user
+
 		// === ServerSocket.cpp ===
 
 		void		initSocket();
