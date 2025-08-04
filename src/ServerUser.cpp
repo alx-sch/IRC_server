@@ -197,14 +197,15 @@ void	Server::broadcastMessage(int senderFd, const std::string& nick, const std::
 }
 
 /**
- Logs a disconnection event for a user.
+ Logs and handles an unexpected disconnection event.
 
- This function is called when a user disconnects or an error occurs.
- It prints the user's nickname and fd, along with the reason for disconnection.
+ This function is called when an I/O error occurs during communication
+ (e.g., recv() or send() fails). It logs the user's nickname and file descriptor,
+ along with the error source and reason.
 
  @param fd 		The file descriptor of the disconnected user.
  @param reason 	The reason for disconnection (e.g., "Connection closed", "Broken pipe").
- @param source 	The source of the disconnection (who called this function).
+ @param source 	A string indicating where the error occurred (e.g., "recv()", "send()").
 */
 void	Server::handleDisconnection(int fd, const std::string& reason, const std::string& source)
 {

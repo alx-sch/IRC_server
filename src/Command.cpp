@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>	// std::istringstream
+#include <set>
 
 #include "../include/Command.hpp"
 #include "../include/Server.hpp"
@@ -42,6 +43,7 @@ bool	Command::handleCommand(Server* server, User* user, const std::string& messa
 		case USER:		return handleUser(user, tokens);
 		case PASS:		return handlePass(server, user, tokens);
 		case JOIN:		return handleJoin(server, user, tokens);
+		case QUIT:		return handleQuit(server, user, tokens);
 		case PART:		return handlePart(server, user, tokens);
 		case PRIVMSG:	return handlePrivmsg(server, user, tokens);
 		case NOTICE:	return handleNotice(server, user, tokens);
@@ -52,6 +54,43 @@ bool	Command::handleCommand(Server* server, User* user, const std::string& messa
 		default:
 			return false;
 	}
+	return true;
+}
+
+bool	Command::handleQuit(Server* server, User* user, const std::vector<std::string>& tokens)
+{
+	std::string	reason;
+	std::string	userNick = user->getNickname();
+	
+	// If no reason is provided, use a default message
+	if (tokens.size() < 2 || tokens[1].empty())
+		reason = "Client Quit";
+	else
+		reason = tokens[1];
+
+	// Get the list of channels the user is in
+	const std::set<std::string>&	channels = user->getChannels();
+
+	// Iterate through each channel the user is in
+	for (std::set<std::string>::const_iterator it = channels.begin(); it != channels.end(); ++it)
+	{
+		Channel*	channel = server->getChannel(*it); // Get the channel object by name
+		if (!channel)
+			continue; // Skip if channel does not exist
+
+		// Broadcast the quit message to all channel members
+		std::string	quitMsg = ":" + user->buildPrefix() + " QUIT :" + reason;
+		broadcastToChannel(server, channel, quitMsg, userNick);
+
+		// Remove the user from the channel
+		channel->remove_user(userNick);
+		logUserAction(userNick, user->getFd(), std::string("left channel ") + BLUE + *it
+			+ RESET + ": " + reason);
+	}
+
+	server->deleteUser(userNick);	// Remove the user from the server's user list
+	user->markDisconnected();		// Mark user as disconnected
+
 	return true;
 }
 

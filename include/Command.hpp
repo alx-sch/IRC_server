@@ -26,6 +26,7 @@ class	Command
 			NICK,		// Set user nickname
 			USER,		// Set user username and realname
 			PASS,		// Try to authenticate with server password
+			QUIT,		// Not in subject, but oh well: Disconnect from server
 			PRIVMSG,	// Message to a user or channel
 			NOTICE,		// Notice to a user or channel
 			JOIN,		// Join a channel
@@ -43,6 +44,8 @@ class	Command
 		static bool		handlePass(Server* server, User* user, const std::vector<std::string>& tokens);
 
 		// OTHER CPP FILES
+
+		static bool		handleQuit(Server* server, User* user, const std::vector<std::string>& tokens);
 
 		static bool		handleJoin(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleSingleJoin(Server* server, User* user, const std::string& channelName, const std::string& key);
