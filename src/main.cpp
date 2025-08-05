@@ -27,9 +27,9 @@ int	main(int argc, char** argv)
 	try
 	{
 		int			port = parsePort(argv[1]);	// Parse and validate port number
-		std::string	password = argv[2];
-		Server		server(port, password);
+		Server		server(port, argv[2]);	// Initialize the server with port, password, and default settings
 
+		logServerMessage("Server running on port " + toString(server.getPort()));
 		setupSignalHandler();	// Set up signal handler for graceful shutdown via SIGINT
 		server.run();			// Start the server loop, only interrupted by SIGINT or throwing exceptions
 	}

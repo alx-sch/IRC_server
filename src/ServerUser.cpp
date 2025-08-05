@@ -33,7 +33,8 @@ void	Server::acceptNewUser()
 	socklen_t	userLen = sizeof(userAddr);
 
 	userFd = accept(_fd, reinterpret_cast<sockaddr*>(&userAddr), &userLen);
-	if (userFd == -1)
+	userFd = -1;
+	if (userFd == -1) // Critical! Shut down server / end program
 		throw std::runtime_error("accept() failed: " + std::string(strerror(errno)));
 
 	logUserAction("*", userFd, std::string("connected from ") + YELLOW
@@ -47,8 +48,8 @@ void	Server::acceptNewUser()
 	catch(const std::bad_alloc&)
 	{
 		close(userFd);	// Close fd to prevent leak
-		logServerMessage(RED + std::string("ERROR: Failed to allocate memory for new user on ")
-			+ MAGENTA + "fd " + toString(userFd) + RED ". Connection closed." + RESET);
+		logUserAction("*", userFd, RED
+			+ std::string("ERROR: Failed to allocate memory for new user. Connection closed") + RESET);
 		return; // Keep server running
 	}
 }
@@ -81,7 +82,8 @@ bool	Server::handleUserInput(int fd)
 
 	if (bytesRead < 0) // recv() failed (bytesRead == -1)
 	{
-		handleDisconnection(fd, strerror(errno), "recv()");
+		logUserAction(user->getNickname(), fd, RED + std::string("ERROR: recv() failed: ")
+			+ strerror(errno) + RESET);
 		return false;
 	}
 
@@ -139,35 +141,6 @@ std::vector<std::string>	Server::extractMessagesFromBuffer(User* user)
 	return messages;
 }
 
-/** TESTING! WON'T BE IN FINAL VERSION (chat via terminal: telnet, nc)
- Broadcasts a message from one user to all other connected users.
-
- If a `send()` operation fails, it calls `handleSendError()` to log and handle the error.
-
- @param senderFd 	The fd of the user who sent the message.
- @param message 	The message to broadcast to all other users.
-*/
-void	Server::broadcastMessage(int senderFd, const std::string& nick, const std::string& message)
-{
-	// Format the message with color and sender nickname --> LIKELY HANDLED BY IRC CLIENT
-	std::string	output = nick + ": " + message + "\n";
-
-	// Loop through all connected users
-	std::map<int, User*>::iterator	it = _usersFd.begin();
-	while (it != _usersFd.end())
-	{
-		int targetFd = it->first;
-		++it; // Advance iterator early in case target FD is removed
-
-		if (targetFd != senderFd) // Don't send the message back to the sender
-		{
-			// Attempt to send the message to the target user
-			if (send(targetFd, output.c_str(), output.length(), 0) == -1)
-				handleSendError(targetFd, nick);
-		}
-	}
-}
-
 /**
  Logs and handles an unexpected disconnection event.
 
@@ -188,8 +161,7 @@ void	Server::handleDisconnection(int fd, const std::string& reason, const std::s
 	std::cerr	<< RED << BOLD << "Error: " << source << " failed for user "
 				<< GREEN << nick << RED
 				<< " (" << MAGENTA << "fd " << fd << RED << "): "
-				<< reason << std::endl
-				<< "Removing user from server.\n" << RESET;
+				<< reason << std::endl;
 }
 
 //////////////////////////
@@ -218,8 +190,13 @@ void	Server::handleReadyUsers(fd_set& readFds)
 
 		if (FD_ISSET(userFd, &readFds))
 		{
-			if (!handleUserInput(userFd)) // User disconnected or error
-				deleteUser(userFd, strerror(errno));
+			if (!handleUserInput(userFd))
+			{
+				if (errno == 0) // User disconnected without any error (e.g. CTRL + C)
+					deleteUser(userFd, "disconnected (user logout)");
+				else
+					deleteUser(userFd, strerror(errno));
+			}
 		}
 	}
 }
@@ -247,8 +224,8 @@ void	Server::handleWriteReadyUsers(fd_set& writeFds)
 
 		if (FD_ISSET(userFd, &writeFds) && user && !user->getOutputBuffer().empty())
 		{
-			std::string& outputBuffer = user->getOutputBuffer();
-			ssize_t bytesSent = send(userFd, outputBuffer.c_str(), outputBuffer.length(), 0);
+			std::string&	outputBuffer = user->getOutputBuffer();
+			ssize_t			bytesSent = send(userFd, outputBuffer.c_str(), outputBuffer.length(), 0);
 			
 			if (bytesSent == -1)
 			{
@@ -259,11 +236,42 @@ void	Server::handleWriteReadyUsers(fd_set& writeFds)
 			}
 			else if (bytesSent > 0)
 			{
-				// Remove sent data from buffer
-				outputBuffer.erase(0, bytesSent);
+				outputBuffer.erase(0, bytesSent);	// Remove sent data from buffer
+				user->setSendErrorLogged(false);	// Reset error log flag
 			}
-			// If bytesSent == 0, no data was sent (shouldn't happen with select)
 		}
+	}
+}
+
+/**
+ Handles a failed `send()` operation to a user.
+
+ Logs the error to the server terminal.
+ If the failure was due to a broken or reset connection (`EPIPE` or `ECONNRESET`),
+ the user is considered disconnected and is removed from the server.
+
+ @param fd 		The fd of the user for whom `send()` failed.
+ @param nick 	The nickname of the user for whom `send()` failed.
+*/
+void	Server::handleSendError(int fd, const std::string& nick)
+{
+	User*	user = getUser(fd);
+
+	// Critical: user is disconnected
+	if (errno == EPIPE || errno == ECONNRESET)
+	{
+		handleDisconnection(fd, strerror(errno), "send()");
+		deleteUser(fd, strerror(errno));
+		return;
+	}
+
+	// Non‑critical send error (temporary): log it ONCE but do not disconnect
+	// e.g. EAGAIN or EWOULDBLOCK (“Resource temporarily unavailable”)
+	if (user && !user->hasSendErrorLogged())
+	{
+		logUserAction(nick, fd, RED + std::string("ERROR: sending message to client failed: ")
+			+ strerror(errno) + RESET);
+		user->setSendErrorLogged(true); // Prevent multiple logs for the same error
 	}
 }
 
@@ -310,14 +318,14 @@ User*	Server::getUser(const std::string& nickname) const
 //////////////////
 
 // Deletes a user from the server (`_usersFd`, `_usersNick`) using their file descriptor.
-void	Server::deleteUser(int fd, std::string reason)
+void	Server::deleteUser(int fd, std::string logMsg)
 {
 	User*	user = getUser(fd);
 	if (!user)
 		return;
 
 	// Log before we close and erase everything
-	logUserAction(user->getNickname(), fd, "disconnected: " + reason);
+	logUserAction(user->getNickname(), fd, logMsg);
 
 	close(fd);
 	user->markDisconnected();

@@ -111,7 +111,7 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 	std::string	joinMessage =	":" + user->buildPrefix() + " JOIN :" + channelName;
 	broadcastToChannel(server, channel, joinMessage);
 
-	logUserAction(user->getNickname(), user->getFd(), std::string("joined channel: ") + BLUE + channelName + RESET);
+	logUserAction(user->getNickname(), user->getFd(), std::string("joined ") + BLUE + channelName + RESET);
 
 	return true;
 }

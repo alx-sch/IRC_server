@@ -57,22 +57,33 @@ bool	Command::handleCommand(Server* server, User* user, const std::string& messa
 	return true;
 }
 
+// Helper function to get the quit reason from the tokens
+static std::string	getQuitReason(const std::vector<std::string>& tokens)
+{
+	if (tokens.size() < 2 || tokens[1].empty())
+		return "Client Quit";	// Default reason if none provided
+
+	std::string reason = tokens[1];
+	if (reason[0] == ':')	// Remove leading ':' if present
+		reason = reason.substr(1);
+	return reason;
+}
+
+/**
+ Handles the `QUIT` command from a user.
+
+ This function broadcasts the quit message to all channels the user is in,
+ removes the user from those channels, and deletes the user from the server.
+
+ @param server 		Pointer to the Server object handling the connection.
+ @param user 		Pointer to the User who issued the QUIT command.
+ @param tokens 		Vector of parsed command tokens. `tokens[1]` can contain an optional reason.
+*/
 bool	Command::handleQuit(Server* server, User* user, const std::vector<std::string>& tokens)
 {
-	std::string	reason;
+	std::string	reason = getQuitReason(tokens);
 	std::string	userNick = user->getNickname();
 	
-	// If no reason is provided, use a default message
-	if (tokens.size() < 2 || tokens[1].empty())
-		reason = "Client Quit";
-	else
-	{
-		reason = tokens[1];
-
-		if (reason[0] == ':')	// Remove leading ':' if present
-			reason = reason.substr(1);
-	}
-
 	// Get the list of channels the user is in
 	const std::set<std::string>&	channels = user->getChannels();
 
@@ -89,11 +100,11 @@ bool	Command::handleQuit(Server* server, User* user, const std::vector<std::stri
 
 		// Remove the user from the channel
 		channel->remove_user(userNick);
-		logUserAction(userNick, user->getFd(), std::string("left channel ") + BLUE + *it
-			+ RESET + ": " + reason);
+		logUserAction(userNick, user->getFd(), std::string("left ") + BLUE + *it + RESET
+			+ ": " + reason);
 	}
 
-	server->deleteUser(user->getFd(), reason);	// Remove the user from the server's user list
+	server->deleteUser(user->getFd(), "quit: " + reason);	// Remove user from server
 
 	return true;
 }
