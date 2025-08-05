@@ -52,8 +52,8 @@ bool	Command::handleUser(User* user, const std::vector<std::string>& tokens)
 		return false;
 	}
 
-	// Enough arguments? Does realname token start with a colon?
-	if (tokens.size() < 5 || tokens[4].size() < 2 || tokens[4][0] != ':')
+	// Enough arguments?
+	if (tokens.size() < 5)
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent invalid USER command (too few arguments)");
 		user->replyError(461, "USER", "Not enough parameters");
@@ -63,7 +63,13 @@ bool	Command::handleUser(User* user, const std::vector<std::string>& tokens)
 	logUserAction(user->getNickname(), user->getFd(), "sent valid USER command");
 	user->setUsername(tokens[1]);
 	user->setHost(tokens[2]);
-	user->setRealname(tokens[4].substr(1)); // Remove leading colon from realname
+
+	// Handle realname
+	std::string realname = tokens[4];
+	if (realname[0] == ':') // Remove leading colon if present
+		realname = realname.substr(1);
+	user->setRealname(realname);
+
 	user->tryRegister();
 
 	return true;
