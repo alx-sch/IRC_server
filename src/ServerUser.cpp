@@ -1,4 +1,3 @@
-#include <iostream>
 #include <string>
 #include <cstring>		// strerror()
 #include <cerrno>		// errno
@@ -95,13 +94,13 @@ bool	Server::handleUserInput(int fd)
 	for (size_t i = 0; i < messages.size(); ++i)
 	{
 		if (!Command::handleCommand(this, user, messages[i]))
-		{	// Just for testing, in a proper IRC implementation, below would be a "Command unknown" response
-			// (Also broadcast / channel messages have a command prefix)
-			// prob return false here when it's "kickable" user behavior
-			//std::string	nick = user->getNickname();
-			//broadcastMessage(fd, nick, messages[i]); // allows testing without full IRC client (works with telnet, nc)
+		{	
+			std::vector<std::string>	tokens = Command::tokenize(messages[i]);
+			std::string	cmd = tokens[0];
+
 			logUserAction(user->getNickname(), fd, std::string("sent unknown command: ")
-				+ RED + messages[i] + RESET);
+				+ RED + cmd + RESET);
+			user->replyError(421, cmd, "Unknown command");
 		}
 	}
 

@@ -1,4 +1,3 @@
-#include <iostream>
 #include <set>
 #include <string>	// std::string::size_type (size / position in strings)
 
@@ -6,12 +5,6 @@
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
 #include "../include/Channel.hpp"
-#include "../include/utils.hpp"		// logUserAction, isValidNick
-#include "../include/defines.hpp"	// color formatting
-
-/////////////////////
-// Handle Commands //
-/////////////////////
 
 /**
  Handles a single IRC command received from a client.
@@ -31,11 +24,11 @@ bool	Command::handleCommand(Server* server, User* user, const std::string& messa
 	if (message.empty())
 		return false;
 
-	std::vector<std::string>	tokens = Command::tokenize(message);
+	std::vector<std::string>	tokens = tokenize(message);
 	if (tokens.empty())
 		return false;
 
-	Command::Cmd		cmdType = Command::getCmd(message);
+	Cmd	cmdType = getCmd(message);
 
 	switch (cmdType)
 	{
@@ -57,9 +50,31 @@ bool	Command::handleCommand(Server* server, User* user, const std::string& messa
 	return true;
 }
 
-///////////
-// Utils //
-///////////
+/**
+ Sends a message to all members of a given channel, optionally excluding one user.
+
+ @param server 		Pointer to the server object for user lookup.
+ @param channel		Pointer to the channel whose members will receive the message.
+ @param message		The message to broadcast (without trailing "\r\n")
+ @param excludeNick	Optional nickname of a user to exclude from receiving the message.
+*/
+void	Command::broadcastToChannel(Server* server, Channel* channel, const std::string& message,
+									const std::string& excludeNick)
+{
+	const std::set<std::string>&	members = channel->get_members();
+	std::string						formattedMessage = message + "\r\n";
+
+	for (std::set<std::string>::const_iterator it = members.begin(); it != members.end(); ++it)
+	{
+		// Skip excluded user if specified
+		if (!excludeNick.empty() && *it == excludeNick)
+			continue;
+
+		User*	member = server->getUser(*it);
+		if (member)
+			member->getOutputBuffer() += formattedMessage;
+	}
+}
 
 /**
  Tokenizes a raw IRC message into space-separated parts,
@@ -107,69 +122,4 @@ std::vector<std::string>	Command::tokenize(const std::string& message)
 		pos = end + 1; // Move past the space
 	}
 	return tokens;
-}
-
-// Extracts the command type from a message
-// Returns `UNKNOWN` if no valid command is found
-Command::Cmd Command::getCmd(const std::string& message)
-{
-	std::vector<std::string>	tokens = tokenize(message);
-	if (tokens.empty())
-		return UNKNOWN;
-	const std::string&			cmd = tokens[0];
-
-	if (cmd == "NICK")		return NICK;
-	if (cmd == "USER")		return USER;
-	if (cmd == "PASS")		return PASS;
-	if (cmd == "JOIN")		return JOIN;
-	if (cmd == "QUIT")		return QUIT;
-	if (cmd == "PART")		return PART;
-	if (cmd == "PRIVMSG")	return PRIVMSG;
-	if (cmd == "NOTICE")	return NOTICE;
-	if (cmd == "TOPIC")		return TOPIC;
-	if (cmd == "KICK")		return KICK;
-	if (cmd == "INVITE")	return INVITE;
-	if (cmd == "MODE")		return MODE;
-
-	return UNKNOWN;
-}
-
-// Checks if the user is registered before executing a command.
-// If not, sends an error reply and returns false
-bool	Command::checkRegistered(User* user, const std::string& command)
-{
-	if (!user->isRegistered())
-	{
-		logUserAction(user->getNickname(), user->getFd(),
-			"tried to execute " + command + " before registration");
-		user->replyError(451, "", "You have not registered");
-		return false;
-	}
-	return true;
-}
-
-/**
- Sends a message to all members of a given channel, optionally excluding one user.
-
- @param server 		Pointer to the server object for user lookup.
- @param channel		Pointer to the channel whose members will receive the message.
- @param message		The message to broadcast (without trailing "\r\n")
- @param excludeNick	Optional nickname of a user to exclude from receiving the message.
-*/
-void	Command::broadcastToChannel(Server* server, Channel* channel, const std::string& message,
-									const std::string& excludeNick)
-{
-	const std::set<std::string>&	members = channel->get_members();
-	std::string						formattedMessage = message + "\r\n";
-
-	for (std::set<std::string>::const_iterator it = members.begin(); it != members.end(); ++it)
-	{
-		// Skip excluded user if specified
-		if (!excludeNick.empty() && *it == excludeNick)
-			continue;
-
-		User*	member = server->getUser(*it);
-		if (member)
-			member->getOutputBuffer() += formattedMessage;
-	}
 }

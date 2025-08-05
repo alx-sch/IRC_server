@@ -8,38 +8,6 @@
 #include "../include/defines.hpp"	// color formatting
 
 /**
- Helper: Splits a comma-separated string into a vector of strings.
-
- For example, given the input "#chan1,#chan2,#chan3",
- it returns a vector containing {"#chan1", "#chan2", "#chan3"}.
-
- @param list 	A string containing comma-separated tokens.
- @return		A vector of individual tokens split by commas.
-*/
-static std::vector<std::string>	splitCommaList(const std::string& list)
-{
-	std::vector<std::string>	result;
-	size_t						start = 0;
-	size_t						pos = 0;
-
-	while (pos != std::string::npos)
-	{
-		pos = list.find(',', start);
-		if (pos == std::string::npos)
-		{
-			result.push_back(list.substr(start)); // Last / only token
-			break;
-		}
-		else
-		{
-			result.push_back(list.substr(start, pos - start));
-			start = pos + 1; // Move past the comma
-		}
-	}
-	return result;
-}
-
-/**
  Handles a single JOIN command for a single channel/key pair.
 
  Validates channel name, checks if user is already a member, and verifies

@@ -12,6 +12,9 @@ class	Command
 {
 	public:
 		static bool	handleCommand(Server* server, User* user, const std::string& message);
+		static void	broadcastToChannel(Server* server, Channel* channel, const std::string& message,
+							const std::string& excludeNick = "");
+		static std::vector<std::string>	tokenize(const std::string& message);
 
 	private:
 		// Pure utility class, no need for instantiation
@@ -63,13 +66,11 @@ class	Command
 
 		static void		handleQuit(Server* server, User* user, const std::vector<std::string>& tokens);
 
-		// === Command.cpp ===
+		// === CommandUtils.cpp ===
 
-		static std::vector<std::string>	tokenize(const std::string& message);
 		static Cmd		getCmd(const std::string& message);
 		static bool		checkRegistered(User* user, const std::string& command = "a command");
-		static void		broadcastToChannel(Server* server, Channel* channel,
-							const std::string& message, const std::string& excludeNick = "");
+		static std::vector<std::string>	splitCommaList(const std::string& list);
 };
 
 # endif

@@ -40,7 +40,7 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 }
 
 // Handles the `USER` command for a user. Also part of the initial client registration.
-// Command: `USER <username> <hostname> <servername> <realname>`
+// Command: `USER <username> <hostname> <servername> :<realname>`
 void	Command::handleUser(User* user, const std::vector<std::string>& tokens)
 {
 	if (user->isRegistered())

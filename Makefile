@@ -15,6 +15,7 @@ SRCS_FILES :=	main.cpp \
 				CommandChannel.cpp \
 				CommandMessaging.cpp \
 				CommandConnection.cpp \
+				CommandUtils.cpp \
 				Channel.cpp \
 				signal.cpp \
 				utils.cpp
