@@ -20,15 +20,16 @@ class	Command
 		Command&	operator=(const Command& other);
 		~Command();
 
-		enum	Type
+		// IRC commands the server can handle
+		enum	Cmd
 		{
 			UNKNOWN,
 			NICK,		// Set user nickname
-			USER,		// Set user username and realname
+			USER,		// Set user username, hostname, servername, and realname
 			PASS,		// Try to authenticate with server password
-			QUIT,		// Not in subject, but oh well: Disconnect from server
+			QUIT,		// Disconnect from server
 			PRIVMSG,	// Message to a user or channel
-			NOTICE,		// Notice to a user or channel
+			NOTICE,		// Message to a user or channel, but triggers no auto-reply
 			JOIN,		// Join a channel
 			PART,		// Leave a channel
 			TOPIC,
@@ -61,7 +62,7 @@ class	Command
 		static bool		handleMode(Server* server, User* user, const std::vector<std::string>& tokens);
 
 		static std::vector<std::string>	tokenize(const std::string& message);
-		static Type		getType(const std::string& message);
+		static Cmd		getCmd(const std::string& message);
 		static bool		checkRegistered(User* user, const std::string& command = "a command");
 		static void		broadcastToChannel(Server* server, Channel* channel,
 							const std::string& message, const std::string& excludeNick = "");

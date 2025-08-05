@@ -1,6 +1,6 @@
 #include <iostream>
-#include <sstream>	// std::istringstream
 #include <set>
+#include <string>	// std::string::size_type (size / position in strings)
 
 #include "../include/Command.hpp"
 #include "../include/Server.hpp"
@@ -16,15 +16,15 @@
 /**
  Handles a single IRC command received from a client.
 
- This function tokenizes the raw input `message`, determines the command type,
+ This function tokenizes the raw input `message`, determines the command,
  and calls the appropriate handler (e.g. handleNick, handleUser, etc.).
 
- @param server		Pointer to the IRC server instance.
- @param user		Pointer to the User object.
+ @param server	Pointer to the IRC server instance.
+ @param user	Pointer to the User object.
  @param message	The raw IRC message line received from the user/client.
 
- @return				`true` if the command was successfully recognized and handled;
-						`false` if the message was empty, command was unknown, or command execution failed.
+ @return		`true` if the command was successfully recognized and handled;
+				`false` if the message was empty, cmd was unknown, or cmd exec failed.
 */
 bool	Command::handleCommand(Server* server, User* user, const std::string& message)
 {
@@ -35,7 +35,7 @@ bool	Command::handleCommand(Server* server, User* user, const std::string& messa
 	if (tokens.empty())
 		return false;
 
-	Command::Type				cmdType = Command::getType(message);
+	Command::Cmd		cmdType = Command::getCmd(message);
 
 	switch (cmdType)
 	{
@@ -200,43 +200,52 @@ bool	Command::handleNotice(Server* server, User* user, const std::vector<std::st
  preserving the trailing parameter (after a colon `:`).
  
  This function splits an IRC line like:
-	"USER max 0 * :Max Power the Third"
+	"   USER max 0   * :Max Power  the Third"
  into:
- 	["USER", "max", "0", "*", ":Max Power the Third"]
+ 	["USER", "max", "0", "*", ":Max Power  the Third"]
 
  If a token starts with a colon (`:`), the rest of the line (including spaces) is treated
  as a single argument (the trailing parameter), as per IRC protocol.
 
  @param message 	The raw IRC message line.
- @return 			A vector of tokens: command + arguments (with trailing combined).
+ @return			A vector of tokens: command + arguments (with trailing combined).
 */
 std::vector<std::string>	Command::tokenize(const std::string& message)
 {
-	std::string					token;
 	std::vector<std::string>	tokens;
-	std::istringstream			iss(message);	// Convert string to stream for easy tokenization
+	std::string::size_type		pos = 0;	// size_type is for string positions
+	std::string::size_type		end;
 
-	// Extract tokens by whitespace ('iss >>' skips repeated spaces)
-	while (iss >> token)
+	while (pos < message.size())
 	{
-		// If token starts with ':', treat rest of line as one token
-		// Assume "USER max 0 * :Max Power the Third"
-		if (token[0] == ':') // token: ":Max"
+		// Skip leading spaces
+		while (pos < message.size() && message[pos] == ' ')
+			++pos;
+
+		if (pos >= message.size())
+			break; // No more tokens
+
+		// If token starts with ':', rest is trailing param
+		if (message[pos] == ':')
 		{
-			std::string	rest;
-			std::getline(iss, rest); // read rest of the line -> rest: " Power the Third"
-			tokens.push_back(token + rest); // Combine and add to tokens -> tokens: [":Max Power the Third"]
-			break; // After processing ':', stop reading more tokens (':' indicates last token)
+			tokens.push_back(message.substr(pos)); // Add the rest of the line as one token
+			break; // No more tokens
 		}
-		else
-			tokens.push_back(token);
+
+		// Find next space (after token) to extract the token
+		end = message.find(' ', pos);
+		if (end == std::string::npos)
+			end = message.size(); // No more spaces, take the rest of the line
+
+		tokens.push_back(message.substr(pos, end - pos));
+		pos = end + 1; // Move past the space
 	}
 	return tokens;
 }
 
 // Extracts the command type from a message
 // Returns `UNKNOWN` if no valid command is found
-Command::Type Command::getType(const std::string& message)
+Command::Cmd Command::getCmd(const std::string& message)
 {
 	std::vector<std::string>	tokens = tokenize(message);
 	if (tokens.empty())
