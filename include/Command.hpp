@@ -40,26 +40,30 @@ class	Command
 
 		// === CommandRegistration.cpp ===
 
-		static bool		handleNick(Server* server, User* user, const std::vector<std::string>& tokens);
-		static bool		handleUser(User* user, const std::vector<std::string>& tokens);
-		static bool		handlePass(Server* server, User* user, const std::vector<std::string>& tokens);
+		static void		handleNick(Server* server, User* user, const std::vector<std::string>& tokens);
+		static void		handleUser(User* user, const std::vector<std::string>& tokens);
+		static void		handlePass(Server* server, User* user, const std::vector<std::string>& tokens);
 
-		// OTHER CPP FILES
-
-		static bool		handleQuit(Server* server, User* user, const std::vector<std::string>& tokens);
+		// === CommandChannel.cpp ===
 
 		static bool		handleJoin(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleSingleJoin(Server* server, User* user, const std::string& channelName, const std::string& key);
-		
 		static bool		handlePart(Server* server, User* user, const std::vector<std::string>& tokens);
-		
-		static bool		handlePrivmsg(Server *server, User *user, const std::vector<std::string> &tokens);
-		static bool		handleNotice(Server* server, User* user, const std::vector<std::string>& tokens);
-
 		static bool		handleInvite(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleTopic(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleKick(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleMode(Server* server, User* user, const std::vector<std::string>& tokens);
+
+		// === CommandMessaging.cpp ===
+		
+		static void		handlePrivmsg(Server *server, User *user, const std::vector<std::string> &tokens);
+		static void		handleNotice(Server* server, User* user, const std::vector<std::string>& tokens);
+
+		// === CommandConnection.cpp ===
+
+		static void		handleQuit(Server* server, User* user, const std::vector<std::string>& tokens);
+
+		// === Command.cpp ===
 
 		static std::vector<std::string>	tokenize(const std::string& message);
 		static Cmd		getCmd(const std::string& message);

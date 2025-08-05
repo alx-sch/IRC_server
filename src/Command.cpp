@@ -39,167 +39,22 @@ bool	Command::handleCommand(Server* server, User* user, const std::string& messa
 
 	switch (cmdType)
 	{
-		case NICK:		return handleNick(server, user, tokens);
-		case USER:		return handleUser(user, tokens);
-		case PASS:		return handlePass(server, user, tokens);
-		case JOIN:		return handleJoin(server, user, tokens);
-		case QUIT:		return handleQuit(server, user, tokens);
-		case PART:		return handlePart(server, user, tokens);
-		case PRIVMSG:	return handlePrivmsg(server, user, tokens);
-		case NOTICE:	return handleNotice(server, user, tokens);
-		case TOPIC:		return handleTopic(server, user, tokens);
-		case KICK:		return handleKick(server, user, tokens);
-		case INVITE:	return handleInvite(server, user, tokens);
-		case MODE:		return handleMode(server, user, tokens);
+		case NICK:		handleNick(server, user, tokens); break;
+		case USER:		handleUser(user, tokens); break;
+		case PASS:		handlePass(server, user, tokens); break;
+		case JOIN:		handleJoin(server, user, tokens); break;
+		case QUIT:		handleQuit(server, user, tokens); break;
+		case PART:		handlePart(server, user, tokens); break;
+		case PRIVMSG:	handlePrivmsg(server, user, tokens); break;
+		case NOTICE:	handleNotice(server, user, tokens); break;
+		case TOPIC:		handleTopic(server, user, tokens); break;
+		case KICK:		handleKick(server, user, tokens); break;
+		case INVITE:	handleInvite(server, user, tokens); break;
+		case MODE:		handleMode(server, user, tokens); break;
 		default:
-			return false;
+			return false;	// unknown command
 	}
 	return true;
-}
-
-// Helper function to get the quit reason from the tokens
-static std::string	getQuitReason(const std::vector<std::string>& tokens)
-{
-	if (tokens.size() < 2 || tokens[1].empty())
-		return "Client Quit";	// Default reason if none provided
-
-	std::string reason = tokens[1];
-	if (reason[0] == ':')	// Remove leading ':' if present
-		reason = reason.substr(1);
-	return reason;
-}
-
-/**
- Handles the `QUIT` command from a user.
-
- This function broadcasts the quit message to all channels the user is in,
- removes the user from those channels, and deletes the user from the server.
-
- @param server 		Pointer to the Server object handling the connection.
- @param user 		Pointer to the User who issued the QUIT command.
- @param tokens 		Vector of parsed command tokens. `tokens[1]` can contain an optional reason.
-*/
-bool	Command::handleQuit(Server* server, User* user, const std::vector<std::string>& tokens)
-{
-	std::string	reason = getQuitReason(tokens);
-	std::string	userNick = user->getNickname();
-	
-	// Get the list of channels the user is in
-	const std::set<std::string>&	channels = user->getChannels();
-
-	// Iterate through each channel the user is in
-	for (std::set<std::string>::const_iterator it = channels.begin(); it != channels.end(); ++it)
-	{
-		Channel*	channel = server->getChannel(*it); // Get the channel object by name
-		if (!channel)
-			continue; // Skip if channel does not exist
-
-		// Broadcast the quit message to all channel members
-		std::string	quitMsg = ":" + user->buildPrefix() + " QUIT :" + reason;
-		broadcastToChannel(server, channel, quitMsg, userNick);
-
-		// Remove the user from the channel
-		channel->remove_user(userNick);
-		logUserAction(userNick, user->getFd(), std::string("left ") + BLUE + *it + RESET
-			+ ": " + reason);
-	}
-
-	server->deleteUser(user->getFd(), "quit: " + reason);	// Remove user from server
-
-	return true;
-}
-
-////////////////////////
-// MESSAGING COMMANDS //
-////////////////////////
-
-bool Command::handlePrivmsg(Server *server, User *user,
-                            const std::vector<std::string> &tokens) {
-  if (tokens.size() < 3) {
-    std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
-              << "fd " << user->getFd() << RESET << ") "
-              << "sent PRIVMSG without enough arguments\n";
-    user->replyError(411, "", "No recipient given");
-    return false;
-  }
-
-  const std::string &targetName = tokens[1];
-
-  // Reconstruct the full message from tokens[2] onward
-  std::string message;
-  for (size_t i = 2; i < tokens.size(); ++i) {
-    if (i > 2)
-      message += " ";
-    message += tokens[i];
-  }
-
-  // Remove leading ':' if present (trailing parameter)
-  if (!message.empty() && message[0] == ':') {
-    message = message.substr(1);
-  }
-
-  if (targetName[0] == '#') {
-    // It's a channel
-    Channel *channel = server->getChannel(targetName);
-    if (!channel) {
-      std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
-                << "fd " << user->getFd() << RESET << ") "
-                << "tried to PRIVMSG non-existing channel: " << targetName
-                << "\n";
-      user->replyError(403, targetName, "No such nick/channel");
-      return false;
-    }
-
-    if (!channel->is_user_member(user->getNickname())) {
-      std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
-                << "fd " << user->getFd() << RESET << ") "
-                << "tried to PRIVMSG channel " << targetName
-                << " but is not a member\n";
-      user->replyError(404, targetName,
-                       "Cannot send to channel (not a member)");
-      return false;
-    }
-
-    // Broadcast message to all channel members except sender
-    std::string privmsgLine = ":" + user->getNickname() + " PRIVMSG " + targetName + " :" + message + "\r\n";
-    broadcastToChannel(server, channel, privmsgLine, user->getNickname());
-
-    std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
-              << "fd " << user->getFd() << RESET << ") "
-              << "sent PRIVMSG to channel " << targetName << ": " << message
-              << "\n";
-    return true;
-  } else {
-    // It's a user
-    User *targetUser = server->getUser(targetName);
-    if (!targetUser) {
-      std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
-                << "fd " << user->getFd() << RESET << ") "
-                << "tried to PRIVMSG non-existing user: " << targetName << "\n";
-      user->replyError(401, targetName, "No such nick/channel");
-      return false;
-    }
-
-    // Send private message to target user
-    std::string privmsgLine = ":" + user->getNickname() + " PRIVMSG " +
-                              targetName + " :" + message + "\r\n";
-    targetUser->getOutputBuffer() += privmsgLine;
-
-    std::cout << GREEN << user->getNickname() << RESET << " (" << MAGENTA
-              << "fd " << user->getFd() << RESET << ") "
-              << "sent PRIVMSG to user " << targetName << ": " << message
-              << "\n";
-    return true;
-  }
-}
-
-bool	Command::handleNotice(Server* server, User* user, const std::vector<std::string>& tokens)
-{
-	(void)server;
-	(void)user;
-	(void)tokens;
-
-	return true; // To be implemented
 }
 
 ///////////

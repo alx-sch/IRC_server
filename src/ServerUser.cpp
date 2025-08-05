@@ -100,6 +100,8 @@ bool	Server::handleUserInput(int fd)
 			// prob return false here when it's "kickable" user behavior
 			//std::string	nick = user->getNickname();
 			//broadcastMessage(fd, nick, messages[i]); // allows testing without full IRC client (works with telnet, nc)
+			logUserAction(user->getNickname(), fd, std::string("sent unknown command: ")
+				+ RED + messages[i] + RESET);
 		}
 	}
 
@@ -117,7 +119,6 @@ std::vector<std::string>	Server::extractMessagesFromBuffer(User* user)
 	std::string&				buffer = user->getInputBuffer(); // Reference to the user's input buffer
 	std::vector<std::string>	messages;
 	std::string					msg;
-	std::string					nick;
 	size_t						newlinePos;
 
 	// Extract complete messages (terminated by '\n')
@@ -133,6 +134,15 @@ std::vector<std::string>	Server::extractMessagesFromBuffer(User* user)
 		// (as per IRC spec for server-client communication)
 		if (!msg.empty() && msg[msg.size() - 1] == '\r')
 			msg.erase(msg.size() - 1);
+
+		// Check if line is too long (more than 510 + CRLF = 512); see RFC 1459, 2.3
+		if (msg.size() > 510)
+		{
+			logUserAction(user->getNickname(), user->getFd(), "sent an overlong line ("
+				+ toString(msg.size()) + " > 512 bytes)");
+			user->replyError(417, "", "Input line was too long");
+			continue; // Skip this message, do not add to vector
+		}
 
 		// Store the clean message in vector
 		messages.push_back(msg);
