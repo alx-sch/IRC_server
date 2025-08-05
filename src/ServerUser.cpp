@@ -33,7 +33,6 @@ void	Server::acceptNewUser()
 	socklen_t	userLen = sizeof(userAddr);
 
 	userFd = accept(_fd, reinterpret_cast<sockaddr*>(&userAddr), &userLen);
-	userFd = -1;
 	if (userFd == -1) // Critical! Shut down server / end program
 		throw std::runtime_error("accept() failed: " + std::string(strerror(errno)));
 
