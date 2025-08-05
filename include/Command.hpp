@@ -12,6 +12,9 @@ class	Command
 {
 	public:
 		static bool	handleCommand(Server* server, User* user, const std::string& message);
+		static void	broadcastToChannel(Server* server, Channel* channel,
+						const std::string& message, const std::string& excludeNick = "");
+		static std::vector<std::string>	tokenize(const std::string& message);
 
 	private:
 		// Pure utility class, no need for instantiation
@@ -20,15 +23,16 @@ class	Command
 		Command&	operator=(const Command& other);
 		~Command();
 
-		enum	Type
+		// IRC commands the server can handle
+		enum	Cmd
 		{
 			UNKNOWN,
 			NICK,		// Set user nickname
-			USER,		// Set user username and realname
+			USER,		// Set user username, hostname, servername, and realname
 			PASS,		// Try to authenticate with server password
-			QUIT,		// Not in subject, but oh well: Disconnect from server
+			QUIT,		// Disconnect from server
 			PRIVMSG,	// Message to a user or channel
-			NOTICE,		// Notice to a user or channel
+			NOTICE,		// Message to a user or channel, but triggers no auto-reply
 			JOIN,		// Join a channel
 			PART,		// Leave a channel
 			TOPIC,
@@ -39,32 +43,34 @@ class	Command
 
 		// === CommandRegistration.cpp ===
 
-		static bool		handleNick(Server* server, User* user, const std::vector<std::string>& tokens);
-		static bool		handleUser(User* user, const std::vector<std::string>& tokens);
-		static bool		handlePass(Server* server, User* user, const std::vector<std::string>& tokens);
+		static void		handleNick(Server* server, User* user, const std::vector<std::string>& tokens);
+		static void		handleUser(User* user, const std::vector<std::string>& tokens);
+		static void		handlePass(Server* server, User* user, const std::vector<std::string>& tokens);
 
-		// OTHER CPP FILES
-
-		static bool		handleQuit(Server* server, User* user, const std::vector<std::string>& tokens);
+		// === CommandChannel.cpp ===
 
 		static bool		handleJoin(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleSingleJoin(Server* server, User* user, const std::string& channelName, const std::string& key);
-		
 		static bool		handlePart(Server* server, User* user, const std::vector<std::string>& tokens);
-		
-		static bool		handlePrivmsg(Server *server, User *user, const std::vector<std::string> &tokens);
-		static bool		handleNotice(Server* server, User* user, const std::vector<std::string>& tokens);
-
 		static bool		handleInvite(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleTopic(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleKick(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleMode(Server* server, User* user, const std::vector<std::string>& tokens);
 
-		static std::vector<std::string>	tokenize(const std::string& message);
-		static Type		getType(const std::string& message);
+		// === CommandMessaging.cpp ===
+		
+		static void		handlePrivmsg(Server *server, User *user, const std::vector<std::string> &tokens);
+		static void		handleNotice(Server* server, User* user, const std::vector<std::string>& tokens);
+
+		// === CommandConnection.cpp ===
+
+		static void		handleQuit(Server* server, User* user, const std::vector<std::string>& tokens);
+
+		// === CommandUtils.cpp ===
+
+		static Cmd		getCmd(const std::string& message);
 		static bool		checkRegistered(User* user, const std::string& command = "a command");
-		static void		broadcastToChannel(Server* server, Channel* channel,
-							const std::string& message, const std::string& excludeNick = "");
+		static std::vector<std::string>	splitCommaList(const std::string& list);
 };
 
 # endif

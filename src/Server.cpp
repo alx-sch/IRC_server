@@ -33,11 +33,11 @@ Server::~Server()
 
 	// Delete all dynamically allocated User objects
 	while (!_usersFd.empty())
-		deleteUser(_usersFd.begin()->first, "Server shutdown");
+		deleteUser(_usersFd.begin()->first, "disconnected (server shutdown)");
 
 	// Delete all dynamically allocated Channel objects
 	while (!_channels.empty())
-		deleteChannel(_channels.begin()->first);
+		deleteChannel(_channels.begin()->first, "server shutdown");
 
 	logServerMessage("Server shutdown complete");
 }
@@ -58,8 +58,6 @@ void	Server::run()
 	int		writeMaxFd;	// Highest fd in the write set
 	int		ready;		// Number of ready fds returned by select()
 
-	logServerMessage("Server running on port " + toString(_port));
-
 	while (g_running)
 	{
 		maxFd = prepareReadSet(readFds);
@@ -68,7 +66,7 @@ void	Server::run()
 
 		// Pause the program until a socket becomes readable or writable
 		ready = select(maxFd + 1, &readFds, &writeFds, NULL, NULL);
-		if (ready == -1)
+		if (ready == -1) // Critical! Shut down server / end program
 		{
 			if (errno == EINTR) // If interrupted by signal (SIGINT), just return to main.
 				return;
@@ -82,35 +80,9 @@ void	Server::run()
 		// Handle user input for all active connections (messages, disconnections)
 		handleReadyUsers(readFds);
 		
-		// Handle user output for all users with pending data
+		// Handle pending output to be sent to users
 		handleWriteReadyUsers(writeFds);
 	}
-}
-
-/**
- Handles a failed `send()` operation to a user.
-
- Logs the error to the server terminal.
- If the failure was due to a broken or reset connection (`EPIPE` or `ECONNRESET`),
- the user is considered disconnected and is removed from the server.
-
- @param fd 		The fd of the user for whom `send()` failed.
- @param nick 	The nickname of the user for whom `send()` failed.
-*/
-void	Server::handleSendError(int fd, const std::string& nick)
-{
-	// Critical errors that mean the user is gone
-	if (errno == EPIPE || errno == ECONNRESET)
-	{
-		handleDisconnection(fd, strerror(errno), "send()");
-		deleteUser(fd, strerror(errno));
-		return;
-	}
-
-	// Non‑critical send error (temporary): log it but do not disconnect
-	// e.g. EAGAIN or EWOULDBLOCK (“Resource temporarily unavailable”)
-	logUserAction(nick, fd, RED + std::string("Error sending message to user: ")
-		+ strerror(errno) + RESET);
 }
 
 /////////////
@@ -145,6 +117,12 @@ const std::string&	Server::getCreationTime() const
 const std::string&	Server::getPassword() const
 {
 	return _password;
+}
+
+// Returns the server port.
+int	Server::getPort() const
+{
+	return _port;
 }
 
 // Returns the channel modes string.

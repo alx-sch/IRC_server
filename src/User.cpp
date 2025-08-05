@@ -9,7 +9,8 @@
 // '*' is default nickname for unregistered users
 User::User(int fd, Server* server)
 	:	_fd(fd), _nickname("*"), _server(server), _hasNick(false),
-		_hasUser(false), _hasPassed(false), _isRegistered(false)
+		_hasUser(false), _hasPassed(false), _isRegistered(false),
+		_sendErrorLogged(false)
 {}
 
 User::~User() {}
@@ -18,6 +19,20 @@ User::~User() {}
 std::string	User::buildPrefix() const
 {
 	return _nickname + "!" + _username + "@" + _host;
+}
+
+
+/// SORT
+
+bool	User::hasSendErrorLogged() const
+{
+	return _sendErrorLogged;
+
+}
+
+void	User::setSendErrorLogged(bool value)
+{
+	_sendErrorLogged = value;
 }
 
 /////////////

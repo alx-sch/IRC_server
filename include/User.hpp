@@ -35,6 +35,9 @@ class	User
 		void				addChannel(const std::string& channel);
 		void				removeChannel(const std::string& channel);
 
+		bool				hasSendErrorLogged() const;
+		void				setSendErrorLogged(bool value);
+
 		// === UserReply.cpp ===
 
 		void				replyWelcome();
@@ -61,14 +64,16 @@ class	User
 		std::string					_host;			// rather obsolete, most clients use '*' -> but get from USER command nevertheless
 
 		Server*						_server;		// Pointer to the server user is connected to (to use 'Server' methods)
-		std::string					_inputBuffer;	// buffer for incoming messages, accumulated until a full message is formed
-		std::string					_outputBuffer;	// buffer for outgoing messages, to be sent when socket is ready
+		std::string					_inputBuffer;	// buffer for incoming messages (client->server), accumulated until a full message is formed
+		std::string					_outputBuffer;	// buffer for outgoing messages (server->client), to be sent when socket is ready
 		std::vector<std::string>	_opChannels;	// channels where this user has operator privileges
 		std::set<std::string>		_channels;		// channels where this user is in
 		bool						_hasNick;		// true if user has sent NICK command (got nickname)
 		bool						_hasUser;		// true if user has sent USER command (got username)
 		bool						_hasPassed;		// true if user has sent PASS command successfully
 		bool						_isRegistered;	// true if user has sent NICK, USER commands to server
+
+		bool						_sendErrorLogged;	// Flag to prevent multiple error logs for the same send error
 
 		void						sendReply(const std::string& message);	// UserReply.cpp
 };

@@ -163,11 +163,7 @@ void	logUserAction(const std::string& nick, int fd, const std::string& message)
 	std::cout << oss.str() << std::endl;
 }
 
-/**
- Logs a general server message with timestamp.
-
- @param message 	The message to log
-*/
+// Logs a general server message with timestamp.
 void	logServerMessage(const std::string& message)
 {
 	std::cout << "[" << CYAN << getTimestamp() << RESET << "] " << message << std::endl;

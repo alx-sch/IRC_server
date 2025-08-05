@@ -1,5 +1,4 @@
 #include <sstream>		// std::ostringstream()
-#include <sys/socket.h>	// send()
 
 #include "../include/User.hpp"
 #include "../include/Server.hpp"
@@ -49,7 +48,7 @@ void	User::replyError(int code, const std::string& param, const std::string& mes
 }
 
 /**
- Sends a raw IRC message to the user's socket.
+ Appends a raw IRC message to the user's output buffer.
  Automatically prefixes the message with the server name and appends `\r\n`.
 
  @param message 	The already-formatted reply (e.g. "001 Alex :Welcome...")
@@ -60,9 +59,5 @@ void	User::sendReply(const std::string& message)
 		return;
 
 	std::string	fullMessage = ":" + _server->getServerName() + " " + message + "\r\n";
-	if (send(_fd, fullMessage.c_str(), fullMessage.length(), 0) == -1)
-	{
-		_server->handleSendError(_fd, _nickname);
-		return;
-	}
+	_outputBuffer += fullMessage;
 }

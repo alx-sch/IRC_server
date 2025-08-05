@@ -71,7 +71,7 @@ void	Server::bindSocket()
 
 	if (bind(_fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == -1)
 	{
-		close(_fd);
+		close(_fd); // Errors might be restricted ports or ports already in use
 		throw std::runtime_error("Failed to bind to port " + toString(_port) + ": " + strerror(errno));
 	}
 }
