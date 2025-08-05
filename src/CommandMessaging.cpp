@@ -5,8 +5,8 @@
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
 #include "../include/Channel.hpp"
-#include "../include/utils.hpp"
-#include "../include/defines.hpp" // color formatting
+#include "../include/utils.hpp"		// logUserAction, isValidChannelName
+#include "../include/defines.hpp"	// color formatting
 
 /////////////
 // PRIVMSG //

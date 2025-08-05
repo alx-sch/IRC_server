@@ -3,8 +3,6 @@
 
 #include "../include/Command.hpp"
 #include "../include/User.hpp"
-#include "../include/Channel.hpp"
-#include "../include/Server.hpp"
 #include "../include/utils.hpp"		// logUserAction()
 
 // Extracts the command type from a message
