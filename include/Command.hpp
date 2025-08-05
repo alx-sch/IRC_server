@@ -12,8 +12,8 @@ class	Command
 {
 	public:
 		static bool	handleCommand(Server* server, User* user, const std::string& message);
-		static void	broadcastToChannel(Server* server, Channel* channel, const std::string& message,
-							const std::string& excludeNick = "");
+		static void	broadcastToChannel(Server* server, Channel* channel,
+						const std::string& message, const std::string& excludeNick = "");
 		static std::vector<std::string>	tokenize(const std::string& message);
 
 	private:
