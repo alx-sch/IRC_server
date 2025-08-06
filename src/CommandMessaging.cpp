@@ -39,7 +39,7 @@ static void	handlePrivmsgToChannel(Server* server, User* sender, const std::stri
 		return;
 	}
 
-	std::string	line = ":" + sender->buildPrefix() + " PRIVMSG " + channelName + " :" + message;
+	std::string	line = ":" + sender->buildPrefix() + " PRIVMSG " + channelName + " :" + message + "\r\n";
 	Command::broadcastToChannel(server, channel, line, sender->getNickname());
 
 	logUserAction(sender->getNickname(), sender->getFd(), std::string("sent PRIVMSG to ")

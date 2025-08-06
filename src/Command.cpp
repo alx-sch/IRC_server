@@ -19,16 +19,12 @@
  @return		`true` if the command was successfully recognized and handled;
 				`false` if the message was empty, cmd was unknown, or cmd exec failed.
 */
-bool	Command::handleCommand(Server* server, User* user, const std::string& message)
+bool	Command::handleCommand(Server* server, User* user, std::vector<std::string>& tokens)
 {
-	if (message.empty())
-		return false;
-
-	std::vector<std::string>	tokens = tokenize(message);
 	if (tokens.empty())
 		return false;
 
-	Cmd	cmdType = getCmd(message);
+	Cmd	cmdType = getCmd(tokens);
 
 	switch (cmdType)
 	{

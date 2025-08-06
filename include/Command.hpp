@@ -11,7 +11,7 @@ class	Channel;
 class	Command
 {
 	public:
-		static bool	handleCommand(Server* server, User* user, const std::string& message);
+		static bool	handleCommand(Server* server, User* user, std::vector<std::string>& tokens);
 		static void	broadcastToChannel(Server* server, Channel* channel,
 						const std::string& message, const std::string& excludeNick = "");
 		static std::vector<std::string>	tokenize(const std::string& message);
@@ -68,7 +68,7 @@ class	Command
 
 		// === CommandUtils.cpp ===
 
-		static Cmd		getCmd(const std::string& message);
+		static Cmd		getCmd(const std::vector<std::string>& tokens);
 		static bool		checkRegistered(User* user, const std::string& command = "a command");
 		static std::vector<std::string>	splitCommaList(const std::string& list);
 };
