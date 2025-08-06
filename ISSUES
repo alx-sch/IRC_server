@@ -1,0 +1,6 @@
+
+private message to self doesn't work
+
+if there is a topic and user just requests it, they should not get a "*servername* changed the topic to" message but rather a "topic is"
+
+if we send other "legal" messages to the server before registering then it sometimes segfaults
