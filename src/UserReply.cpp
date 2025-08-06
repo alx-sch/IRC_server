@@ -22,7 +22,7 @@ void	User::replyWelcome()
 	sendReply("003 " + _nickname + " :This server was created " + _server->getCreationTime());
 
 	sendReply("004 " + _nickname + " " + _server->getServerName() + " "
-		+ _server->getVersion() + " " + _server->getCModes() + " " + _server->getUModes());
+		+ _server->getVersion() + " " + _server->getUModes() + " " + _server->getCModes());
 }
 
 /**

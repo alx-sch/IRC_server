@@ -109,7 +109,8 @@ std::vector<std::string>	Command::tokenize(const std::string& message)
 		// If token starts with ':', rest is trailing param
 		if (message[pos] == ':')
 		{
-			tokens.push_back(message.substr(pos)); // Add the rest of the line as one token
+			if (pos + 1 < message.size()) // Only push trailing param if there is something after ':'
+				tokens.push_back(message.substr(pos)); // Add the rest of the line as one token
 			break; // No more tokens
 		}
 
