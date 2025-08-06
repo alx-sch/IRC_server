@@ -384,10 +384,16 @@ bool Command::handleTopic(Server *server, User *user, const std::vector<std::str
         // No new topic provided, just show current topic
         std::string currentTopic = channel->get_topic();
         if (currentTopic.empty())
-            currentTopic = "(no topic)";
-        user->getOutputBuffer() += ":"
-                                  + server->getServerName() + " TOPIC "
-                                  + channelName + " :" + currentTopic + "\r\n";
+        {
+            user->replyError(331, channelName, "No topic is set");
+        }
+        else
+        {
+            user->getOutputBuffer() += ":"
+                                      + server->getServerName() + " 332 "
+                                      + user->getNickname() + " " + channelName
+                                      + " :" + currentTopic + "\r\n";
+        }
         std::cout << GREEN << user->getNickname() << RESET
                   << " (" << MAGENTA << "fd " << user->getFd() << RESET
                   << ") requested topic for channel "
