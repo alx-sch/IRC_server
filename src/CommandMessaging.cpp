@@ -175,7 +175,7 @@ static void	handleNoticeToUser(Server* server, User* sender, const std::string& 
 		return;
 	}
 
-	std::string	line = ":" + sender->buildPrefix() + " NOTICE " + targetNick + " :" + message;
+	std::string	line = ":" + sender->buildPrefix() + " NOTICE " + targetNick + " :" + message + "\n";
 	targetUser->getOutputBuffer() += line;
 
 	logUserAction(sender->getNickname(), sender->getFd(),
