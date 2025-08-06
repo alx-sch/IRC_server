@@ -42,7 +42,7 @@ class Server
 
 		Channel*	getChannel(const std::string& channelName) const;
 		Channel*	getOrCreateChannel(const std::string& channelName, User* user,
-						const std::string& key = "");
+						const std::string& key = "", bool* wasCreated = NULL);
 		void		deleteChannel(const std::string& channelName, std::string reason);
 
 	private:

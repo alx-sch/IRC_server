@@ -30,11 +30,15 @@ Channel*	Server::getChannel(const std::string& channelName) const
  @param key 			Optional channel key to set if creating a new channel.
  @return				Pointer to the `Channel` object, or `NULL` on failure.
 */
-Channel*	Server::getOrCreateChannel(const std::string& channelName, User* user, const std::string& key)
+Channel*	Server::getOrCreateChannel(const std::string& channelName, User* user, const std::string& key, bool* wasCreated)
 {
 	Channel*	channel = getChannel(channelName);
 	if (channel)
+	{
+		if (wasCreated)
+			*wasCreated = false;
 		return channel;
+	}
 
 	// Create a new channel if it does not exist
 	try
@@ -45,6 +49,9 @@ Channel*	Server::getOrCreateChannel(const std::string& channelName, User* user, 
 		_channels[channelName] = channel; // Add to the server's channel map
 		logUserAction(user->getNickname(), user->getFd(), std::string("created ")
 			+ BLUE + channelName + RESET);
+		
+		if (wasCreated)
+			*wasCreated = true;
 	}
 	catch(const std::bad_alloc&)
 	{
@@ -52,6 +59,8 @@ Channel*	Server::getOrCreateChannel(const std::string& channelName, User* user, 
 			+ std::string("ERROR: Failed to allocate memory for new channel ") + BLUE + channelName + RESET);
 
 		user->replyError(500, "", "Internal server error while creating channel " + channelName);
+		if (wasCreated)
+			*wasCreated = false;
 		return NULL;
 	}
 	return channel;
