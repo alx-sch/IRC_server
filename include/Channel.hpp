@@ -35,6 +35,7 @@ class	Channel
 
 		void		set_topic(const std::string& topic);
 		std::string	get_topic() const;
+		void		set_topic_protection(bool enable = true);
 		bool		has_topic_protection() const;
 
 		bool		has_user_limit() const;
@@ -42,13 +43,14 @@ class	Channel
 		void		set_user_limit(const int new_limit);
 		int			get_user_limit() const;
 
-		void		set_invite_only();
+		void		set_invite_only(bool enable = true);
 		bool		is_invite_only() const;
 		bool		is_invited(const std::string& user_nick) const;
 		void		add_invite(const std::string& user_nick);
 
 		bool		has_password() const;
 		void		set_password(const std::string& password);
+		std::string	get_password() const;
 		bool		validate_password(const std::string& password) const;
 
 	private:

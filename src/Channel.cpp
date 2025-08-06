@@ -72,6 +72,12 @@ bool	Channel::can_user_join(const std::string &user_nick, const std::string &pro
 	return true;
 }
 
+// Enables or disables topic protection for the channel.
+void Channel::set_topic_protection(bool enable)
+{
+	_topic_protection = enable;
+}
+
 // Returns true if topic protection is enabled.
 bool Channel::has_topic_protection() const
 {
@@ -115,10 +121,10 @@ int Channel::get_user_limit() const
 	return _user_limit;
 }
 
-// Enables invite-only mode for the channel.
-void Channel::set_invite_only()
+// Enables or disables invite-only mode for the channel.
+void Channel::set_invite_only(bool enable)
 {
-	_invite_only = true;
+	_invite_only = enable;
 }
 
 // Returns true if the channel is invite-only.
@@ -149,6 +155,12 @@ bool Channel::has_password() const
 void Channel::set_password(const std::string &password)
 {
 	_channel_key = password;
+}
+
+// Gets the channel password.
+std::string Channel::get_password() const
+{
+	return _channel_key;
 }
 
 // Validates a given password against the channel password.
