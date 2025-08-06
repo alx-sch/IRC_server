@@ -93,9 +93,11 @@ bool	Server::handleUserInput(int fd)
 	// Process each complete message
 	for (size_t i = 0; i < messages.size(); ++i)
 	{
-		if (!Command::handleCommand(this, user, messages[i]))
-		{	
-			std::vector<std::string>	tokens = Command::tokenize(messages[i]);
+		std::vector<std::string>	tokens = Command::tokenize(messages[i]);
+		if (tokens.empty())
+			continue; // Skip empty/space-only lines
+		if (!Command::handleCommand(this, user, tokens))
+		{
 			std::string	cmd = tokens[0];
 
 			logUserAction(user->getNickname(), fd, std::string("sent unknown command: ")
@@ -103,7 +105,6 @@ bool	Server::handleUserInput(int fd)
 			user->replyError(421, cmd, "Unknown command");
 		}
 	}
-
 	return true;
 }
 

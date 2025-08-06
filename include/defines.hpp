@@ -6,8 +6,8 @@
 # define VERSION			"eval-42.42"
 
 # define MAX_CHANNELS		10		// Max channels per user; recommended in RFC 1459, 1.3 
-# define C_MODES			"abc"	// Channel modes
-# define U_MODES			"xyz"	// User modes
+# define C_MODES			"itkol"	// Supported channel modes, as per subject
+# define U_MODES			"-"		// No user modes implemented
 
 // Below is all according to RFC 1459:
 
