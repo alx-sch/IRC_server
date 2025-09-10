@@ -54,7 +54,7 @@ Server::~Server()
 void	Server::run()
 {
 	fd_set	readFds, writeFds;	// Sets of fds to monitor for readability and writability
-	int		maxFd;		// Highest fd in the set
+	int		maxFd;		// Highest fd in the set, used by select() to avoid scanning all fds
 	int		writeMaxFd;	// Highest fd in the write set
 	int		ready;		// Number of ready fds returned by select()
 
@@ -64,7 +64,8 @@ void	Server::run()
 		writeMaxFd = prepareWriteSet(writeFds);
 		if (writeMaxFd > maxFd) maxFd = writeMaxFd;
 
-		// Pause the program until a socket becomes readable or writable
+		// Pause the program until a socket becomes readable or writable imn any of the provided sets
+		// 'exceptional' set is not used (NULL), also no timeour set (NULL)
 		ready = select(maxFd + 1, &readFds, &writeFds, NULL, NULL);
 		if (ready == -1) // Critical! Shut down server / end program
 		{
@@ -74,7 +75,7 @@ void	Server::run()
 		}
 
 		// New incoming connection?
-		if (FD_ISSET(_fd, &readFds))
+		if (FD_ISSET(_fd, &readFds)) // checks if server socket (_fd) is ready for reading -> new connection
 			acceptNewUser(); // Adds user to `_usersFd`
 
 		// Handle user input for all active connections (messages, disconnections)

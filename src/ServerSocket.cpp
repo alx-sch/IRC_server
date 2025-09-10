@@ -63,11 +63,11 @@ void	Server::setSocketOptions()
 // Binds the server socket to a local address and port.
 void	Server::bindSocket()
 {
-	sockaddr_in	addr;
+	sockaddr_in	addr;	// struct to represent an IPv4 socket address
 	memset(&addr, 0, sizeof(addr));		// Zero out the struct
 	addr.sin_family = AF_INET;			// IPv4
-	addr.sin_port = htons(_port);		// Convert port to network byte order
-	addr.sin_addr.s_addr = INADDR_ANY;	// Bind to all interfaces (INADDR_ANY = 0.0.0.0)
+	addr.sin_port = htons(_port);		// Converts 16-bit int port number from host byte order to network byte order
+	addr.sin_addr.s_addr = INADDR_ANY;	// Bind to all available network interfaces (INADDR_ANY = 0.0.0.0) -> accepts connections from local machine, local network, public internet, etc.
 
 	if (bind(_fd, reinterpret_cast<sockaddr*>(&addr), sizeof(addr)) == -1)
 	{
@@ -101,7 +101,7 @@ void	Server::startListening()
 */
 int	Server::prepareReadSet(fd_set& readFds)
 {
-	FD_ZERO(&readFds);		// Clear the set before each select call
+	FD_ZERO(&readFds);		// Clear the set before each 'select' call
 	FD_SET(_fd, &readFds);	// Add the listening socket fd to the read set
 	int maxFd = _fd;
 
@@ -137,7 +137,7 @@ int	Server::prepareWriteSet(fd_set& writeFds)
 		User* user = it->second;
 		if (user && !user->getOutputBuffer().empty())
 		{
-			FD_SET(it->first, &writeFds);
+			FD_SET(it->first, &writeFds); // add user fd to write set if output buffer is not empty
 			if (it->first > maxFd)
 				maxFd = it->first;
 		}

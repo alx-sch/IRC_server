@@ -229,11 +229,11 @@ void	Server::handleWriteReadyUsers(fd_set& writeFds)
 	{
 		int		userFd = it->first;
 		User*	user = it->second;
-		++it;
+		++it;	// go to next user in map in advance
 
 		if (FD_ISSET(userFd, &writeFds) && user && !user->getOutputBuffer().empty())
 		{
-			std::string&	outputBuffer = user->getOutputBuffer();
+			std::string&	outputBuffer = user->getOutputBuffer(); // output buffer: What the server has prepared to send to client
 			ssize_t			bytesSent = send(userFd, outputBuffer.c_str(), outputBuffer.length(), 0);
 			
 			if (bytesSent == -1)
