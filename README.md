@@ -100,7 +100,7 @@ or
 telnet <your-IP-address> <port>
 ```
 
-Example: `nc 127.0.0.1 6667` (accessing from the same machine that hosts the server) or `nc 10.14.6.2 6667` (accessing from the same local network, e.g. same host machine or some other computer in the same local network).
+Example: `nc localhost 6667` (accessing from the same machine that hosts the server) or `nc 10.14.6.2 6667` (accessing from the same local network, e.g. same host machine or some other computer in the same local network).
 
 Once connected, you can communicate with the server using IRC commands (you would usually first register with the server by sending valid `NICK`, `USER`, and `PASS` commands).
 
