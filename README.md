@@ -36,8 +36,14 @@ To build and run the server, ensure you have the following tools installed on yo
    ```
    make
    ```
-   This command reads the project's `Makefile` and handles the entire compilation process.
+   This command reads the project's `Makefile` and handles the entire compilation process. The build system is designed to be **cross-platform**, automatically adjusting for the operating system.
 
+   - **OS-Specific Build:** The server's non-blocking socket functionality is handled differently on Linux and macOS. The `Makefile` detects the OS and passes the correct compiler flags to handle these variations.
+
+   - **Linux:** The code uses the `SOCK_NONBLOCK` flag.
+
+   - **macOS:** The code uses the `fcntl()` function to set the non-blocking flag.
+     
 **4. Run the server**  
 
    Provide a port number and a password for the server. The standard IRC port is `6667`.
