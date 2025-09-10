@@ -36,7 +36,7 @@ To build and run the server, ensure you have the following tools installed on yo
    ```
    make
    ```
-   This command reads the project's `Makefile` and handles the entire compilation process. The build system is designed to be **cross-platform**, automatically adjusting for the operating system.
+   This command reads the project's `Makefile` and handles the entire compilation process. The build system is designed to be **cross-platform**, and automatically adapts for **macOS** and **Linux**, which use **POSIX-compliant** sockets. **Windows** is not supported as its Winsock API is incompatible with this approach.
 
    - **OS-Specific Build:** The server's non-blocking socket functionality is handled differently on Linux and macOS. The `Makefile` detects the OS and passes the correct compiler flags to handle these variations.
    - **Linux:** The code uses the `SOCK_NONBLOCK` flag.
@@ -58,6 +58,7 @@ While `make` is sufficient for a basic build, here are a few other essential com
  - `make clean`: Removes all the compiled object files (`.o` and `.d` files) and the obj directory.
  - `make fclean`: Performs a full clean by removing both the object files and the final `ircserv` executable.
  - `make re`: A shortcut that runs `fclean` and then `all` to completely rebuild the project from scratch.
+ - `make checkout_os`: Prints the detected operating system to the console.
 
 ---
 
