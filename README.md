@@ -108,18 +108,72 @@ Once connected, you can communicate with the server using IRC commands (you woul
 
 For a better user experience, a graphical client is recommended, e.g. Hexchat:
 
-- Open HexChat and go to Network List.
+- Open HexChat. In the Network List (prompted automatically), add a new network **(1)**.
 
-<p align="center">
-    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_01.png" alt="HexChat_01" />
-</p>
+	<p align="center">
+	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_01.png" alt="HexChat_01"  width="300" />
+	</p>
 
+- Name the new network **(1)** and edit its settings **(2)**:
 
-- Add a new network and set the server address to <your-IP-address>/<port>.
+	<p align="center">
+	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_02.png" alt="HexChat_02"  width="300" />
+	</p>
 
-Enter your desired nickname and username, then click Connect.
+- Set the server’s host IP address and port **(1)**. Disable SSL, since the server does not support it (otherwise the logs will show scrambled commands) **(2)**. Enter the server password if required **(3)**. Close the network settings **(4)**:
 
-Once connected, you can join a channel by typing /join #channelname in the chat window.
+	<p align="center">
+	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_03.png" alt="HexChat_03"  width="300" />
+	</p>
+
+- Enter the user info (nick, alt nick, username) **(1)**, select the custom network **(2)**, and connect **(3)**.
+
+	<p align="center">
+	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_04.png" alt="HexChat_04"  width="300" />
+	</p>
+
+- HexChat automatically sends the registration commands (`NICK`, `USER`, `PASS`) to the server. The client is now ready: join a channel with `/join #channelname` or send a private message with `/msg nickname message`.
+
+	<p align="center">
+	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_rdy.png" alt="HexChat_rdy"  width="450" />
+	</p>
+
+- The server logs events to the console and also saves them to log files in XXX (dedicated folder??). The client may send commands the server does not support (e.g. `CAP`), but all core IRC functions still work (see below).
+
+	<p align="center">
+	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/server_log.png" alt="server_log"  width="450" />
+	</p>
+
+---
+
+## Server Features
+
+- User Commands:
+
+	- `NICK`: Handles setting or changing a nickname - `NICK newnickname`
+	- `USER`: Handles setting a username - `USER <username> <hostname> <servername> <realname>` -> `USER guest 0 * :Ronnie Reagan`. Hostname and servername are usually ignored in modern IRC.
+	- `PASS`: Handles the connection password for authentication - `PASS mysecretpassword`
+	- `JOIN`: Allows a user join a channel, or create it if it doesn’t exist - `JOIN #general`
+	- `QUIT`: Allows a user to disconnect from the server - `QUIT :Leaving for lunch` (reason is optional)
+	- `PART`: Allows a user to leave a channel - `PART #oldchannel`
+	- `PRIVMSG`: Used for sending private messages to a user or a channel - `PRIVMSG username :Hello there!`, `PRIVMSG #general :What's everyone up to?`
+ 	- `NOTICE`: Similar to `PRIVMSG`, but used for server messages and automated responses. It should not be used for client-to-client communication. The main difference is that a user's IRC client should never automatically respond to a `NOTICE` - `NOTICE username :You have a new message.`
+
+- Channel Operator Commands:
+  The server differentiates between operators and regular users. Operators have the authority to use specific commands to manage a channel:
+
+	- `KICK`: Ejects a client from a channel - `KICK #general baduser :You've been kicked for spamming.` (reason is optional)
+	- `INVITE`: Invites a client to a channel. This is particularly useful for invite-only channels - `INVITE newuser #general`
+	- `TOPIC`: Changes or views the channel topic - `TOPIC #general :Welcome to the main chat!` (operator setting topic), `TOPIC #general` (user checking topic)
+	- `MODE`: Changes a channel's mode using the following flags, followed by `+` or `-` to add/remove these modes.
+		- `i`: Toggles the invite-only channel mode - `MODE #private +i` (makes channel invite-only), `MODE #private +i` (removes invite-only restriction)
+		- `t`: Toggles the restriction of the `TOPIC` command to channel operators.		
+		- `k`: Toggles the channel key (password).	
+		- `o`: Gives or takes away channel operator privilege.	
+		- `l`: Sets or removes a user limit for the channel.
+
+---
+
 
 ## What is IRC?
 
