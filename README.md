@@ -4,6 +4,7 @@
     <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/ft_irc_badge.png" alt="ft_irc_badge.png" />
 </p>
 
+This project is about building a functional IRC (Internet Relay Chat) server from scratch in C++. The goal is to create a multi-client, event-driven network application that handles IRC protocol commands and manages user connections, channels, and message routing.
 
 This project is a collaboration between:
 
@@ -12,6 +13,99 @@ This project is a collaboration between:
 - **[Alex](https://github.com/alx-sch)**: TASKS TDB
 
 ---
+
+## How to Setup the Server
+
+**1. Prerequisites**
+
+To build and run the server, ensure you have the following tools installed on your system:
+
+- **Git:** To clone the source code.
+- A **C++ Compiler** (e.g., `g++`): To compile the code.
+- **Make:** A build automation tool that reads the `Makefile`.
+
+**2. Clone the Repository**  
+
+   Clone the repository and navigate into the project directory:
+   ```
+   git clone https://github.com/alx-sch/IRC_server ircserv && cd ircserv
+   ```
+**3. Build the server program**  
+
+   Use the `make` command to compile the server executable.
+   ```
+   make
+   ```
+   This command reads the project's `Makefile` and handles the entire compilation process.
+
+**4. Run the server**  
+
+   Provide a port number and a password for the server. The standard IRC port is `6667`.
+   ```
+   // Usage: ./ircserv <port> <password>
+   ./ircserv 6667 pw123
+   ```
+   If you want to allow connections without a password, use an empty string (`"`) as the password argument.
+
+**5. `make` Commands**
+
+While `make` is sufficient for a basic build, here are a few other essential commands you might use:
+
+ - `make clean`: Removes all the compiled object files (`.o` and `.d` files) and the obj directory.
+ - `make fclean`: Performs a full clean by removing both the object files and the final `ircserv` executable.
+ - `make re`: A shortcut that runs `fclean` and then `all` to completely rebuild the project from scratch.
+
+---
+
+## How to Connect to the Server
+
+After you have built and run the server, you can connect to it using a variety of clients.
+
+**1. First, Find Your IP Address**
+
+To connect, you need to know your machine's IP address. Open a terminal and use `hostname -I` to list your local IP addresses.
+```
+$ hostname -I
+10.14.6.2 172.17.0.1 192.168.122.1
+```
+For a local connection (from your own machine), you can always use the loopback address `127.0.0.1` or just `localhost`.   
+
+To make your server **publicly accessible**, you will need to configure your router with **port forwarding**, directing a public port (e.g., `6667`) to your machine's local IP address.
+
+**2. Connect with Terminal Tools**
+
+To quickly test the server, you can use `nc` (Netcat) or `telnet`.   
+
+```
+nc <your-IP-address> <port>
+```
+
+or
+
+```
+telnet <your-IP-address> <port>
+```
+
+Example: `nc 127.0.0.1 6667` (accessing from the same machine that hosts the server) or `nc 10.14.6.2 6667` (accessing from the same local network, e.g. same host machine or some other computer in the same local network).
+
+Once connected, you can communicate with the server using IRC commands (you would usually first register with the server by sending valid `NICK`, `USER`, and `PASS` commands).
+
+**3. Connect with a GUI Client**
+
+For a better user experience, a graphical client is recommended, e.g. Hexchat:
+
+- Open HexChat and go to Network List.
+
+<p align="center">
+    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_01.png" alt="HexChat_01" />
+</p>
+
+
+- Add a new network and set the server address to <your-IP-address>/<port>.
+
+Enter your desired nickname and username, then click Connect.
+
+Once connected, you can join a channel by typing /join #channelname in the chat window.
 
 ## What is IRC?
 
