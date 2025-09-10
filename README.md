@@ -13,14 +13,28 @@ This project is a collaboration between:
 
 ---
 
-## IRC Introduction
+## What is IRC?
 
-- What is it, history etc.
-- ports to use etc.
+**IRC**, or **Internet Relay Chat**, is an open protocol for real-time text-based communication. It was created in **1988** by Jarkko Oikarinen in Finland, with the protocol officially documented in [**RFC 1459**](https://www.rfc-editor.org/rfc/rfc1459) in 1993 for the first time<sup><a href="#footnote1">[1]</a></sup>. This project's server implementation is based on this foundational RFC.
+
+Think of IRC as the standard for instant messaging and group chat that existed before web browsers became the primary application for accessing the internet.
+
+- **How it works:** IRC operates on a client-server model. Users run a client program that connects to an IRC server. These servers are interconnected in a network to form an entire IRC network.
+- **Channels and Users:** Communication happens in channels (group chats) or through private, one-on-one messages. A user is identified by a unique nickname on a given network.
+- **Key Features:** IRC is known for its simplicity and efficiency. It's a lightweight protocol, making it ideal for large-scale communities and for sharing information quickly, without the overhead of modern web-based applications. It's still used by open-source projects, developers, and niche communities. A popular GUI client is [**HexChat**](https://hexchat.github.io/), while [**WeeChat**](https://weechat.org/) is a terminal client
+
+### Key Terms
+- **Server:** A program that manages connections and routes messages between users.
+- **Client:** A program (like mIRC, HexChat, or WeeChat) that a user runs to connect to a server.
+- **Channel:** A named group chat room, denoted by a prefix like `#` or `&`. For example, `#42chat`.
+- **Nickname:** A unique name a user chooses to identify themselves on a network.
+- **Hostmask:** The full identity of a user, typically `nickname!username@hostname`, used for security and access control.
 
 ---
 
 ## Networking Basics
+
+To understand how an IRC server functions at a technical level, it's essential to first grasp a few core networking concepts. This project is built from the ground up to handle network communication, and understanding these principles will provide insight into the server's design and functionality.
 
 - **IP Address**
     - Identifies a **host/device** on a network.
@@ -34,7 +48,7 @@ This project is a collaboration between:
 - **Port**
     - Identifies a specific **service or application** on a host.
     - Range: `1`–`65535` (unsigned 16-bit integer); port `0` is reserved as a wildcard, allowing the OS to assign an ephemeral (random) port automatically.
-    - Common ports: `22` (SSH), `80` (HTTP), `6667` (IRC)
+    - Common ports: `22` (SSH), `80` (HTTP), **`6667` (default for IRC)**
 
 - **Socket**
     - A **socket** is a combination of an IP address and a port number.
@@ -58,11 +72,11 @@ This project is a collaboration between:
         - Requires checking readiness (I/O multiplexing, see below).
 
 - **I/O Multiplexing (select, poll)**
-    - Allows a single-threaded server to monitor multiple sockets.
-    - `select()` and `poll()` are syscalls to wait for activity on many fds:
-        - Monitor client connections
-        - Check which sockets are ready to read/write
-    - Used to avoid spinning loops or threading.
+    - This is a technique that allows a single-threaded server to monitor multiple sockets at once without blocking.
+    - `select()` and `poll()` are system calls used to wait for activity on multiple file descriptors (which represent sockets):
+        - They monitor client connections.
+        - They check which sockets are ready to read or write.
+    - These tools are used to build efficient, scalable servers without the overhead of creating a separate thread or process for every client.
 
 ---
 
@@ -348,3 +362,9 @@ telnet localhost 6667
 Then:
 - Type messages from one terminal → see them appear in the other
 - Use `Ctrl+C` or close the terminal to disconnect
+
+---
+
+## References
+
+<a name="footnote1">[1]</a> Oikarinen, J.; Reed, D.(1993). *Internet Relay Chat Protocol*. [Request for Comments: 1459](https://www.rfc-editor.org/rfc/rfc1459)
