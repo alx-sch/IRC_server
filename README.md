@@ -82,7 +82,7 @@ To understand how an IRC server functions at a technical level, it's essential t
 
 ## Project Architecture
 
-The core of the server is the `Server` class. It's responsible for managing the entire IRC network, including user connections, channels, and command handling. It uses a non-blocking, single-threaded architecture to manage multiple clients efficiently via I/O multiplexing with `select()`.
+The core of the server is the `Server` class. It's responsible for managing the entire IRC network, including user connections, channels, and command handling. It uses a **non-blocking, single-threaded architecture** to manage multiple clients efficiently via I/O multiplexing with `select()`.
 
 The project is structured around several key classes:
 
@@ -98,10 +98,10 @@ The project is structured around several key classes:
 
 ## Core Functionality
 
-1. **Server Initialization and Loop:** The server starts in `main.cpp` by creating a `Server` instance with a given port and password. The `Server::run()` method then starts a loop that continuously monitors all client sockets using `select()`. It waits for one of three types of events:
-    - A new connection request on the main server socket (`if (FD_ISSET(_fd, &readFds))`).
-    - Incoming data from an existing client (`handleReadyUsers(readFds)` to handle incoming data from clients.).
-    - Sending outgoing data to 'ready' clients (`handleWriteReadyUsers(writeFds)`).
+1. **Server Lifecycle:** The server starts in `main.cpp` by creating a `Server` instance with a given port and password. The `Server::run()` method then starts a loop that continuously monitors all client sockets using `select()`. It waits for one of three types of events to handle I/O:
+    - **New Connections:** A new connection request on the main server socket is handled by `FD_ISSET(_fd, &readFds)`.
+    - **Incoming Data:** Incoming data from existing clients is processed by `handleReadyUsers(readFds)`.
+    - **Outgoing Data:** Outgoing data is sent to clients with pending messages by `handleWriteReadyUsers(writeFds)`.
       
 2. **User Registration:** A new user must complete a three-step registration process using the `PASS`, `NICK`, and `USER` commands. The `User` class tracks the status of these commands, and the `tryRegister()` method attempts to complete the registration once all three commands have been successfully processed. The server also validates the nickname according to IRC rules to prevent invalid or duplicate nicknames.
    
@@ -110,7 +110,6 @@ The project is structured around several key classes:
     - `Command::getCmd()` determines the command type.
     - `Command::handleCommand()` then calls the appropriate static handler function (e.g., `handleJoin` for the `JOIN` command).
   
-
 4. **Channel Management:** The `Server` class manages all channels, with the `Channel` class handling channel-specific details. The server supports a variety of channel-related commands, including:
     - `JOIN`: Allows a user to join a channel, with checks for passwords (`+k`), user limits (`+l`), and invite-only status (`+i`). If the channel doesn't exist, it is created.
     - `PART`: A user leaves a channel.
@@ -122,36 +121,25 @@ The project is structured around several key classes:
 
 ----  
 
-## Core functions (WIP --> make sure to remove fcts not used)
+## Core Server Functions
 
-| Function | Purpose | Declaration | Notes |
-|----------|---------|-------------|-------|
-| `socket()` | Create a socket (TCP communication) | `int socket(int domain, int type, int protocol);` | Typically: `AF_INET`, `SOCK_STREAM`, `0` |
-| `bind()` | Assign IP and port to socket | `int bind(int sockfd, const struct sockaddr *addr, socklen_t addrlen);` | Used for server sockets |
-| `listen()` | Start listening for incoming connections | `int listen(int sockfd, int backlog);` | Turns socket into passive mode |
-| `accept()` | Accept a new incoming connection | `int accept(int sockfd, struct sockaddr *addr, socklen_t *addrlen);` | Returns a new FD for the client |
-| `connect()` | Connect to a remote socket | `int connect(int sockfd, const struct sockaddr *addr, socklen_t addrlen);` | Used on the client side |
-| `send()` | Send data to a peer | `ssize_t send(int sockfd, const void *buf, size_t len, int flags);` | Works on connected sockets |
-| `recv()` | Receive data from a peer | `ssize_t recv(int sockfd, void *buf, size_t len, int flags);` | Works on connected sockets |
-| `close()` | Close a socket or file descriptor | `int close(int fd);` | Frees system resources |
-| `setsockopt()` | Set socket options | `int setsockopt(int sockfd, int level, int optname, const void *optval, socklen_t optlen);` | Commonly used with `SO_REUSEADDR` |
-| `getsockname()` | Get local IP and port bound to socket | `int getsockname(int sockfd, struct sockaddr *addr, socklen_t *addrlen);` | Rarely used |
-| `getprotobyname()` | Get protocol number (e.g. TCP) | `struct protoent *getprotobyname(const char *name);` | Deprecated in favor of hardcoded values |
-| `gethostbyname()` | Resolve hostname to IP | `struct hostent *gethostbyname(const char *name);` | Deprecated; use `getaddrinfo()` |
-| `getaddrinfo()` | Resolve host and port into socket structs | `int getaddrinfo(const char *node, const char *service, const struct addrinfo *hints, struct addrinfo **res);` | Preferred modern approach |
-| `freeaddrinfo()` | Free memory from `getaddrinfo()` | `void freeaddrinfo(struct addrinfo *res);` | Must call after using `getaddrinfo()` |
-| `htons()` / `htonl()` | Convert host to network byte order | `uint16_t htons(uint16_t hostshort);` / `uint32_t htonl(uint32_t hostlong);` | Used before sending ports/addresses |
-| `ntohs()` / `ntohl()` | Convert network to host byte order | `uint16_t ntohs(uint16_t netshort);` / `uint32_t ntohl(uint32_t netlong);` | Used after receiving data |
-| `inet_addr()` | Convert IPv4 string to binary | `in_addr_t inet_addr(const char *cp);` | Not thread-safe |
-| `inet_ntoa()` | Convert binary IPv4 to string | `char *inet_ntoa(struct in_addr in);` | Not thread-safe |
-| `signal()` | Basic signal handling | `void (*signal(int sig, void (*func)(int)))(int);` | Simple, less robust |
-| `sigaction()` | Advanced signal handling | `int sigaction(int signum, const struct sigaction *act, struct sigaction *oldact);` | Recommended over `signal()` |
-| `lseek()` | Move file descriptor position | `off_t lseek(int fd, off_t offset, int whence);` | Not typically needed for sockets |
-| `fstat()` | Get metadata for FD | `int fstat(int fd, struct stat *statbuf);` | Used for type/size checks |
-| `fcntl()` | Set non-blocking mode | `int fcntl(int fd, int cmd, ...);` | Only `F_SETFL, O_NONBLOCK` allowed in `ft_irc`; required on macOS, optional on Linux |
-| `select()` | Monitor multiple FDs (I/O readiness) | `int select(int nfds, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);` | Fine for small-scale use; limit = `FD_SETSIZE` |
-| `poll()` | Modern I/O multiplexing | `int poll(struct pollfd fds[], nfds_t nfds, int timeout);` | Scales better with many clients; preferred for dynamic FD sets |
+-  **`socket()`:** `Server::createSocket()` uses `socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)` to create the server socket. The `SOCK_STREAM` specifies a TCP socket, and `AF_INET` sets the address family to IPv4. The `SOCK_NONBLOCK` flag is an important part, as it makes the socket non-blocking.
+Making a socket non-blocking means that system calls like `recv()` or `send()` will not pause the program if an operation cannot be completed immediately. Instead of waiting for data to arrive or for the network buffer to clear, the call will return immediately with an error, typically `EAGAIN` or `EWOULDBLOCK`.
 
+- **`setsockopt()`:** In `Server::setSocketOptions()`, this function is used to set the `SO_REUSEADDR` option. This allows the server to restart immediately on the same port without waiting for the operating system to clear the previous socket's state.
+
+-  **`bind()`:** `Server::bindSocket()` uses `bind()` to attach the server socket to a specific address and port. It uses `INADDR_ANY` to bind to all available network interfaces (local machine, local network, public Internet, etc.) and `htons(_port)` to ensure the port number is in the correct network byte order.
+
+-  **`listen()`:** `Server::startListening()` method calls `listen()` to put the socket into a state where it waits for incoming connections. The `SOMAXCONN` constant is used as the backlog, which tells the operating system how many incoming connections can be queued up while the server is busy.
+
+-  **`select()`:** `Server::run()` uses `select()` as the central mechanism for its event loop. This function is what allows the server to monitor all sockets at once for incoming messages or readiness to send data. The `prepareReadSet()` and `prepareWriteSet()` functions are specifically written to work with `select()`.
+
+- **`accept()`:** In `Server::acceptNewUser()`, the `accept()` call is used to create a new socket for an incoming connection. This new socket is then used to communicate with the specific client.
+
+- **`send()`:** `Server::handleWriteReadyUsers()` uses `send()` to push data from a user's output buffer to their connected socket.
+
+- **`recv()`:** `Server::handleUserInput()` uses `recv()` to read data from a user's socket into a buffer. It checks the number of bytes read to determine if the client is still connected or if a message has been received.
+  
 ---
 
 ## Client–Server Communication
