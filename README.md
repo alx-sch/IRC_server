@@ -70,7 +70,7 @@ $ hostname -I
 ```
 For a local connection (from your own machine), you can always use the loopback address `127.0.0.1` or just `localhost`.   
 
-To make your server **publicly accessible**, you will need to configure your router with **port forwarding**, directing a public port (e.g., `6667`) to your machine's local IP address.
+To make your server **publicly accessible**, you will need to configure your router with **port forwarding**, directing a public port (e.g., `6667`) to your machine's local IP address. [This Youtube video](https://www.youtube.com/watch?v=PbV8gPi_RSo&ab_channel=DrewHowdenTech) might give you some insights on how to do this.
 
 **2. Connect with Terminal Tools**
 
