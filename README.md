@@ -165,7 +165,7 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 	- `KICK`: Ejects a client from a channel - `KICK #general baduser :You've been kicked for spamming.` (reason is optional)
 	- `INVITE`: Invites a client to a channel. This is particularly useful for invite-only channels - `INVITE newuser #general`
 	- `TOPIC`: Changes or views the channel topic - `TOPIC #general :Welcome to the main chat!` (setting topic), `TOPIC #general` (checking topic)
-	- `MODE`: Changes a channel's mode using the following flags, followed by `+` or `-` to add/remove these modes.
+	- `MODE`: Changes a channel's mode using the following flags, using `+` or `-` to add/remove these modes.
 		- `i`: Toggles the invite-only channel mode - `MODE #private +i` (makes channel invite-only), `MODE #private -i` (removes invite-only restriction)
 		- `t`: Toggles the restriction of the `TOPIC` command to channel operators - `MODE #general +t` restricts the `TOPIC` command so only operators can change the topic.
 		- `k`: Toggles the channel key (password) - `MODE #locked +k secretkey`
