@@ -80,6 +80,48 @@ To understand how an IRC server functions at a technical level, it's essential t
 
 ---
 
+## Project Architecture
+
+The core of the server is the `Server` class. It's responsible for managing the entire IRC network, including user connections, channels, and command handling. It uses a non-blocking, single-threaded architecture to manage multiple clients efficiently via I/O multiplexing with `select()`.
+
+The project is structured around several key classes:
+
+- **`Server`**: The central class that manages the main server socket, new connections, and the main server loop. It contains maps to store and manage `User` and `Channel` objects.
+
+- **`User`**: Represents an individual client connected to the server. It stores all user-specific data, such as nickname, username, and connection status, and has input/output buffers for network communication. A user can be in multiple channels, and the `User` class tracks this membership.
+
+- **`Channel`**: Represents a chat room on the server. It manages its own list of members, operators, invitations, topic, and channel modes (e.g., password, invite-only, user limit).
+
+- **`Command`**: A static utility class responsible for parsing and handling all IRC commands. It uses a `tokenize()` method to break down incoming messages and dispatches them to specific handler functions (e.g., `handleJoin`, `handleKick`).
+
+---
+
+## Core Functionality
+
+1. **Server Initialization and Loop:** The server starts in `main.cpp` by creating a `Server` instance with a given port and password. The `Server::run()` method then starts a loop that continuously monitors all client sockets using `select()`. It waits for one of three types of events:
+    - A new connection request on the main server socket (`if (FD_ISSET(_fd, &readFds))`).
+    - Incoming data from an existing client (`handleReadyUsers(readFds)` to handle incoming data from clients.).
+    - Sending outgoing data to 'ready' clients (`handleWriteReadyUsers(writeFds)`).
+      
+2. **User Registration:** A new user must complete a three-step registration process using the `PASS`, `NICK`, and `USER` commands. The `User` class tracks the status of these commands, and the `tryRegister()` method attempts to complete the registration once all three commands have been successfully processed. The server also validates the nickname according to IRC rules to prevent invalid or duplicate nicknames.
+   
+3. **Command Processing:**
+    - When a full message is received from a client, the `Command::tokenize()` function parses the message into a list of tokens.
+    - `Command::getCmd()` determines the command type.
+    - `Command::handleCommand()` then calls the appropriate static handler function (e.g., `handleJoin` for the `JOIN` command).
+  
+
+4. **Channel Management:** The `Server` class manages all channels, with the `Channel` class handling channel-specific details. The server supports a variety of channel-related commands, including:
+    - `JOIN`: Allows a user to join a channel, with checks for passwords (`+k`), user limits (`+l`), and invite-only status (`+i`). If the channel doesn't exist, it is created.
+    - `PART`: A user leaves a channel.
+    - `KICK`: An operator can forcibly remove another user from a channel.
+    - `TOPIC`: Sets or retrieves a channel's topic, with optional operator-only protection.
+    - `INVITE`: An operator can invite a user to an invite-only channel.
+  
+5. **Data Flow:** The server uses input and output buffers for each `User`. Incoming data from a client is accumulated in the input buffer until a complete IRC message (`\r\n`) is found. Once processed, a response is formatted and appended to the user's output buffer, which is then sent back to the client when their socket is ready for writing. This buffering prevents the server from blocking while waiting to send data.
+
+----  
+
 ## Core functions (WIP --> make sure to remove fcts not used)
 
 | Function | Purpose | Declaration | Notes |
