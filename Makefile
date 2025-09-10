@@ -27,13 +27,26 @@ OBJS_DIR :=		obj
 OBJS :=			$(SRCS:$(SRCS_DIR)/%.cpp=$(OBJS_DIR)/%.o)
 DEPS :=			$(OBJS:.o=.d)
 
+# Detect the operating system
+OS := $(shell uname -s)
+
 # COMPILER
 CXX :=			c++
 CXXFLAGS :=		-std=c++98
 CXXFLAGS +=		-Werror -Wextra -Wall
 CXXFLAGS +=		-Wshadow	# Warns about shadowed variables.
 CXXFLAGS +=		-Wpedantic	# Enforces strict ISO C++ compliance.
-CXXFLAGS +=		-g -O0
+# CXXFLAGS +=		-g -O0
+
+# CPPFLAGS are for preprocessor-specific flags
+# Add OS-specific flags or definitions
+ifeq ($(OS),Darwin) # Darwin is the kernel name for macOS
+	# Define a preprocessor macro for macOS
+	CPPFLAGS += -DMACOS_OS
+else ifeq ($(OS),Linux)
+	# Define a preprocessor macro for Linux
+	CPPFLAGS += -DLINUX_OS
+endif
 
 # Used for progress bar
 TOTAL_SRCS :=	$(words $(SRCS))
@@ -75,7 +88,7 @@ $(OBJS_DIR)/%.o:	$(SRCS_DIR)/%.cpp
 	@if [ $(PERCENT) -eq 100 ]; then printf "$(GREEN)"; fi
 	@printf "%d/%d - " $(SRC_NUM) $(TOTAL_SRCS)
 	@printf "%d%% $(RESET)" $(PERCENT)
-	@$(CXX) $(CXXFLAGS) -c -MMD -MP $< -o $@
+	@$(CXX) $(CXXFLAGS) $(CPPFLAGS) -c -MMD -MP $< -o $@
 
 clean:
 	@rm -rf $(OBJS_DIR)
@@ -87,6 +100,9 @@ fclean:	clean
 
 re:	fclean all
 
-.PHONY: all clean fclean re
+check_os:
+	@echo "Detected OS: $(OS)"
+
+.PHONY: all clean fclean re check_os
 
 -include $(DEPS)
