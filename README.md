@@ -70,7 +70,7 @@ To connect, you need to know your machine's IP address. Open a terminal and use 
 	10.14.6.2 172.17.0.1 192.168.122.1
 	```
 
- - macOs
+ - macOS
    ```
    $ ifconfig | grep "inet "
    inet 127.0.0.1 netmask 0xff000000
