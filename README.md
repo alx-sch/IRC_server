@@ -63,11 +63,20 @@ After you have built and run the server, you can connect to it using a variety o
 
 **1. First, Find Your IP Address**
 
-To connect, you need to know your machine's IP address. Open a terminal and use `hostname -I` to list your local IP addresses.
-```
-$ hostname -I
-10.14.6.2 172.17.0.1 192.168.122.1
-```
+To connect, you need to know your machine's IP address. Open a terminal and use this command to list your local IP addresses.
+- Linux
+	```
+	$ hostname -I
+	10.14.6.2 172.17.0.1 192.168.122.1
+	```
+
+ - macOs
+   ```
+   $ ifconfig | grep "inet "
+   inet 127.0.0.1 netmask 0xff000000
+   inet 192.168.2.152 netmask 0xffffff00 broadcast 192.168.2.255
+   ```
+
 For a local connection (from your own machine), you can always use the loopback address `127.0.0.1` or just `localhost`.   
 
 To make your server **publicly accessible**, you will need to configure your router with **port forwarding**, directing a public port (e.g., `6667`) to your machine's local IP address. [This Youtube video](https://www.youtube.com/watch?v=PbV8gPi_RSo&ab_channel=DrewHowdenTech) might give you some insights on how to do this.
