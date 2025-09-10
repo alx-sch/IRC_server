@@ -13,14 +13,28 @@ This project is a collaboration between:
 
 ---
 
-## IRC Introduction
+## What is IRC?
 
-- What is it, history etc.
-- ports to use etc.
+**IRC**, or **Internet Relay Chat**, is an open protocol for real-time text-based communication. It was created in **1988** by Jarkko Oikarinen in Finland, with the protocol officially documented in [**RFC 1459**](https://www.rfc-editor.org/rfc/rfc1459) in 1993 for the first time<sup><a href="#footnote1">[1]</a></sup>. This project's server implementation is based on this foundational RFC.
+
+Think of IRC as the standard for instant messaging and group chat that existed before web browsers became the primary application for accessing the internet.
+
+- **How it works:** IRC operates on a client-server model. Users run a client program that connects to an IRC server. These servers are interconnected in a network to form an entire IRC network.
+- **Channels and Users:** Communication happens in channels (group chats) or through private, one-on-one messages. A user is identified by a unique nickname on a given network.
+- **Key Features:** IRC is known for its simplicity and efficiency. It's a lightweight protocol, making it ideal for large-scale communities and for sharing information quickly, without the overhead of modern web-based applications. It's still used by open-source projects, developers, and niche communities. A popular GUI client is [**HexChat**](https://hexchat.github.io/), while [**WeeChat**](https://weechat.org/) is a terminal client
+
+### Key Terms
+- **Server:** A program that manages connections and routes messages between users.
+- **Client:** A program (like mIRC, HexChat, or WeeChat) that a user runs to connect to a server.
+- **Channel:** A named group chat room, denoted by a prefix like `#` or `&`. For example, `#42chat`.
+- **Nickname:** A unique name a user chooses to identify themselves on a network.
+- **Hostmask:** The full identity of a user, typically `nickname!username@hostname`, used for security and access control.
 
 ---
 
 ## Networking Basics
+
+To understand how an IRC server functions at a technical level, it's essential to first grasp a few core networking concepts. This project is built from the ground up to handle network communication, and understanding these principles will provide insight into the server's design and functionality.
 
 - **IP Address**
     - Identifies a **host/device** on a network.
@@ -34,7 +48,7 @@ This project is a collaboration between:
 - **Port**
     - Identifies a specific **service or application** on a host.
     - Range: `1`–`65535` (unsigned 16-bit integer); port `0` is reserved as a wildcard, allowing the OS to assign an ephemeral (random) port automatically.
-    - Common ports: `22` (SSH), `80` (HTTP), `6667` (IRC)
+    - Common ports: `22` (SSH), `80` (HTTP), **`6667` (default for IRC)**
 
 - **Socket**
     - A **socket** is a combination of an IP address and a port number.
@@ -58,13 +72,55 @@ This project is a collaboration between:
         - Requires checking readiness (I/O multiplexing, see below).
 
 - **I/O Multiplexing (select, poll)**
-    - Allows a single-threaded server to monitor multiple sockets.
-    - `select()` and `poll()` are syscalls to wait for activity on many fds:
-        - Monitor client connections
-        - Check which sockets are ready to read/write
-    - Used to avoid spinning loops or threading.
+    - This is a technique that allows a single-threaded server to monitor multiple sockets at once without blocking.
+    - `select()` and `poll()` are system calls used to wait for activity on multiple file descriptors (which represent sockets):
+        - They monitor client connections.
+        - They check which sockets are ready to read or write.
+    - These tools are used to build efficient, scalable servers without the overhead of creating a separate thread or process for every client.
 
 ---
+
+## Project Architecture
+
+The core of the server is the `Server` class. It's responsible for managing the entire IRC network, including user connections, channels, and command handling. It uses a non-blocking, single-threaded architecture to manage multiple clients efficiently via I/O multiplexing with `select()`.
+
+The project is structured around several key classes:
+
+- **`Server`**: The central class that manages the main server socket, new connections, and the main server loop. It contains maps to store and manage `User` and `Channel` objects.
+
+- **`User`**: Represents an individual client connected to the server. It stores all user-specific data, such as nickname, username, and connection status, and has input/output buffers for network communication. A user can be in multiple channels, and the `User` class tracks this membership.
+
+- **`Channel`**: Represents a chat room on the server. It manages its own list of members, operators, invitations, topic, and channel modes (e.g., password, invite-only, user limit).
+
+- **`Command`**: A static utility class responsible for parsing and handling all IRC commands. It uses a `tokenize()` method to break down incoming messages and dispatches them to specific handler functions (e.g., `handleJoin`, `handleKick`).
+
+---
+
+## Core Functionality
+
+1. **Server Initialization and Loop:** The server starts in `main.cpp` by creating a `Server` instance with a given port and password. The `Server::run()` method then starts a loop that continuously monitors all client sockets using `select()`. It waits for one of three types of events:
+    - A new connection request on the main server socket (`if (FD_ISSET(_fd, &readFds))`).
+    - Incoming data from an existing client (`handleReadyUsers(readFds)` to handle incoming data from clients.).
+    - Sending outgoing data to 'ready' clients (`handleWriteReadyUsers(writeFds)`).
+      
+2. **User Registration:** A new user must complete a three-step registration process using the `PASS`, `NICK`, and `USER` commands. The `User` class tracks the status of these commands, and the `tryRegister()` method attempts to complete the registration once all three commands have been successfully processed. The server also validates the nickname according to IRC rules to prevent invalid or duplicate nicknames.
+   
+3. **Command Processing:**
+    - When a full message is received from a client, the `Command::tokenize()` function parses the message into a list of tokens.
+    - `Command::getCmd()` determines the command type.
+    - `Command::handleCommand()` then calls the appropriate static handler function (e.g., `handleJoin` for the `JOIN` command).
+  
+
+4. **Channel Management:** The `Server` class manages all channels, with the `Channel` class handling channel-specific details. The server supports a variety of channel-related commands, including:
+    - `JOIN`: Allows a user to join a channel, with checks for passwords (`+k`), user limits (`+l`), and invite-only status (`+i`). If the channel doesn't exist, it is created.
+    - `PART`: A user leaves a channel.
+    - `KICK`: An operator can forcibly remove another user from a channel.
+    - `TOPIC`: Sets or retrieves a channel's topic, with optional operator-only protection.
+    - `INVITE`: An operator can invite a user to an invite-only channel.
+  
+5. **Data Flow:** The server uses input and output buffers for each `User`. Incoming data from a client is accumulated in the input buffer until a complete IRC message (`\r\n`) is found. Once processed, a response is formatted and appended to the user's output buffer, which is then sent back to the client when their socket is ready for writing. This buffering prevents the server from blocking while waiting to send data.
+
+----  
 
 ## Core functions (WIP --> make sure to remove fcts not used)
 
@@ -348,3 +404,9 @@ telnet localhost 6667
 Then:
 - Type messages from one terminal → see them appear in the other
 - Use `Ctrl+C` or close the terminal to disconnect
+
+---
+
+## References
+
+<a name="footnote1">[1]</a> Oikarinen, J.; Reed, D.(1993). *Internet Relay Chat Protocol*. [Request for Comments: 1459](https://www.rfc-editor.org/rfc/rfc1459)
