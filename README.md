@@ -20,10 +20,10 @@ This project is a collaboration between:
 - [How to Build the Server](#how-to-build-the-server)
 - [How to Connect to the Server](#how-to-connect-to-the-server)
 - [Server Features](#server-features)
+- [Client–Server Communication](#clientserver-communication)
 - [Project Architecture](#project-architecture)
 - [Core Functionality](#core-functionality)
 - [Core Server Functions](#core-server-functions)
-- [Client–Server Communication](#clientserver-communication)
   
 ---
 
@@ -170,7 +170,7 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_rdy.png" alt="HexChat_rdy"  width="450" />
 	</p>
 
-- The server logs events to the console and also saves them to log files in XXX (dedicated folder??). The client may send commands the server does not support (e.g. `CAP`), but all core IRC functions still work (see below).
+- The server logs events to the console and also saves them to log files in ---_>>  XXX (dedicated folder??). <<<---- The client may send commands the server does not support (e.g. `CAP`), but all core IRC functions still work (see below).
 
 	<p align="center">
 	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/server_log.png" alt="server_log"  width="450" />
@@ -204,68 +204,6 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 		- `o`: Gives or takes away channel operator privilege  - `MODE #general +o newoperator`
 		- `l`: Sets or removes a user limit for the channel - `MODE #limited +l 10`
 
----
-
-## Project Architecture
-
-The core of the server is the `Server` class. It's responsible for managing the entire IRC network, including user connections, channels, and command handling. It uses a **non-blocking, single-threaded architecture** to manage multiple clients efficiently via I/O multiplexing with `select()`.
-
-The project is structured around several key classes:
-
-- **`Server`**: The central class that manages the main server socket, new connections, and the main server loop. It contains maps to store and manage `User` and `Channel` objects.
-
-- **`User`**: Represents an individual client connected to the server. It stores all user-specific data, such as nickname, username, and connection status, and has input/output buffers for network communication. A user can be in multiple channels, and the `User` class tracks this membership.
-
-- **`Channel`**: Represents a chat room on the server. It manages its own list of members, operators, invitations, topic, and channel modes (e.g., password, invite-only, user limit).
-
-- **`Command`**: A static utility class responsible for parsing and handling all IRC commands. It uses a `tokenize()` method to break down incoming messages and dispatches them to specific handler functions (e.g., `handleJoin`, `handleKick`).
-
----
-
-## Core Functionality
-
-1. **Server Lifecycle:** The server starts in `main.cpp` by creating a `Server` instance with a given port and password. The `Server::run()` method then starts a loop that continuously monitors all client sockets using `select()`. It waits for one of three types of events to handle I/O:
-    - **New Connections:** A new connection request on the main server socket is handled by `FD_ISSET(_fd, &readFds)`.
-    - **Incoming Data:** Incoming data from existing clients is processed by `handleReadyUsers(readFds)`.
-    - **Outgoing Data:** Outgoing data is sent to clients with pending messages by `handleWriteReadyUsers(writeFds)`.
-      
-2. **User Registration:** A new user must complete a three-step registration process using the `PASS`, `NICK`, and `USER` commands. The `User` class tracks the status of these commands, and the `tryRegister()` method attempts to complete the registration once all three commands have been successfully processed. The server also validates the nickname according to IRC rules to prevent invalid or duplicate nicknames.
-   
-3. **Command Processing:**
-    - When a full message is received from a client, the `Command::tokenize()` function parses the message into a list of tokens.
-    - `Command::getCmd()` determines the command type.
-    - `Command::handleCommand()` then calls the appropriate static handler function (e.g., `handleJoin` for the `JOIN` command).
-  
-4. **Channel Management:** The `Server` class manages all channels, with the `Channel` class handling channel-specific details. The server supports a variety of channel-related commands, including:
-    - `JOIN`: Allows a user to join a channel, with checks for passwords (`+k`), user limits (`+l`), and invite-only status (`+i`). If the channel doesn't exist, it is created.
-    - `PART`: A user leaves a channel.
-    - `KICK`: An operator can forcibly remove another user from a channel.
-    - `TOPIC`: Sets or retrieves a channel's topic, with optional operator-only protection.
-    - `INVITE`: An operator can invite a user to an invite-only channel.
-  
-5. **Data Flow:** The server uses input and output buffers for each `User`. Incoming data from a client is accumulated in the input buffer until a complete IRC message (`\r\n`) is found. Once processed, a response is formatted and appended to the user's output buffer, which is then sent back to the client when their socket is ready for writing. This buffering prevents the server from blocking while waiting to send data.
-
-----  
-
-## Core Server Functions
-
--  **`socket()`:** `Server::createSocket()` uses `socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)` to create the server socket. The `SOCK_STREAM` specifies a TCP socket, and `AF_INET` sets the address family to IPv4. The `SOCK_NONBLOCK` flag is an important part, as it makes the socket non-blocking.
-Making a socket non-blocking means that system calls like `recv()` or `send()` will not pause the program if an operation cannot be completed immediately. Instead of waiting for data to arrive or for the network buffer to clear, the call will return immediately with an error, typically `EAGAIN` or `EWOULDBLOCK`.
-
-- **`setsockopt()`:** In `Server::setSocketOptions()`, this function is used to set the `SO_REUSEADDR` option. This allows the server to restart immediately on the same port without waiting for the operating system to clear the previous socket's state.
-
--  **`bind()`:** `Server::bindSocket()` uses `bind()` to attach the server socket to a specific address and port. It uses `INADDR_ANY` to bind to all available network interfaces (local machine, local network, public Internet, etc.) and `htons(_port)` to ensure the port number is in the correct network byte order.
-
--  **`listen()`:** `Server::startListening()` method calls `listen()` to put the socket into a state where it waits for incoming connections. The `SOMAXCONN` constant is used as the backlog, which tells the operating system how many incoming connections can be queued up while the server is busy.
-
--  **`select()`:** `Server::run()` uses `select()` as the central mechanism for its event loop. This function is what allows the server to monitor all sockets at once for incoming messages or readiness to send data. The `prepareReadSet()` and `prepareWriteSet()` functions are specifically written to work with `select()`.
-
-- **`accept()`:** In `Server::acceptNewUser()`, the `accept()` call is used to create a new socket for an incoming connection. This new socket is then used to communicate with the specific client.
-
-- **`send()`:** `Server::handleWriteReadyUsers()` uses `send()` to push data from a user's output buffer to their connected socket.
-
-- **`recv()`:** `Server::handleUserInput()` uses `recv()` to read data from a user's socket into a buffer. It checks the number of bytes read to determine if the client is still connected or if a message has been received.
-  
 ---
 
 ## Client–Server Communication
@@ -333,6 +271,68 @@ Which sends the following to the client
 :42ircRebels.net 001 nick :Welcome to the 42 IRC Network, nick!user@host
 ```
 
+---
+
+## Project Architecture
+
+The core of the server is the `Server` class. It's responsible for managing the entire IRC network, including user connections, channels, and command handling. It uses a **non-blocking, single-threaded architecture** to manage multiple clients efficiently via I/O multiplexing with `select()`.
+
+The project is structured around several key classes:
+
+- **`Server`**: The central class that manages the main server socket, new connections, and the main server loop. It contains maps to store and manage `User` and `Channel` objects.
+
+- **`User`**: Represents an individual client connected to the server. It stores all user-specific data, such as nickname, username, and connection status, and has input/output buffers for network communication. A user can be in multiple channels, and the `User` class tracks this membership.
+
+- **`Channel`**: Represents a chat room on the server. It manages its own list of members, operators, invitations, topic, and channel modes (e.g., password, invite-only, user limit).
+
+- **`Command`**: A static utility class responsible for parsing and handling all IRC commands. It uses a `tokenize()` method to break down incoming messages and dispatches them to specific handler functions (e.g., `handleJoin`, `handleKick`).
+
+---
+
+## Core Functionality
+
+1. **Server Lifecycle:** The server starts in `main.cpp` by creating a `Server` instance with a given port and password. The `Server::run()` method then starts a loop that continuously monitors all client sockets using `select()`. It waits for one of three types of events to handle I/O:
+    - **New Connections:** A new connection request on the main server socket is handled by `FD_ISSET(_fd, &readFds)`.
+    - **Incoming Data:** Incoming data from existing clients is processed by `handleReadyUsers(readFds)`.
+    - **Outgoing Data:** Outgoing data is sent to clients with pending messages by `handleWriteReadyUsers(writeFds)`.
+      
+2. **User Registration:** A new user must complete a three-step registration process using the `PASS`, `NICK`, and `USER` commands. The `User` class tracks the status of these commands, and the `tryRegister()` method attempts to complete the registration once all three commands have been successfully processed. The server also validates the nickname according to IRC rules to prevent invalid or duplicate nicknames.
+   
+3. **Command Processing:**
+    - When a full message is received from a client, the `Command::tokenize()` function parses the message into a list of tokens.
+    - `Command::getCmd()` determines the command type.
+    - `Command::handleCommand()` then calls the appropriate static handler function (e.g., `handleJoin` for the `JOIN` command).
+  
+4. **Channel Management:** The `Server` class manages all channels, with the `Channel` class handling channel-specific details. The server supports a variety of channel-related commands, including:
+    - `JOIN`: Allows a user to join a channel, with checks for passwords (`+k`), user limits (`+l`), and invite-only status (`+i`). If the channel doesn't exist, it is created.
+    - `PART`: A user leaves a channel.
+    - `KICK`: An operator can forcibly remove another user from a channel.
+    - `TOPIC`: Sets or retrieves a channel's topic, with optional operator-only protection.
+    - `INVITE`: An operator can invite a user to an invite-only channel.
+  
+5. **Data Flow:** The server uses input and output buffers for each `User`. Incoming data from a client is accumulated in the input buffer until a complete IRC message (`\r\n`) is found. Once processed, a response is formatted and appended to the user's output buffer, which is then sent back to the client when their socket is ready for writing. This buffering prevents the server from blocking while waiting to send data.
+
+----  
+
+## Core Server Functions
+
+-  **`socket()`:** `Server::createSocket()` uses `socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)` to create the server socket. The `SOCK_STREAM` specifies a TCP socket, and `AF_INET` sets the address family to IPv4. The `SOCK_NONBLOCK` flag is an important part, as it makes the socket non-blocking.
+Making a socket non-blocking means that system calls like `recv()` or `send()` will not pause the program if an operation cannot be completed immediately. Instead of waiting for data to arrive or for the network buffer to clear, the call will return immediately with an error, typically `EAGAIN` or `EWOULDBLOCK`.
+
+- **`setsockopt()`:** In `Server::setSocketOptions()`, this function is used to set the `SO_REUSEADDR` option. This allows the server to restart immediately on the same port without waiting for the operating system to clear the previous socket's state.
+
+-  **`bind()`:** `Server::bindSocket()` uses `bind()` to attach the server socket to a specific address and port. It uses `INADDR_ANY` to bind to all available network interfaces (local machine, local network, public Internet, etc.) and `htons(_port)` to ensure the port number is in the correct network byte order.
+
+-  **`listen()`:** `Server::startListening()` method calls `listen()` to put the socket into a state where it waits for incoming connections. The `SOMAXCONN` constant is used as the backlog, which tells the operating system how many incoming connections can be queued up while the server is busy.
+
+-  **`select()`:** `Server::run()` uses `select()` as the central mechanism for its event loop. This function is what allows the server to monitor all sockets at once for incoming messages or readiness to send data. The `prepareReadSet()` and `prepareWriteSet()` functions are specifically written to work with `select()`.
+
+- **`accept()`:** In `Server::acceptNewUser()`, the `accept()` call is used to create a new socket for an incoming connection. This new socket is then used to communicate with the specific client.
+
+- **`send()`:** `Server::handleWriteReadyUsers()` uses `send()` to push data from a user's output buffer to their connected socket.
+
+- **`recv()`:** `Server::handleUserInput()` uses `recv()` to read data from a user's socket into a buffer. It checks the number of bytes read to determine if the client is still connected or if a message has been received.
+  
 ---
 
 ## Commands to Implement
