@@ -177,39 +177,38 @@ bool	Command::handlePart(Server* server, User* user, const std::vector<std::stri
 		return false;
 	}
 
-    // Extract part message if provided
-    std::string partMessage = "";
-    if (tokens.size() > 2)
-    {
-        // Reconstruct the part message from tokens[2] onward
-        for (size_t i = 2; i < tokens.size(); ++i)
-        {
-            if (i > 2)
-                partMessage += " ";
-            partMessage += tokens[i];
-        }
-        // Remove leading ':' if present (trailing parameter)
-        if (!partMessage.empty() && partMessage[0] == ':')
-            partMessage = partMessage.substr(1);
-    }
+	// Extract part message if provided
+	std::string partMessage = "";
+	if (tokens.size() > 2)
+	{
+		// Reconstruct the part message from tokens[2] onward
+		for (size_t i = 2; i < tokens.size(); ++i)
+		{
+			if (i > 2)
+				partMessage += " ";
+			partMessage += tokens[i];
+		}
+		// Remove leading ':' if present (trailing parameter)
+		if (!partMessage.empty() && partMessage[0] == ':')
+			partMessage = partMessage.substr(1);
+	}
 
-    // Send PART message to all channel members (including the leaving user)
-    std::string partLine = ":" + user->getNickname() + " PART " + channelName;
-    if (!partMessage.empty())
-        partLine += " :" + partMessage;
-    partLine += "\r\n";
+	// Send PART message to all channel members (including the leaving user)
+	std::string partLine = ":" + user->getNickname() + " PART " + channelName;
+	if (!partMessage.empty())
+		partLine += " :" + partMessage;
+	partLine += "\r\n";
 
-    broadcastToChannel(server, channel, partLine); // No exclusion - everyone gets the message
+	broadcastToChannel(server, channel, partLine); // No exclusion - everyone gets the message
 
-    // Remove user from the channel
-    channel->remove_user(user->getNickname());
-    user->removeChannel(channelName);
+	// Remove user from the channel
+	channel->remove_user(user->getNickname());
+	user->removeChannel(channelName);
 
-    logUserAction(user->getNickname(), user->getFd(), 
-        "left channel " + channelName + 
-        (partMessage.empty() ? "" : " with message: " + partMessage));
+	logUserAction(user->getNickname(), user->getFd(), std::string("left channel ") + BLUE + channelName + RESET +
+		(partMessage.empty() ? "" : " with message: " + partMessage));
 
-    return true;
+	return true;
 }
 
 bool Command::handleKick(Server* server, User* user, const std::vector<std::string>& tokens)
