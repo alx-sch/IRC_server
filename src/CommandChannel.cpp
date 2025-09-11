@@ -8,17 +8,19 @@
 #include "../include/defines.hpp"	// color formatting
 
 /**
- Handles a single JOIN command for a single channel/key pair.
+Handles a single `JOIN` command for a single channel/key pair.
 
- Validates channel name, checks if user is already a member, and verifies
- channel restrictions (invite-only, user limit, password).
- On success, adds the user to the channel and broadcasts the join message.
+Validates channel name, checks if user is already a member, and verifies
+channel restrictions (invite-only, user limit, password).
+On success, adds the user to the channel and broadcasts the join message.
 
- @param server 			Pointer to the server instance.
- @param user 			Pointer to the user joining the channel.
- @param channelName 	Name of the channel to join.
- @param key 			Optional channel key (password) provided by the user.
- @return				True if the join succeeded, false if an error occurred.
+ @param server		Pointer to the server instance.
+ @param user		Pointer to the user joining the channel.
+ @param channelName	Name of the channel to join.
+ @param key			Optional channel key (password) provided by the user.
+
+ @return			True if the join succeeded,
+					false if an error occurred.
 */
 bool	Command::handleSingleJoin(Server* server, User* user, const std::string& channelName, const std::string& key)
 {
@@ -85,21 +87,22 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 }
 
 /**
- Handles the IRC JOIN command, allowing a user to join one or more channels.
+Handles the IRC `JOIN` command, allowing a user to join one or more channels.
 
- This function parses a comma-separated list of channel names and optional keys,
- validates each, and attempts to join the user to each specified channel by calling
- `handleSingleJoin()` for each pair.
+This function parses a comma-separated list of channel names and optional keys,
+validates each, and attempts to join the user to each specified channel by calling
+`handleSingleJoin()` for each pair.
 
- Syntax:
+Syntax:
 	JOIN #chan1,#chan2 key1,key2
 	JOIN #chan1,#chan2 :key1 with space, key2 with space
 
- @param server 	Pointer to the server instance handling the command.
- @param user 	The user issuing the JOIN command.
- @param tokens 	Parsed IRC command tokens (e.g., {"JOIN", "#chan1,#chan2", "key1,key2"}).
+ @param server	Pointer to the server instance handling the command.
+ @param user	The user issuing the JOIN command.
+ @param tokens	Parsed IRC command tokens (e.g., {"JOIN", "#chan1,#chan2", "key1,key2"}).
 
- @return True if the command was processed (even if some joins failed), false if a critical error occurred.
+ @return		True if the command was processed (even if some joins failed),
+				false if a critical error occurred.
 */
 bool	Command::handleJoin(Server* server, User* user, const std::vector<std::string>& tokens)
 {
@@ -138,6 +141,20 @@ bool	Command::handleJoin(Server* server, User* user, const std::vector<std::stri
 	return true;
 }
 
+/**
+Handles the IRC `PART` command, allowing a user to leave a single channel.
+
+Syntax:
+	PART #channel
+	PART #channel :Goodbye everyone
+
+ @param server	Pointer to the server instance handling the command.
+ @param user	The user issuing the PART command.
+ @param tokens	Parsed IRC command tokens (e.g., {"PART", "#channel", ":Bye"}).
+
+ @return		True if the command was processed,
+				false if an error occurred (e.g., invalid channel name).
+*/
 bool	Command::handlePart(Server* server, User* user, const std::vector<std::string>& tokens)
 {
 	if (tokens.size() < 2)
@@ -197,7 +214,6 @@ bool	Command::handlePart(Server* server, User* user, const std::vector<std::stri
 	std::string partLine = ":" + user->getNickname() + " PART " + channelName;
 	if (!partMessage.empty())
 		partLine += " :" + partMessage;
-	//partLine += "\r\n";
 
 	broadcastToChannel(server, channel, partLine); // No exclusion - everyone gets the message
 
@@ -211,7 +227,25 @@ bool	Command::handlePart(Server* server, User* user, const std::vector<std::stri
 	return true;
 }
 
-bool Command::handleKick(Server* server, User* user, const std::vector<std::string>& tokens)
+/**
+Handles the IRC `KICK` command, allowing a channel operator to remove a user
+from a specified channel.
+
+This function validates the channel and target user, checks that the
+kicker has operator privileges, optionally extracts a kick reason, broadcasts
+the `KICK` message to all channel members, and removes the target user from the channel.
+
+Syntax:
+	KICK #channel target [<reason>]
+
+ @param server	Pointer to the server instance handling the command.
+ @param user	The user issuing the `KICK` command (must be a channel operator).
+ @param tokens	Parsed IRC command tokens (e.g., {"KICK", "#channel", "victim", ":Spamming"}).
+
+ @return		True if the command was processed and user was kicked,
+				false if an error occurred.
+*/
+bool	Command::handleKick(Server* server, User* user, const std::vector<std::string>& tokens)
 {
 	if (tokens.size() < 3)
 	{
@@ -299,7 +333,6 @@ bool Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	std::string kickLine = ":" + user->getNickname() + " KICK " + channelName + " " + targetNick;
 	if (!kickReason.empty())
 		kickLine += " :" + kickReason;
-	//kickLine += "\r\n";
 
 	broadcastToChannel(server, channel, kickLine); // Everyone sees the kick
 
@@ -314,167 +347,173 @@ bool Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	return true;
 }
 
-bool Command::handleMode(Server*, User*, const std::vector<std::string>&)
+/**
+Handles the IRC `TOPIC` command, allowing a user to view or set the topic of a channel.
+
+This function validates the channel existence and the user's membership, checks
+for operator privileges if topic protection is enabled, and either sets a new
+topic (broadcasting it to all channel members) or returns the current topic to
+the requesting user.
+
+Syntax:
+	TOPIC #channel					; Request current topic
+	TOPIC #channel :New topic text	; Set a new topic
+
+ @param server	Pointer to the server instance handling the command.
+ @param user	The user issuing the `TOPIC` command.
+ @param tokens	Parsed IRC command tokens (e.g., {"TOPIC", "#channel", ":New topic"}).
+
+ @return		True if the command was processed successfully,
+ 				false if an error occurred.
+*/
+bool	Command::handleTopic(Server *server, User *user, const std::vector<std::string> &tokens)
 {
-    /*
-    The MODE command is used to set or change a channel's mode.
-    */
-    return false; // TODO: Implement MODE functionality
+	if (tokens.size() < 2)
+	{
+		logUserAction(user->getNickname(), user->getFd(), "sent TOPIC without a channel name\n");
+		user->replyError(403, "", "No channel specified");
+		return false;
+	}
+
+	const std::string&	channelName = tokens[1];
+	Channel*			channel = server->getChannel(channelName);
+
+	// Check if channel exists
+	if (!channel)
+	{
+		logUserAction(user->getNickname(), user->getFd(), std::string("tried to check/set topic for non-existing channel:")
+			+ RED + channelName + RESET);
+		user->replyError(403, channelName, "No such channel");
+		return false;
+	}
+
+	// Check if user is a member of the channel
+	if (!channel->is_user_member(user->getNickname()))
+	{
+		logUserAction(user->getNickname(), user->getFd(), std::string("tried to check/set topic for channel ")
+			+ BLUE + channelName + RESET + " but is not a member");
+		user->replyError(442, channelName, "You're not on that channel");
+		return false;
+	}
+
+	// If a new topic is provided, attempt to set it
+	if (tokens.size() > 2)
+	{
+		std::string	newTopic = tokens[2];
+		if (newTopic[0] == ':')
+			newTopic = newTopic.substr(1); // Remove leading ':'
+		if (channel->has_topic_protection() && !channel->is_user_operator(user->getNickname()))
+		{
+			logUserAction(user->getNickname(), user->getFd(), std::string("tried to set topic for channel ")
+				+ BLUE + channelName + RESET + " but is not an operator");
+			user->replyError(482, channelName, "You're not channel operator");
+			return false;
+		}
+		channel->set_topic(newTopic);
+
+		// Broadcast topic change to all channel members
+		std::string	topicLine = ":" + user->getNickname() + " TOPIC " + channelName + " :" + newTopic;
+		broadcastToChannel(server, channel, topicLine); // Everyone gets the topic change
+
+		// Log the topic change
+		logUserAction(user->getNickname(), user->getFd(), std::string("set topic for channel ")
+			+ BLUE + channelName + RESET + " to: " + newTopic);
+
+		return true;
+	}
+	else
+	{
+		// No new topic provided, just show current topic
+		std::string	currentTopic = channel->get_topic();
+		if (currentTopic.empty())
+			currentTopic = "(no topic)";
+
+		// Send topic reply to user
+		user->sendReply("332 " + user->getNickname() + " " + channelName + " :" + currentTopic);
+
+		// Log the topic request
+		logUserAction(user->getNickname(), user->getFd(),
+			std::string("requested topic for channel ") + BLUE + channelName + RESET);
+
+		return true;
+	}
 }
 
-bool Command::handleTopic(Server *server, User *user, const std::vector<std::string> &tokens)
+bool	Command::handleInvite(Server* server, User* user, const std::vector<std::string>& tokens)
 {
-    if (tokens.size() < 2)
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") " << "sent TOPIC without a channel name\n";
-        user->replyError(403, "", "No channel specified");
-        return false;
-    }
-    const std::string& channelName = tokens[1];
-    Channel* channel = server->getChannel(channelName);
-    if (!channel)
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") " << "tried to set topic for non-existing channel: " << channelName << "\n";
-        user->replyError(403, channelName, "No such channel");
-        return false;
-    }
-    if (!channel->is_user_member(user->getNickname()))
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") " << "tried to set topic for channel "
-                  << channelName << ", but is not a member\n";
-        user->replyError(442, channelName, "You're not on that channel");
-        return false;
-    }
-    if (tokens.size() > 2)
-    {
-        std::string newTopic = tokens[2];
-        if (newTopic[0] == ':')
-            newTopic = newTopic.substr(1); // Remove leading ':'
-        if (channel->has_topic_protection() && !channel->is_user_operator(user->getNickname()))
-        {
-            std::cout << GREEN << user->getNickname() << RESET
-                      << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                      << ") " << "tried to set topic for channel "
-                      << channelName << ", but is not an operator\n";
-            user->replyError(482, channelName, "You're not channel operator");
-            return false;
-        }
-        channel->set_topic(newTopic);
-        
-        // Broadcast topic change to all channel members
-        std::string topicLine = ":" + user->getNickname() + " TOPIC " + channelName + " :" + newTopic + "\r\n";
-        broadcastToChannel(server, channel, topicLine); // Everyone gets the topic change
-        
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") set topic for channel "
-                  << channelName
-                  << ": \"" + newTopic + "\"\n";
-        return true;
-    }
-    else
-    {
-        // No new topic provided, just show current topic
-        std::string currentTopic = channel->get_topic();
-        if (currentTopic.empty())
-            currentTopic = "(no topic)";
-        user->getOutputBuffer() += ":"
-                                  + server->getServerName() + " TOPIC "
-                                  + channelName + " :" + currentTopic + "\r\n";
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") requested topic for channel "
-                  << channelName << ": \"" + currentTopic + "\"\n";
-        return true;
-    }
-}
+	if (tokens.size() < 3)
+	{
+		logUserAction(user->getNickname(), user->getFd(),
+			"sent INVITE without enough arguments");
+		user->replyError(461, "", "Not enough parameters");
+		return false;
+	}
 
-bool Command::handleInvite(Server* server, User* user, const std::vector<std::string>& tokens)
-{
-    if (tokens.size() < 3)
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") " << "sent INVITE without enough arguments\n";
-        user->replyError(461, "", "Not enough parameters");
-        return false;
-    }
-    
-    const std::string& targetNick = tokens[1];
-    const std::string& channelName = tokens[2];
-    
-    // Check if channel exists
-    Channel* channel = server->getChannel(channelName);
-    if (!channel)
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") tried to invite to non-existing channel: " << channelName << "\n";
-        user->replyError(403, channelName, "No such channel");
-        return false;
-    }
-    
-    // Check if user is on the channel (required to invite others)
-    if (!channel->is_user_member(user->getNickname()))
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") tried to invite to channel " << channelName
-                  << " but is not a member\n";
-        user->replyError(442, channelName, "You're not on that channel");
-        return false;
-    }
-    
-    // For invite-only channels, check if user is operator
-    if (channel->is_invite_only() && !channel->is_user_operator(user->getNickname()))
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") tried to invite to invite-only channel "
-                  << channelName << " but is not an operator\n";
-        user->replyError(482, channelName, "You're not channel operator");
-        return false;
-    }
-    
-    // Check if target user exists
-    User* targetUser = server->getUser(targetNick);
-    if (!targetUser)
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") tried to invite non-existing user: " << targetNick << "\n";
-        user->replyError(401, targetNick, "No such nick/channel");
-        return false;
-    }
-    
-    // Check if target is already on the channel
-    if (channel->is_user_member(targetNick))
-    {
-        std::cout << GREEN << user->getNickname() << RESET
-                  << " (" << MAGENTA << "fd " << user->getFd() << RESET
-                  << ") tried to invite already member " << targetNick
-                  << " to channel " << channelName << "\n";
-        user->replyError(443, targetNick + " " + channelName, "is already on channel");
-        return false;
-    }
-    
-    // Add to invite list (for invite-only channels)
-    if (channel->is_invite_only())
-    {
-        channel->add_invite(targetNick);
-    }
-    
-// here we need to send the invite message to the target user
-// and also a reply success number
-    std::cout << GREEN << user->getNickname() << RESET
-              << " (" << MAGENTA << "fd " << user->getFd() << RESET
-              << ") invited " << targetNick << " to channel " << channelName << "\n";
-    
-    return true;
+	const std::string&	targetNick = tokens[1];
+	const std::string&	channelName = tokens[2];
+
+	// Check if channel exists
+	Channel*	channel = server->getChannel(channelName);
+	if (!channel)
+	{
+		logUserAction(user->getNickname(), user->getFd(),
+			std::string("tried to invite to non-existing channel: ") + RED + channelName + RESET);
+		user->replyError(403, channelName, "No such channel");
+		return false;
+	}
+
+	// Check if user is on the channel (required to invite others)
+	if (!channel->is_user_member(user->getNickname()))
+	{
+		logUserAction(user->getNickname(), user->getFd(),
+			std::string("tried to invite to channel ") + BLUE + channelName + RESET + " but is not a member");
+		user->replyError(442, channelName, "You're not on that channel");
+		return false;
+	}
+
+	// For invite-only channels, check if user is operator
+	if (channel->is_invite_only() && !channel->is_user_operator(user->getNickname()))
+	{
+		logUserAction(user->getNickname(), user->getFd(),
+			std::string("tried to invite to invite-only channel ") + BLUE + channelName + RESET + " but is not an operator");
+		user->replyError(482, channelName, "You're not channel operator");
+		return false;
+	}
+
+	// Check if target user exists
+	User*	targetUser = server->getUser(targetNick);
+	if (!targetUser)
+	{
+		logUserAction(user->getNickname(), user->getFd(),
+			std::string("tried to invite non-existing user: ") + RED + targetNick + RESET);
+		user->replyError(401, targetNick, "No such nick/channel");
+		return false;
+	}
+
+	// Check if target is already on the channel
+	if (channel->is_user_member(targetNick))
+	{
+		logUserAction(user->getNickname(), user->getFd(),
+			std::string("tried to invite already member ") + GREEN + targetNick + RESET + " to channel "
+			+ BLUE + channelName + RESET);
+		user->replyError(443, targetNick + " " + channelName, "is already on channel");
+		return false;
+	}
+
+	// Add to invite list (for invite-only channels)
+	if (channel->is_invite_only())
+		channel->add_invite(targetNick);
+
+	// send confirmation to inviter
+	user->sendReply("341 " + user->getNickname() + " " + targetNick + " " + channelName);
+
+	// send invitation to target user
+	std::string	invitation = ":" + user->buildPrefix() + " INVITE " + targetNick + " :" + channelName;
+	targetUser->getOutputBuffer() += invitation + "\r\n";
+
+	// log the invite action
+	logUserAction(user->getNickname(), user->getFd(),
+		std::string("invited ") + GREEN + targetNick + RESET + " to channel " + BLUE + channelName + RESET);
+
+	return true;
 }

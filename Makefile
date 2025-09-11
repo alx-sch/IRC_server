@@ -13,6 +13,7 @@ SRCS_FILES :=	main.cpp \
 				Command.cpp \
 				CommandRegistration.cpp \
 				CommandChannel.cpp \
+				CommandModes.cpp \
 				CommandMessaging.cpp \
 				CommandConnection.cpp \
 				CommandUtils.cpp \

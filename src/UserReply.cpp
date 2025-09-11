@@ -48,8 +48,8 @@ void	User::replyError(int code, const std::string& param, const std::string& mes
 }
 
 /**
- Appends a raw IRC message to the user's output buffer.
- Automatically prefixes the message with the server name and appends `\r\n`.
+Appends a raw IRC message to the user's output buffer.
+Automatically prefixes the message with the server name and appends `\r\n`.
 
  @param message 	The already-formatted reply (e.g. "001 Alex :Welcome...")
 */

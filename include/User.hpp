@@ -43,6 +43,7 @@ class	User
 		void				replyWelcome();
 		void				replyError(int code, const std::string& param,
 								const std::string& message);
+		void				sendReply(const std::string& message);
 
 		// === UserRegistration.cpp ===
 
@@ -74,8 +75,6 @@ class	User
 		bool						_isRegistered;	// true if user has sent NICK, USER commands to server
 
 		bool						_sendErrorLogged;	// Flag to prevent multiple error logs for the same send error
-
-		void						sendReply(const std::string& message);	// UserReply.cpp
 };
 
 #endif
