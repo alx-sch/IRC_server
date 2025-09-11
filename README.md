@@ -14,6 +14,16 @@ This project is a collaboration between:
   
 ---
 
+## Table of Contents
+  
+- [What is IRC?](#what-is-irc)
+- [How to Build the Server](#how-to-build-the-server)
+- [How to Connect to the Server](#how-to-connect-to-the-server)
+- [Server Features](#server-features)
+- [Project Architecture](#project-architecture)
+  
+---
+
 ## What is IRC?
 
 **IRC**, or **Internet Relay Chat**, is an open protocol for real-time text-based communication. It was created in **1988** by Jarkko Oikarinen in Finland, with the protocol officially documented in [**RFC 1459**](https://www.rfc-editor.org/rfc/rfc1459) in 1993 for the first time<sup><a href="#footnote1">[1]</a></sup>. This project's server implementation is based on this foundational RFC.
