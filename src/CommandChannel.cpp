@@ -439,6 +439,24 @@ bool	Command::handleTopic(Server *server, User *user, const std::vector<std::str
 	}
 }
 
+/**
+Handles the IRC `INVITE` command, allowing a user to invite another user to a channel.
+
+This function validates the command syntax, checks user privileges, ensures
+the target user exists and is not already in the channel, and sends the proper
+replies to both the inviter and the invitee. It also handles adding the target
+to the invite list for invite-only channels.
+
+Syntax:
+	INVITE <nickname> <channel>
+
+ @param server	Pointer to the server instance handling the command.
+ @param user	The user issuing the `INVITE` command.
+ @param tokens	Parsed IRC command tokens (e.g., {"INVITE", "targetNick", "#channel"}).
+
+ @return		True if the command was successfully processed,
+ 				false if an error occurred.
+*/
 bool	Command::handleInvite(Server* server, User* user, const std::vector<std::string>& tokens)
 {
 	if (tokens.size() < 3)
