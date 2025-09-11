@@ -42,6 +42,10 @@ void	Server::acceptNewUser()
 	{
 		User* newUser = new User(userFd, this); // 'new' throws std::bad_alloc on failure
 		_usersFd[userFd] = newUser;
+
+		// Set as "password-passed" when server requires no password
+		if (_password.empty())
+			newUser->setHasPassed(true);
 	}
 	catch(const std::bad_alloc&)
 	{
