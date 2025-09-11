@@ -197,7 +197,7 @@ bool	Command::handlePart(Server* server, User* user, const std::vector<std::stri
 	std::string partLine = ":" + user->getNickname() + " PART " + channelName;
 	if (!partMessage.empty())
 		partLine += " :" + partMessage;
-	partLine += "\r\n";
+	//partLine += "\r\n";
 
 	broadcastToChannel(server, channel, partLine); // No exclusion - everyone gets the message
 
@@ -205,113 +205,113 @@ bool	Command::handlePart(Server* server, User* user, const std::vector<std::stri
 	channel->remove_user(user->getNickname());
 	user->removeChannel(channelName);
 
-	logUserAction(user->getNickname(), user->getFd(), std::string("left channel ") + BLUE + channelName + RESET +
-		(partMessage.empty() ? "" : " with message: " + partMessage));
+	logUserAction(user->getNickname(), user->getFd(), std::string("left channel ") + BLUE + channelName
+		+ RESET + (partMessage.empty() ? "" : " with message: " + partMessage));
 
 	return true;
 }
 
 bool Command::handleKick(Server* server, User* user, const std::vector<std::string>& tokens)
 {
-    if (tokens.size() < 3)
-    {
-        logUserAction(user->getNickname(), user->getFd(), "sent KICK without enough parameters");
-        user->replyError(461, "KICK", "Not enough parameters");
-        return false;
-    }
+	if (tokens.size() < 3)
+	{
+		logUserAction(user->getNickname(), user->getFd(), "sent KICK without enough parameters");
+		user->replyError(461, "KICK", "Not enough parameters");
+		return false;
+	}
 
-    const std::string& channelName = tokens[1];
-    const std::string& targetNick = tokens[2];
+	const std::string&	channelName = tokens[1];
+	const std::string&	targetNick = tokens[2];
 
-    // Validate channel name format
-    if (channelName.empty() || channelName[0] != '#')
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "sent KICK with invalid channel name: " + channelName);
-        user->replyError(403, channelName, "No such channel");
-        return false;
-    }
+	// Validate channel name format
+	if (channelName.empty() || channelName[0] != '#')
+	{
+		logUserAction(user->getNickname(), user->getFd(), 
+			std::string("sent KICK with invalid channel name: ") + RED + channelName + RESET);
+		user->replyError(403, channelName, "No such channel");
+		return false;
+	}
 
-    // Check if channel exists
-    Channel* channel = server->getChannel(channelName);
-    if (!channel)
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "tried to KICK from non-existing channel: " + channelName);
-        user->replyError(403, channelName, "No such channel");
-        return false;
-    }
+	// Check if channel exists
+	Channel*	channel = server->getChannel(channelName);
+	if (!channel)
+	{
+		logUserAction(user->getNickname(), user->getFd(), 
+			std::string("tried to KICK from non-existing channel: ") + RED + channelName + RESET);
+		user->replyError(403, channelName, "No such channel");
+		return false;
+	}
 
-    // Check if kicker is in the channel
-    if (!channel->is_user_member(user->getNickname()))
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "tried to KICK from channel " + channelName + " but is not a member");
-        user->replyError(442, channelName, "You're not on that channel");
-        return false;
-    }
+	// Check if kicker is in the channel
+	if (!channel->is_user_member(user->getNickname()))
+	{
+		logUserAction(user->getNickname(), user->getFd(), 
+			std::string("tried to KICK from channel ") + BLUE + channelName + RESET + " but is not a member");
+		user->replyError(442, channelName, "You're not on that channel");
+		return false;
+	}
 
-    // Check if kicker has operator privileges
-    if (!channel->is_user_operator(user->getNickname()))
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "tried to KICK from channel " + channelName + " but is not an operator");
-        user->replyError(482, channelName, "You're not channel operator");
-        return false;
-    }
+	// Check if kicker has operator privileges
+	if (!channel->is_user_operator(user->getNickname()))
+	{
+		logUserAction(user->getNickname(), user->getFd(), 
+			std::string("tried to KICK from channel ") + BLUE + channelName + RESET + " but is not an operator");
+		user->replyError(482, channelName, "You're not channel operator");
+		return false;
+	}
 
-    // Check if target user exists
-    User* targetUser = server->getUser(targetNick);
-    if (!targetUser)
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "tried to KICK non-existing user: " + targetNick);
-        user->replyError(401, targetNick, "No such nick/channel");
-        return false;
-    }
+	// Check if target user exists
+	User*	targetUser = server->getUser(targetNick);
+	if (!targetUser)
+	{
+		logUserAction(user->getNickname(), user->getFd(), 
+			std::string("tried to KICK non-existing user: ") + RED + targetNick + RESET);
+		user->replyError(401, targetNick, "No such nick/channel");
+		return false;
+	}
 
-    // Check if target is in the channel
-    if (!channel->is_user_member(targetNick))
-    {
-        logUserAction(user->getNickname(), user->getFd(), 
-            "tried to KICK user " + targetNick + " who is not in channel " + channelName);
-        user->replyError(441, targetNick + " " + channelName, "They aren't on that channel");
-        return false;
-    }
+	// Check if target is in the channel
+	if (!channel->is_user_member(targetNick))
+	{
+		logUserAction(user->getNickname(), user->getFd(),
+			std::string("tried to KICK user ") + RED + targetNick + RESET + " who is not in channel " + BLUE + channelName + RESET);
+		user->replyError(441, targetNick + " " + channelName, "They aren't on that channel");
+		return false;
+	}
 
-    // Extract kick reason if provided
-    std::string kickReason = "";
-    if (tokens.size() > 3)
-    {
-        // Reconstruct the kick reason from tokens[3] onward
-        for (size_t i = 3; i < tokens.size(); ++i)
-        {
-            if (i > 3)
-                kickReason += " ";
-            kickReason += tokens[i];
-        }
-        // Remove leading ':' if present (trailing parameter)
-        if (!kickReason.empty() && kickReason[0] == ':')
-            kickReason = kickReason.substr(1);
-    }
+	// Extract kick reason if provided
+	std::string kickReason = "";
+	if (tokens.size() > 3)
+	{
+		// Reconstruct the kick reason from tokens[3] onward
+		for (size_t i = 3; i < tokens.size(); ++i)
+		{
+			if (i > 3)
+				kickReason += " ";
+			kickReason += tokens[i];
+		}
+		// Remove leading ':' if present (trailing parameter)
+		if (!kickReason.empty() && kickReason[0] == ':')
+			kickReason = kickReason.substr(1);
+	}
 
-    // Send KICK message to all channel members (including kicker and victim)
-    std::string kickLine = ":" + user->getNickname() + " KICK " + channelName + " " + targetNick;
-    if (!kickReason.empty())
-        kickLine += " :" + kickReason;
-    kickLine += "\r\n";
+	// Send KICK message to all channel members (including kicker and victim)
+	std::string kickLine = ":" + user->getNickname() + " KICK " + channelName + " " + targetNick;
+	if (!kickReason.empty())
+		kickLine += " :" + kickReason;
+	//kickLine += "\r\n";
 
-    broadcastToChannel(server, channel, kickLine); // Everyone sees the kick
+	broadcastToChannel(server, channel, kickLine); // Everyone sees the kick
 
-    // Remove target user from the channel
-    channel->remove_user(targetNick);
-    targetUser->removeChannel(channelName);
+	// Remove target user from the channel
+	channel->remove_user(targetNick);
+	targetUser->removeChannel(channelName);
 
-    logUserAction(user->getNickname(), user->getFd(), 
-        "kicked " + targetNick + " from channel " + channelName + 
-        (kickReason.empty() ? "" : " with reason: " + kickReason));
+	logUserAction(user->getNickname(), user->getFd(),
+		std::string("kicked ") + GREEN + targetNick + RESET + " from channel " + BLUE + channelName
+		+ RESET + (kickReason.empty() ? "" : " with reason: " + kickReason));
 
-    return true;
+	return true;
 }
 
 bool Command::handleMode(Server*, User*, const std::vector<std::string>&)
