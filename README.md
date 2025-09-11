@@ -307,7 +307,8 @@ Making a socket non-blocking means that system calls like `recv()` or `send()` w
 
 ### User Registration
 
-User registration on an IRC server is a three-step process: **password** (`PASS` command), **nickname** (`NICK` command), and **user information** (`USER` command). The client sends these commands to the server and the server validates them to register the user and begin the communication session.    
+User registration on an IRC server is a three-step process: **password** (`PASS`), **nickname** (`NICK`), and **user information** (`USER`). The client sends these commands to the server and the server validates them to register the user and begin the communication session.    
+
 Upon successful registration, the server sends back welcome messages with numeric codes `001` through `004` to confirm the connection and provide server details.
 
 ```text
