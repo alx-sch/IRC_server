@@ -21,6 +21,9 @@ This project is a collaboration between:
 - [How to Connect to the Server](#how-to-connect-to-the-server)
 - [Server Features](#server-features)
 - [Project Architecture](#project-architecture)
+- [Core Functionality](#core-functioanlity)
+- [Core Server Functions](#core-server-functions)
+- [Client–Server Communication](#client-server-communication)
   
 ---
 
