@@ -14,7 +14,7 @@ This project is a collaboration between:
 
 ---
 
-## How to Setup the Server
+## How to Build the Server
 
 **1. Prerequisites**
 
@@ -30,19 +30,19 @@ To build and run the server, ensure you have the following tools installed on yo
    ```
    git clone https://github.com/alx-sch/IRC_server ircserv && cd ircserv
    ```
-**3. Build the server program**  
+**3. Build the Server Program**  
 
    Use the `make` command to compile the server executable.
    ```
    make
    ```
-   This command reads the project's `Makefile` and handles the entire compilation process. The build system is designed to be **cross-platform**, and automatically adapts for **macOS** and **Linux**, which use **POSIX-compliant** sockets. **Windows** is not supported as its Winsock API is incompatible with this approach.
+   This command reads the project's `Makefile` and handles the entire compilation process. The build system is designed to be **cross-platform** and automatically adapts for **macOS** and **Linux**, which use **POSIX-compliant** sockets. **Windows** is not supported as its Winsock API is incompatible with this approach.
 
    - **OS-Specific Build:** The server's non-blocking socket functionality is handled differently on Linux and macOS. The `Makefile` detects the OS and passes the correct compiler flags to handle these variations.
    - **Linux:** The code uses the `SOCK_NONBLOCK` flag.
    - **macOS:** The code uses the `fcntl()` function to set the non-blocking flag.
      
-**4. Run the server**  
+**4. Run the Server**  
 
    Provide a port number and a password for the server. The standard IRC port is `6667`.
    ```
@@ -120,7 +120,7 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_02.png" alt="HexChat_02"  width="300" />
 	</p>
 
-- Set the server’s host IP address and port **(1)**. Disable SSL, since the server does not support it (otherwise the logs will show scrambled commands) **(2)**. Enter the server password if required **(3)**. Close the network settings **(4)**:
+- There is already a default server listed. Change its host IP address and port **(1)** to match your own. Disable SSL, since the server does not support it (otherwise the logs will show scrambled commands) **(2)**. Enter the server password if required **(3)**. Close the network settings **(4)**:
 
 	<p align="center">
 	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_03.png" alt="HexChat_03"  width="300" />
@@ -151,7 +151,7 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 - User Commands:
 
 	- `NICK`: Handles setting or changing a nickname - `NICK newnickname`
-	- `USER`: Handles setting a username - `USER <username> <hostname> <servername> <realname>` -> `USER guest 0 * :Ronnie Reagan`. Hostname and servername are usually ignored in modern IRC.
+	- `USER`: Handles setting a username (and other info) - `USER <username> <hostname> <servername> <realname>` → `USER guest 0 * :Ronnie Reagan`. Hostname and servername are usually ignored/masked in modern IRC but the username is used to form the user mask `nickname!username@hostname`, which uniquely identifies a client.
 	- `PASS`: Handles the connection password for authentication - `PASS mysecretpassword`
 	- `JOIN`: Allows a user join a channel, or create it if it doesn’t exist - `JOIN #general`
 	- `QUIT`: Allows a user to disconnect from the server - `QUIT :Leaving for lunch` (reason is optional)
@@ -305,44 +305,21 @@ Making a socket non-blocking means that system calls like `recv()` or `send()` w
 
 ## Client–Server Communication
 
-### User Registration (sent by client upon server connection)
-When a user connects to an IRC server via a client, they register by sending a specific sequence of commands to be recognized as a valid user.
+### User Registration
 
-1. `PASS <password>`
-    - Optional, but must come first.
-    - If the server requires a password and it is not sent or incorrect, it replies with `464 ERR_PASSWDMISMATCH` and closes the connection.
-    - If `PASS` is sent after `NICK` or `USER`, the server replies with `462 ERR_ALREADYREGISTRED`.
-      
-2. `NICK <nickname>`   
-     - Sets the user's nickname.
-     - The nickname must be unique and valid (e.g. no spaces, limited symbols).
-     - If the nickname is already in use, the server replies with `433 ERR_NICKNAMEINUSE`.
-
-3. `USER <username> <hostname> <servername> :<realname>`
-    - Despite four fields, only `username` and `realname` are used in modern IRC servers.
-    - `hostname` and `servername` are obsolete and typically ignored.
-    - The  `realname ` must be prefixed with a colon ( `:`), because everything after it is treated as a single token, even if it contains spaces.
-
-Once the server receives all required fields ( `NICK `, `USER `, and  `PASS ` if required), the client is marked as registered, and the server typically
-responds with welcome messages (numeric replies  `001` through  `004`), for example:
+User registration on an IRC server is a three-step process: **password** (`PASS` command), **nickname** (`NICK` command), and **user information** (`USER` command). The client sends these commands to the server and the server validates them to register the user and begin the communication session.    
+Upon successful registration, the server sends back welcome messages with numeric codes `001` through `004` to confirm the connection and provide server details.
 
 ```text
-001 Alex :Welcome to the IRC Network, Alex!alex@your-ip
-002 Alex :Your host is irc.example.org, running version ircd-1.0
-003 Alex :This server was created Fri Jul 19 2024 at 15:00:00 UTC
-004 Alex irc.example.org ircd-1.0 aiowrs
+:42ircRebels.net 001 nick :Welcome to the 42 IRC Network, nick!user@host
+:42ircRebels.net 002 nick :Your host is 42ircRebels.net, running version eval-42.42
+:42ircRebels.net 003 nick :This server was created Thu Sep 11 2025 at 07:30:01 UTC
+:42ircRebels.net 004 nick 42ircRebels.net eval-42.42 - itkol
 ```
-
-| Code | Meaning                                                                 |
-|------|-------------------------------------------------------------------------|
-| 001  | Welcome message – confirms the nickname and shows your identity (`nick!username@host`) |
-| 002  | Server hostname and version                                             |
-| 003  | Server creation date/time                                               |
-| 004  | Server name, version, supported user and channel modes                 |
-
+              
 ### Server Replies to Client
 
-In IRC, the server communicates with clients by sending **protocol-compliant replies**. Each message follows a standard format, as specified in [RFC 1459](https://datatracker.ietf.org/doc/html/rfc1459).
+In IRC, the server communicates with clients by sending **protocol-compliant replies**. Each message follows a standard format, as specified in RFC 1459<sup><a href="#footnote1">[1]</a></sup>.
 
 #### IRC Message Format
 
@@ -359,18 +336,6 @@ Every message from the server to the client has this general structure:
 | `<target>`             | Typically the user's nickname, or `*` if the client is not yet registered   |
 | `:<message>`           | Human-readable message text (trailing parameter)                            |
 | `\r\n`                 | Required line ending in all IRC messages                                    |
-
-Example:
-
-```text
-:irc.example.org 001 Alex :Welcome to the IRC Network, Alex!alex@host
-```
-
-Before the client has sent both `NICK` and `USER`, there is no known nickname. In that case, IRC uses `*` as the target:
-
-```text
-:irc.example.org 464 * :Password incorrect
-```
 
 #### Function: `sendReply()`
 
@@ -393,28 +358,19 @@ This function:
 Example usage:
 
 ```cpp
-user->sendReply("001 Alex :Welcome to the IRC Network, Alex!alex@host");
+user->sendReply("001 nick :Welcome to the IRC Network, nick!user@host");
 ```
 
-Which sends this over the network:
+Which sends the following to the client
 
 ```text
-:irc.example.org 001 Alex :Welcome to the IRC Network, Alex!alex@host
+:42ircRebels.net 001 nick :Welcome to the 42 IRC Network, nick!user@host
 ```
 
 ---
 
 ## Commands to Implement
 
- Command: USER 
- `Parameters: <username> <hostname> <servername> <realname>`
- https://www.rfc-editor.org/rfc/rfc1459#section-4.1.3
-
- 
- Command: JOIN
- `Parameters: <channel>{,<channel>} [<key>{,<key>}]`
- https://www.rfc-editor.org/rfc/rfc1459#section-4.2.1
- 
  Command: KICK
  `Parameters: <channel> <user> [<comment>]`
  https://www.rfc-editor.org/rfc/rfc1459#section-4.2.8
@@ -434,7 +390,7 @@ OR
 ` Parameters: <nickname> {[+|-]|i|w|s|o}`
 https://www.rfc-editor.org/rfc/rfc1459#section-4.2.3
  
- Command: LIST
+ Command: LIST <---- NOT REQUIRED BY SUBJECT
  `Parameters: [<channel>{,<channel>} [<server>]]`
  https://www.rfc-editor.org/rfc/rfc1459#section-4.2.6
 
