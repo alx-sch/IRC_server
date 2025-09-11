@@ -23,7 +23,7 @@ This project is a collaboration between:
 - [Project Architecture](#project-architecture)
 - [Core Functionality](#core-functionality)
 - [Core Server Functions](#core-server-functions)
-- [Client–Server Communication](#client-server-communication)
+- [Client–Server Communication](#clientserver-communication)
   
 ---
 
