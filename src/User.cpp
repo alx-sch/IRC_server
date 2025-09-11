@@ -21,15 +21,14 @@ std::string	User::buildPrefix() const
 	return _nickname + "!" + _username + "@" + _host;
 }
 
-
-/// SORT
-
+// Returns whether a send error has been logged for this user.
 bool	User::hasSendErrorLogged() const
 {
 	return _sendErrorLogged;
 
 }
 
+// Sets the flag indicating whether a send error has been logged for this user.
 void	User::setSendErrorLogged(bool value)
 {
 	_sendErrorLogged = value;
@@ -46,10 +45,10 @@ void	User::markDisconnected()
 }
 
 /**
- Sets the user's nickname and updates server state accordingly.
+Sets the user's nickname and updates server state accordingly.
 
- This function assumes that the nickname has already been validated
- for syntax and uniqueness by the caller (e.g., in the command handler).
+This function assumes that the nickname has already been validated
+for syntax and uniqueness by the caller (e.g., in the command handler).
 */
 void	User::setNickname(const std::string& nickname)
 {
@@ -134,16 +133,19 @@ std::string&	User::getOutputBuffer()
 // Channel management //
 ////////////////////////
 
+// Returns a const reference to the set of channel names the user is a member of.
 const std::set<std::string>&	User::getChannels() const
 {
 	return _channels;
 }
 
+// Adds a channel to the user's set of joined channels.
 void	User::addChannel(const std::string& channel)
 {
 	_channels.insert(channel);
 }
 
+// Removes a channel from the user's set of joined channels.
 void	User::removeChannel(const std::string& channel)
 {
 	_channels.erase(channel);

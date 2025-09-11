@@ -5,10 +5,10 @@
 #include "../include/defines.hpp"	// color formatting
 
 /**
- Retrieves an `Channel` object by its name.
+Retrieves an `Channel` object by its name.
 
- @param channelName 	The name of the channel to retrieve.
- @return				Pointer to the `Channel` object if found, `NULL` otherwise.
+ @param channelName	The name of the channel to retrieve.
+ @return			Pointer to the `Channel` object if found, `NULL` otherwise.
 */
 Channel*	Server::getChannel(const std::string& channelName) const
 {
@@ -19,16 +19,17 @@ Channel*	Server::getChannel(const std::string& channelName) const
 }
 
 /**
- Retrieves an existing `Channel` by name or creates a new one if it does not exist.
+Retrieves an existing `Channel` by name or creates a new one if it does not exist.
 
- If the channel with the given name exists, a pointer to it is returned.
- Otherwise, a new `Channel` object is created, added to the server, and returned.
- In case of memory allocation failure, an error is logged and the user is notified.
+If the channel with the given name exists, a pointer to it is returned.
+Otherwise, a new `Channel` object is created, added to the server, and returned.
+In case of memory allocation failure, an error is logged and the user is notified.
 
- @param channelName 	The name of the channel to retrieve or create.
- @param user 			The user requesting or triggering the channel creation.
- @param key 			Optional channel key to set if creating a new channel.
- @return				Pointer to the `Channel` object, or `NULL` on failure.
+ @param channelName	The name of the channel to retrieve or create.
+ @param user		The user requesting or triggering the channel creation.
+ @param key			Optional channel key to set if creating a new channel.
+
+ @return			Pointer to the `Channel` object, or `NULL` on failure.
 */
 Channel*	Server::getOrCreateChannel(const std::string& channelName, User* user, const std::string& key)
 {
@@ -57,6 +58,7 @@ Channel*	Server::getOrCreateChannel(const std::string& channelName, User* user, 
 	return channel;
 }
 
+// Deletes a channel by name, frees its memory, removes it from the map, and logs the reason.
 void	Server::deleteChannel(const std::string& channelName, std::string reason)
 {
 	std::map<std::string, Channel*>::iterator	it = _channels.find(channelName);

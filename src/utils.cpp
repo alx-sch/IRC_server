@@ -17,13 +17,13 @@ int	parsePort(const char* arg)
 }
 
 /**
- Returns the current time formatted as a readable string.
- Used in server welcome message.
+Returns the current time formatted as a readable string.
+Used in server welcome message.
 
- Example output:
+Example output:
 	`Fri Jul 19 2025 at 21:47:30 UTC`
 
- @return 	A string containing the current date and time in UTC format.
+ @return	A string containing the current date and time in UTC format.
 */
 std::string	getFormattedTime()
 {
@@ -37,14 +37,14 @@ std::string	getFormattedTime()
 	return std::string(buffer);
 }
 
- /**
- Returns the current UTC formatted as a readable string.
- Used in server logging.
+/**
+Returns the current UTC formatted as a readable string.
+Used in server logging.
 
- Example output:
+Example output:
 	`2025-08-03 18:47:39`
 
- @return 	A string containing the current date and time in UTC format.
+ @return	A string containing the current date and time in UTC format.
 */
 std::string	getTimestamp()
 {
@@ -84,15 +84,15 @@ static bool	isSpecial(char c)
 }
 
 /**
- Check if the nickname is valid according to IRC rules
+Check if the nickname is valid according to IRC rules
  - Must not be empty
  - Max length is 9 characters
  - Must start with a letter
  - Can contain letters, digits, and special characters
 
- See RFC 1459, section 2.3.1:
- <nick> ::= <letter> { <letter> | <number> | <special> }
- <special> ::= '-' | '[' | ']' | '\' | '`' | '^' | '{' | '}'
+See RFC 1459, section 2.3.1:
+	<nick> ::= <letter> { <letter> | <number> | <special> }
+	<special> ::= '-' | '[' | ']' | '\' | '`' | '^' | '{' | '}'
 */
 bool	isValidNick(const std::string& nick)
 {
@@ -112,7 +112,7 @@ bool	isValidNick(const std::string& nick)
 }
 
 /**
- Check if the channel name is valid according to IRC rules
+Check if the channel name is valid according to IRC rules
  - Must not be empty
  - Max length is 200 characters (can be shorter, defined by server)
  - Must start with '#' or '&'
@@ -121,8 +121,8 @@ bool	isValidNick(const std::string& nick)
 	space, comma, ASCII bell (^G), null, carriage return, or line feed
 
 See RFC 1459, section 2.3.1:
- <channel> ::= ('#' | '&') <chstring>
- <chstring> ::= any 8bit except SPACE, BELL, NUL, CR, LF, comma
+	<channel> ::= ('#' | '&') <chstring>
+	<chstring> ::= any 8bit except SPACE, BELL, NUL, CR, LF, comma
 */
 bool	isValidChannelName(const std::string& channelName)
 {
@@ -145,11 +145,11 @@ bool	isValidChannelName(const std::string& channelName)
 }
 
 /**
- Formats a log line with timestamp, aligned nickname and fd columns.
+Formats a log line with timestamp, aligned nickname and fd columns.
 
- @param nick 		The user's nickname
- @param fd 			The user's socket fd
- @param message 	The message to log
+ @param nick		The user's nickname
+ @param fd			The user's socket fd
+ @param message		The message to log
 */
 void	logUserAction(const std::string& nick, int fd, const std::string& message)
 {

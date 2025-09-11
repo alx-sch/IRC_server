@@ -7,10 +7,10 @@
 #include "../include/Channel.hpp"
 
 /**
- Handles a single IRC command received from a client.
+Handles a single IRC command received from a client.
 
- This function tokenizes the raw input `message`, determines the command,
- and calls the appropriate handler (e.g. handleNick, handleUser, etc.).
+This function tokenizes the raw input `message`, determines the command,
+and calls the appropriate handler (e.g. handleNick, handleUser, etc.).
 
  @param server	Pointer to the IRC server instance.
  @param user	Pointer to the User object.
@@ -47,9 +47,9 @@ bool	Command::handleCommand(Server* server, User* user, std::vector<std::string>
 }
 
 /**
- Sends a message to all members of a given channel, optionally excluding one user.
+Sends a message to all members of a given channel, optionally excluding one user.
 
- @param server 		Pointer to the server object for user lookup.
+ @param server		Pointer to the server object for user lookup.
  @param channel		Pointer to the channel whose members will receive the message.
  @param message		The message to broadcast (without trailing "\r\n")
  @param excludeNick	Optional nickname of a user to exclude from receiving the message.
@@ -73,18 +73,18 @@ void	Command::broadcastToChannel(Server* server, Channel* channel, const std::st
 }
 
 /**
- Tokenizes a raw IRC message into space-separated parts,
- preserving the trailing parameter (after a colon `:`).
+Tokenizes a raw IRC message into space-separated parts,
+preserving the trailing parameter (after a colon `:`).
  
- This function splits an IRC line like:
+This function splits an IRC line like:
 	"   USER max 0   * :Max Power  the Third"
  into:
- 	["USER", "max", "0", "*", ":Max Power  the Third"]
+	["USER", "max", "0", "*", ":Max Power  the Third"]
 
- If a token starts with a colon (`:`), the rest of the line (including spaces) is treated
- as a single argument (the trailing parameter), as per IRC protocol.
+If a token starts with a colon (`:`), the rest of the line (including spaces) is treated
+as a single argument (the trailing parameter), as per IRC protocol.
 
- @param message 	The raw IRC message line.
+ @param message		The raw IRC message line.
  @return			A vector of tokens: command + arguments (with trailing combined).
 */
 std::vector<std::string>	Command::tokenize(const std::string& message)

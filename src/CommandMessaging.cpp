@@ -13,12 +13,12 @@
 /////////////
 
 /**
- Sends a PRIVMSG from a user to a channel.
+Sends a `PRIVMSG` from a user to a channel.
 
- @param server 			Pointer to the server instance.
- @param sender 			Pointer to the user sending the message.
- @param channelName 	Name of the target channel.
- @param message 		The message content to send.
+ @param server			Pointer to the server instance.
+ @param sender			Pointer to the user sending the message.
+ @param channelName		Name of the target channel.
+ @param message			The message content to send.
 */
 static void	handlePrivmsgToChannel(Server* server, User* sender, const std::string& channelName,
 	const std::string& message)
@@ -47,12 +47,12 @@ static void	handlePrivmsgToChannel(Server* server, User* sender, const std::stri
 }
 
 /**
- Sends a PRIVMSG from a user to another user.
+Sends a `PRIVMSG` from a user to another user.
 
- @param server 		Pointer to the server instance.
- @param sender 		Pointer to the user sending the message.
- @param targetNick 	Nickname of the recipient user.
- @param message 	The message content to send.
+ @param server		Pointer to the server instance.
+ @param sender		Pointer to the user sending the message.
+ @param targetNick	Nickname of the recipient user.
+ @param message		The message content to send.
 */
 static void	handlePrivmsgToUser(Server* server, User* sender, const std::string& targetNick,
 	const std::string& message)
@@ -74,13 +74,13 @@ static void	handlePrivmsgToUser(Server* server, User* sender, const std::string&
 }
 
 /**
- Handles the PRIVMSG command from a user.
- Sends a message to one or more recipients, which can be users or channels.
- Format: `PRIVMSG <recipient>{,<recipient>} :<text to be sent>`
+Handles the `PRIVMSG` command from a user.
+Sends a message to one or more recipients, which can be users or channels.
+Format: `PRIVMSG <recipient>{,<recipient>} :<text to be sent>`
 
- @param server 	Pointer to the server instance.
- @param user 	Pointer to the user sending the message.
- @param tokens 	Tokenized input of the PRIVMSG command.
+ @param server	Pointer to the server instance.
+ @param user	Pointer to the user sending the message.
+ @param tokens	Tokenized input of the PRIVMSG command.
 */
 void	Command::handlePrivmsg(Server *server, User *user, const std::vector<std::string> &tokens)
 {
@@ -125,12 +125,12 @@ void	Command::handlePrivmsg(Server *server, User *user, const std::vector<std::s
 ////////////
 
 /**
- Sends a NOTICE from a user to another user.
+Sends a `NOTICE` from a user to another user.
 
- @param server 		Pointer to the server instance.
- @param sender 		Pointer to the user sending the message.
- @param targetNick 	Nickname of the recipient user.
- @param message 	The message content to send.
+ @param server		Pointer to the server instance.
+ @param sender		Pointer to the user sending the message.
+ @param targetNick	Nickname of the recipient user.
+ @param message		The message content to send.
 */
 static void	handleNoticeToChannel(Server* server, User* sender, const std::string& channelName,
 	const std::string& message)
@@ -157,12 +157,12 @@ static void	handleNoticeToChannel(Server* server, User* sender, const std::strin
 }
 
 /**
- Sends a NOTICE from a user to a channel.
+Sends a `NOTICE` from a user to a channel.
 
- @param server 			Pointer to the server instance.
- @param sender 			Pointer to the user sending the message.
- @param channelName 	Name of the target channel.
- @param message 		The message content to send.
+ @param server			Pointer to the server instance.
+ @param sender			Pointer to the user sending the message.
+ @param channelName		Name of the target channel.
+ @param message			The message content to send.
 */
 static void	handleNoticeToUser(Server* server, User* sender, const std::string& targetNick,
 	const std::string& message)
@@ -183,15 +183,15 @@ static void	handleNoticeToUser(Server* server, User* sender, const std::string& 
 }
 
 /**
- Just like PRIVMSG, but does not send server replies to the user.
+Just like `PRIVMSG`, but does not send server replies to the user.
 
- Handles the NOTICE command from a user.
- Sends a message to one or more recipients, which can be users or channels.
- Format: `NOTICE <recipient>{,<recipient>} :<text to be sent>`
+Handles the `NOTICE` command from a user.
+Sends a message to one or more recipients, which can be users or channels.
+Format: `NOTICE <recipient>{,<recipient>} :<text to be sent>`
 
- @param server 	Pointer to the server instance.
- @param user 	Pointer to the user sending the message.
- @param tokens 	Tokenized input of the NOTICE command.
+ @param server	Pointer to the server instance.
+ @param user	Pointer to the user sending the message.
+ @param tokens	Tokenized input of the NOTICE command.
 */
 void	Command::handleNotice(Server* server, User* user, const std::vector<std::string>& tokens)
 {

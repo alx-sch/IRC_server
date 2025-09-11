@@ -8,6 +8,7 @@ void	User::setHasPassed(bool b)
 {
 	_hasPassed = b;
 }
+
 // Returns `true` if the user has been successfully registered.
 bool	User::isRegistered() const
 {

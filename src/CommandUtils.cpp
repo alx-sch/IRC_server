@@ -45,12 +45,12 @@ bool	Command::checkRegistered(User* user, const std::string& command)
 }
 
 /**
- Splits a comma-separated string into a vector of strings.
+Splits a comma-separated string into a vector of strings.
 
- For example, given the input "#chan1,#chan2,#chan3",
- it returns a vector containing {"#chan1", "#chan2", "#chan3"}.
+For example, given the input "#chan1,#chan2,#chan3",
+it returns a vector containing {"#chan1", "#chan2", "#chan3"}.
 
- @param list 	A string containing comma-separated tokens.
+ @param list	A string containing comma-separated tokens.
  @return		A vector of individual tokens split by commas.
 */
 std::vector<std::string>	Command::splitCommaList(const std::string& list)

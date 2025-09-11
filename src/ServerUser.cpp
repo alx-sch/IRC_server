@@ -22,8 +22,8 @@
 ///////////////////////////////
 
 /**
- Accepts a new user connection and adds them to the server's user lists
- (`_usersFd`, `_usersNick`) by creating a new `User` object.
+Accepts a new user connection and adds them to the server's user lists
+(`_usersFd`, `_usersNick`) by creating a new `User` object.
 */
 void	Server::acceptNewUser()
 {
@@ -61,14 +61,15 @@ void	Server::acceptNewUser()
 /////////////////////////
 
 /**
- Handles incoming data from a user socket.
+Handles incoming data from a user socket.
 
- This function reads data from the specified fd into a temporary buffer,
- appends it to the user's persistent input buffer, and processes complete messages
- delimited by newline characters (`\n`). Each complete message is then broadcast to all other users.
+This function reads data from the specified fd into a temporary buffer,
+appends it to the user's persistent input buffer, and processes complete messages
+delimited by newline characters (`\n`). Each complete message is then broadcast to all other users.
 
- @param fd 	The fd of the user to read input from.
- @return 	`true` if input was successfully handled, `false` if the user disconnected or an error occurred.
+ @param fd		The fd of the user to read input from.
+ @return		`true` if input was successfully handled,
+				`false` if the user disconnected or an error occurred.
 */
 bool	Server::handleUserInput(int fd)
 {
@@ -115,8 +116,8 @@ bool	Server::handleUserInput(int fd)
 /**
 Extracts complete IRC messages from the user's input buffer.
 
- @param user 	Pointer to the user whose input buffer is being processed.
- @return 		A vector of complete, cleaned IRC messages.
+ @param user	Pointer to the user whose input buffer is being processed.
+ @return		A vector of complete, cleaned IRC messages.
 */
 std::vector<std::string>	Server::extractMessagesFromBuffer(User* user)
 {
@@ -155,15 +156,15 @@ std::vector<std::string>	Server::extractMessagesFromBuffer(User* user)
 }
 
 /**
- Logs and handles an unexpected disconnection event.
+Logs and handles an unexpected disconnection event.
 
- This function is called when an I/O error occurs during communication
- (e.g., recv() or send() fails). It logs the user's nickname and file descriptor,
- along with the error source and reason.
+This function is called when an I/O error occurs during communication
+(e.g., recv() or send() fails). It logs the user's nickname and file descriptor,
+along with the error source and reason.
 
- @param fd 		The file descriptor of the disconnected user.
- @param reason 	The reason for disconnection (e.g., "Connection closed", "Broken pipe").
- @param source 	A string indicating where the error occurred (e.g., "recv()", "send()").
+ @param fd		The file descriptor of the disconnected user.
+ @param reason	The reason for disconnection (e.g., "Connection closed", "Broken pipe").
+ @param source	A string indicating where the error occurred (e.g., "recv()", "send()").
 */
 void	Server::handleDisconnection(int fd, const std::string& reason, const std::string& source)
 {
@@ -182,14 +183,14 @@ void	Server::handleDisconnection(int fd, const std::string& reason, const std::s
 //////////////////////////
 
 /**
- Handles input readiness for all connected users.
+Handles input readiness for all connected users.
 
- This function iterates through all user file descriptors and checks if any are marked
- as ready for reading (based on `select()` populating `readFds`). For each ready user,
- it attempts to read and process input using `handleUserInput()`. If a user has disconnected
- or an error occurred while reading, the user is removed from the server via `deleteUser()`.
+This function iterates through all user file descriptors and checks if any are marked
+as ready for reading (based on `select()` populating `readFds`). For each ready user,
+it attempts to read and process input using `handleUserInput()`. If a user has disconnected
+or an error occurred while reading, the user is removed from the server via `deleteUser()`.
 
- @param readFds 	A set of file descriptors marked as ready to read by `select()`.
+ @param readFds	A set of file descriptors marked as ready to read by `select()`.
 */
 void	Server::handleReadyUsers(fd_set& readFds)
 {
@@ -215,14 +216,14 @@ void	Server::handleReadyUsers(fd_set& readFds)
 }
 
 /**
- Handles output readiness for all connected users.
+Handles output readiness for all connected users.
 
- This function iterates through all user file descriptors and checks if any are marked
- as ready for writing (based on `select()` populating `writeFds`). For each ready user
- with data in their output buffer, it attempts to send the data. If sending fails,
- the user may be disconnected based on the error type.
+This function iterates through all user file descriptors and checks if any are marked
+as ready for writing (based on `select()` populating `writeFds`). For each ready user
+with data in their output buffer, it attempts to send the data. If sending fails,
+the user may be disconnected based on the error type.
 
- @param writeFds 	A set of file descriptors marked as ready to write by `select()`.
+ @param writeFds	A set of file descriptors marked as ready to write by `select()`.
 */
 void	Server::handleWriteReadyUsers(fd_set& writeFds)
 {
@@ -257,14 +258,14 @@ void	Server::handleWriteReadyUsers(fd_set& writeFds)
 }
 
 /**
- Handles a failed `send()` operation to a user.
+Handles a failed `send()` operation to a user.
 
- Logs the error to the server terminal.
- If the failure was due to a broken or reset connection (`EPIPE` or `ECONNRESET`),
- the user is considered disconnected and is removed from the server.
+Logs the error to the server terminal.
+If the failure was due to a broken or reset connection (`EPIPE` or `ECONNRESET`),
+the user is considered disconnected and is removed from the server.
 
- @param fd 		The fd of the user for whom `send()` failed.
- @param nick 	The nickname of the user for whom `send()` failed.
+ @param fd		The fd of the user for whom `send()` failed.
+ @param nick	The nickname of the user for whom `send()` failed.
 */
 void	Server::handleSendError(int fd, const std::string& nick)
 {
@@ -293,13 +294,13 @@ void	Server::handleSendError(int fd, const std::string& nick)
 //////////////
 
 /**
- Retrieves an `User` object by its file descriptor (fd) in a safe manner.
+Retrieves an `User` object by its file descriptor (fd) in a safe manner.
 
- This method safely searches the `_usersFd` map using `.find()` (instead of `[]`)
- to avoid accidental insertion of invalid keys.
+This method safely searches the `_usersFd` map using `.find()` (instead of `[]`)
+to avoid accidental insertion of invalid keys.
 
- @param fd 	The file descriptor (socket) of the user to retrieve.
- @return 	Pointer to the `User` object if found, `NULL` otherwise.
+ @param fd	The file descriptor (socket) of the user to retrieve.
+ @return	Pointer to the `User` object if found, `NULL` otherwise.
 */
 User*	Server::getUser(int fd) const
 {
@@ -310,13 +311,13 @@ User*	Server::getUser(int fd) const
 }
 
 /**
- Retrieves an `User` object by its nickname in a safe manner.
+Retrieves an `User` object by its nickname in a safe manner.
 
- This method safely searches the `_usersNick` map using `.find()` (instead of `[]`)
- to avoid accidental insertion of invalid keys.
+This method safely searches the `_usersNick` map using `.find()` (instead of `[]`)
+to avoid accidental insertion of invalid keys.
 
- @param nickname 	The nickname of the user to retrieve.
- @return 			Pointer to the `User` object if found, `NULL` otherwise.
+ @param nickname	The nickname of the user to retrieve.
+ @return			Pointer to the `User` object if found, `NULL` otherwise.
 */
 User*	Server::getUser(const std::string& nickname) const
 {

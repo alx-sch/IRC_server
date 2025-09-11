@@ -43,13 +43,13 @@ Server::~Server()
 }
 
 /**
- Starts the main server loop to handle incoming connections and client messages.
+Starts the main server loop to handle incoming connections and client messages.
 
- Sets up the `fd_set` for `select()`, and continuously monitors:
+Sets up the `fd_set` for `select()`, and continuously monitors:
  - The listening socket for new client connections.
  - All active user sockets for incoming messages.
 
- The loop runs until interrupted by `SIGINT` (Ctrl+C), at which point `g_running` becomes 0.
+The loop runs until interrupted by `SIGINT` (Ctrl+C), at which point `g_running` becomes 0.
 */
 void	Server::run()
 {

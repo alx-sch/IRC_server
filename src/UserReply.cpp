@@ -4,12 +4,12 @@
 #include "../include/Server.hpp"
 
 /**
- Sends the standard IRC welcome messages (numeric `001`–`004`)
- after a user successfully completes registration.
+Sends the standard IRC welcome messages (numeric `001`–`004`)
+after a user successfully completes registration.
 
- Source: https://dd.ircdocs.horse/refs/numerics/
+Source: https://dd.ircdocs.horse/refs/numerics/
 
- @param server 	Pointer to the Server object (used to get server name, version, modes, etc.)
+ @param server	Pointer to the Server object (used to get server name, version, modes, etc.)
 */
 void	User::replyWelcome()
 {
@@ -26,11 +26,11 @@ void	User::replyWelcome()
 }
 
 /**
- Sends an IRC numeric error to the user.
+Sends an IRC numeric error to the user.
 
- @param code 		Numeric IRC error code (e.g. 464, 462, 433)
- @param param 		Optional parameter for the error (e.g. nickname when invalid)
- @param message 	Human-readable message to display
+ @param code		Numeric IRC error code (e.g. 464, 462, 433)
+ @param param		Optional parameter for the error (e.g. nickname when invalid)
+ @param message		Human-readable message to display
 */
 void	User::replyError(int code, const std::string& param, const std::string& message)
 {

@@ -364,7 +364,7 @@ Syntax:
  @param tokens	Parsed IRC command tokens (e.g., {"TOPIC", "#channel", ":New topic"}).
 
  @return		True if the command was processed successfully,
- 				false if an error occurred.
+				false if an error occurred.
 */
 bool	Command::handleTopic(Server *server, User *user, const std::vector<std::string> &tokens)
 {
@@ -455,7 +455,7 @@ Syntax:
  @param tokens	Parsed IRC command tokens (e.g., {"INVITE", "targetNick", "#channel"}).
 
  @return		True if the command was successfully processed,
- 				false if an error occurred.
+				false if an error occurred.
 */
 bool	Command::handleInvite(Server* server, User* user, const std::vector<std::string>& tokens)
 {

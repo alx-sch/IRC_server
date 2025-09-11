@@ -7,13 +7,13 @@
 #include "../include/utils.hpp"		// for parsePort()
 
 /**
- Entry point for the IRC server.
+Entry point for the IRC server.
 
- Expects two command-line arguments:
+Expects two command-line arguments:
  - port: 		The port number to listen on (1–65535)
  - password: 	The server password required for clients to connect
 
- Sets up signal handling, initializes the server, and starts the main loop.
+Sets up signal handling, initializes the server, and starts the main loop.
 */
 int	main(int argc, char** argv)
 {
