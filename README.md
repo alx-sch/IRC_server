@@ -193,54 +193,6 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 
 ---
 
-## Networking Basics
-
-To understand how an IRC server functions at a technical level, it's essential to first grasp a few core networking concepts. This project is built from the ground up to handle network communication, and understanding these principles will provide insight into the server's design and functionality.
-
-- **IP Address**
-    - Identifies a **host/device** on a network.
-    - IPv4 example: `192.168.1.5`, `127.0.0.1`
-    - IPv6 example: `::1`
-    - Used to route data to the correct machine.
-    - `localhost` is a special hostname referring to the **local machine** (your own computer), typically used for testing or internal communication.
-      It resolves to IP `127.0.0.1` (IPv4) or `::1` (IPv6).
-    - More info on IP addresses [here](https://github.com/alx-sch/NetPractice?tab=readme-ov-file#ip-address-network-layer).
-
-- **Port**
-    - Identifies a specific **service or application** on a host.
-    - Range: `1`–`65535` (unsigned 16-bit integer); port `0` is reserved as a wildcard, allowing the OS to assign an ephemeral (random) port automatically.
-    - Common ports: `22` (SSH), `80` (HTTP), **`6667` (default for IRC)**
-
-- **Socket**
-    - A **socket** is a combination of an IP address and a port number.
-    - It represents one endpoint of a network communication channel.
-    - For two processes to talk (e.g. client ↔ server), **each process uses its own socket**: one local, one remote.
-    - Example format: `127.0.0.1:6667`
-
-- **Client/Server Model**
-    - A **server** waits for incoming connections (e.g. our IRC server).
-    - A **client** initiates the connection (e.g. IRC user, `telnet`, `netcat`).
-    - The server can handle multiple clients simultaneously.
-    - The server listens on a **well-known** port, the client uses an **ephemeral** port (temporary client-side ports).
-
-- **Blocking vs Non-blocking I/O**
-    - Blocking I/O:
-        - The program waits ("blocks") until a read/write finishes.
-        - Simple but inefficient for handling many clients.
-    - Non-blocking I/O:
-        - The program can check for input/output without getting stuck.
-        - Essential for writing responsive servers
-        - Requires checking readiness (I/O multiplexing, see below).
-
-- **I/O Multiplexing (select, poll)**
-    - This is a technique that allows a single-threaded server to monitor multiple sockets at once without blocking.
-    - `select()` and `poll()` are system calls used to wait for activity on multiple file descriptors (which represent sockets):
-        - They monitor client connections.
-        - They check which sockets are ready to read or write.
-    - These tools are used to build efficient, scalable servers without the overhead of creating a separate thread or process for every client.
-
----
-
 ## Project Architecture
 
 The core of the server is the `Server` class. It's responsible for managing the entire IRC network, including user connections, channels, and command handling. It uses a **non-blocking, single-threaded architecture** to manage multiple clients efficiently via I/O multiplexing with `select()`.
