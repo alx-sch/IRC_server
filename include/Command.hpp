@@ -35,10 +35,10 @@ class	Command
 			NOTICE,		// Message to a user or channel, but triggers no auto-reply
 			JOIN,		// Join a channel
 			PART,		// Leave a channel
-			TOPIC,
-			KICK,
-			INVITE,
-			MODE
+			TOPIC,		// Set or view channel topic
+			KICK,		// Kick a user from a channel (ops only)
+			INVITE,		// Invite a user to a channel
+			MODE		// Change channel or user mode
 		};
 
 		// === CommandRegistration.cpp ===
