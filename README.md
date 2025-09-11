@@ -151,7 +151,7 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 - User Commands:
 
 	- `NICK`: Handles setting or changing a nickname - `NICK newnickname`
-	- `USER`: Handles setting a username (and other info) - `USER <username> <hostname> <servername> <realname>` → `USER guest 0 * :Ronnie Reagan`. Hostname and servername are usually ignored/masked in modern IRC but the username is used to form the user mask `nickname!username@hostname`, which uniquely identifies a client.
+	- `USER`: Handles setting a username (and other info) - `USER <username> <hostname> <servername> <realname>` → `USER guest 0 * :Ronnie Reagan`. Hostname and servername are usually ignored/masked in modern IRC but info is used to form the user mask `nickname!username@hostname`, which uniquely identifies a client.
 	- `PASS`: Handles the connection password for authentication - `PASS mysecretpassword`
 	- `JOIN`: Allows a user join a channel, or create it if it doesn’t exist - `JOIN #general`
 	- `QUIT`: Allows a user to disconnect from the server - `QUIT :Leaving for lunch` (reason is optional)
