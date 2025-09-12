@@ -42,7 +42,8 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 		return false;
 	}
 
-	Channel*	channel = server->getOrCreateChannel(channelName, user, key);
+	bool		wasCreated;
+	Channel*	channel = server->getOrCreateChannel(channelName, user, key, &wasCreated);
 	if (!channel)
 		return false; // Creation failed, error already logged
 
@@ -76,6 +77,14 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 	// Add user to channel
 	channel->add_user(user->getNickname());
 	user->addChannel(channelName);
+
+	// If user created the channel, make them an operator
+	if (wasCreated)
+	{
+		channel->make_user_operator(user->getNickname());
+		logUserAction(user->getNickname(), user->getFd(),
+			std::string("became operator in newly created channel ") + BLUE + channelName + RESET);
+	}	
 
 	// Notify user(s) about successful join
 	std::string	joinMessage =	":" + user->buildPrefix() + " JOIN :" + channelName;
