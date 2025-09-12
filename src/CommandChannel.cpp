@@ -151,30 +151,20 @@ bool	Command::handleJoin(Server* server, User* user, const std::vector<std::stri
 }
 
 /**
-Handles the IRC `PART` command, allowing a user to leave a single channel.
+Handles a single `PART` command for one channel.
 
-Syntax:
-	PART #channel
-	PART #channel :Goodbye everyone
+Validates channel name, membership, and removes the user from the channel.
+Broadcasts the part message to all channel members.
 
- @param server	Pointer to the server instance handling the command.
- @param user	The user issuing the PART command.
- @param tokens	Parsed IRC command tokens (e.g., {"PART", "#channel", ":Bye"}).
-
- @return		True if the command was processed,
-				false if an error occurred (e.g., invalid channel name).
+ @param server		Pointer to the server instance.
+ @param user		The user leaving the channel.
+ @param channelName	Name of the channel to leave.
+ @param partMessage	Optional part message.
+ 
+ @return	True if the part succeeded, false otherwise.
 */
-bool	Command::handlePart(Server* server, User* user, const std::vector<std::string>& tokens)
+bool	Command::handleSinglePart(Server* server, User* user, const std::string& channelName, const std::string& partMessage)
 {
-	if (tokens.size() < 2)
-	{
-		logUserAction(user->getNickname(), user->getFd(), "sent PART without a channel name");
-		user->replyError(461, "PART", "Not enough parameters");
-		return false;
-	}
-
-	const std::string& channelName = tokens[1];
-
 	// Validate channel name format
 	if (!isValidChannelName(channelName))
 	{
@@ -194,29 +184,13 @@ bool	Command::handlePart(Server* server, User* user, const std::vector<std::stri
 		return false;
 	}
 
-	// Check if user is actually in the channel
+	// Check membership
 	if (!channel->is_user_member(user->getNickname()))
 	{
 		logUserAction(user->getNickname(), user->getFd(), toString("tried to leave ")
 			+ BLUE + channelName + RESET + " but is not a member");
 		user->replyError(442, channelName, "You're not on that channel");
 		return false;
-	}
-
-	// Extract part message if provided
-	std::string partMessage = "";
-	if (tokens.size() > 2)
-	{
-		// Reconstruct the part message from tokens[2] onward
-		for (size_t i = 2; i < tokens.size(); ++i)
-		{
-			if (i > 2)
-				partMessage += " ";
-			partMessage += tokens[i];
-		}
-		// Remove leading ':' if present (trailing parameter)
-		if (!partMessage.empty() && partMessage[0] == ':')
-			partMessage = partMessage.substr(1);
 	}
 
 	// Send PART message to all channel members (including the leaving user)
@@ -232,6 +206,56 @@ bool	Command::handlePart(Server* server, User* user, const std::vector<std::stri
 
 	logUserAction(user->getNickname(), user->getFd(), toString("left channel ") + BLUE + channelName
 		+ RESET + (partMessage.empty() ? "" : toString(": ") + YELLOW + partMessage + RESET));
+
+	return true;
+}
+
+/**
+Handles the IRC `PART` command, allowing a user to leave one or more channels.
+
+Syntax:
+	PART #chan1,#chan2 [reason]
+
+If multiple channels are given, the same reason is applied to all.
+
+ @param server	Pointer to the server instance handling the command.
+ @param user	The user issuing the PART command.
+ @param tokens	Parsed IRC command tokens (e.g., {"PART", "#chan1,#chan2", ":Bye"}).
+
+ @return	True if the command was processed, false if critical error.
+*/
+bool Command::handlePart(Server* server, User* user, const std::vector<std::string>& tokens)
+{
+	if (!checkRegistered(user, "PART"))
+		return false;
+
+	if (tokens.size() < 2)
+	{
+		logUserAction(user->getNickname(), user->getFd(), "sent PART without a channel name");
+		user->replyError(461, "PART", "Not enough parameters");
+		return false;
+	}
+
+	// Split channel list
+	std::vector<std::string>	channels = splitCommaList(tokens[1]);
+
+	// Extract reason (applied to all channels)
+	std::string	partMessage = "";
+	if (tokens.size() > 2)
+	{
+		for (size_t i = 2; i < tokens.size(); ++i)
+		{
+			if (i > 2)
+				partMessage += " ";
+			partMessage += tokens[i];
+		}
+		if (!partMessage.empty() && partMessage[0] == ':')
+			partMessage = partMessage.substr(1);
+	}
+
+	// Process each channel
+	for (size_t i = 0; i < channels.size(); ++i)
+		handleSinglePart(server, user, channels[i], partMessage);
 
 	return true;
 }

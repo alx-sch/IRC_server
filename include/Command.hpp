@@ -51,6 +51,7 @@ class	Command
 
 		static bool		handleJoin(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleSingleJoin(Server* server, User* user, const std::string& channelName, const std::string& key);
+		static bool		handleSinglePart(Server* server, User* user, const std::string& channelName, const std::string& partMessage);
 		static bool		handlePart(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleInvite(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleTopic(Server* server, User* user, const std::vector<std::string>& tokens);
