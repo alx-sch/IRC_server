@@ -152,7 +152,7 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_02.png" alt="HexChat_02"  width="300" />
 	</p>
 
-- There is already a default server listed. Change its host IP address and port **(1)** to match your own. Disable SSL, since the server does not support it (otherwise the logs will show scrambled commands) **(2)**. Enter the server password if required **(3)**. Close the network settings **(4)**:
+- There is already a default server listed. Change its host IP address and port **(1)** to match your own. Disable SSL, since the server does not support it (otherwise it would fail to interpret the encrypted requests) **(2)**. Enter the server password if required **(3)**. Close the network settings **(4)**:
 
 	<p align="center">
 	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_03.png" alt="HexChat_03"  width="300" />
