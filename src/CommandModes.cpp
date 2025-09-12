@@ -81,8 +81,18 @@ bool Command::handleModeChanges(Server* server, User* user, Channel* channel, co
 	const std::string&	modeString = tokens[2];
 	size_t				paramIndex = 3;
 	bool				adding = true;
-	std::string			appliedModes;
+
+	std::string			addedModes;
+	std::string			removedModes;
 	std::string			modeParams;
+
+	// first determine initial direction (+ or -)
+	if (modeString.empty() || (modeString[0] != '+' && modeString[0] != '-'))
+	{
+		logUserAction(user->getNickname(), user->getFd(), toString("sent MODE with invalid mode string: ") + RED + modeString + RESET);
+		user->replyError(501, "", "Mode string must start with + or -");
+		return false;
+	}
 
 	for (size_t i = 0; i < modeString.length(); ++i)
 	{
@@ -91,12 +101,25 @@ bool Command::handleModeChanges(Server* server, User* user, Channel* channel, co
 		if (mode == '+') { adding = true; continue; }
 		if (mode == '-') { adding = false; continue; }
 
-		applyChannelMode(server, user, channel, mode, adding, tokens, paramIndex, appliedModes, modeParams);
+		bool	success = applyChannelMode(server, user, channel, mode, adding, tokens, paramIndex, modeParams);
+		if (success)
+		{
+			if (adding)
+				addedModes += mode;
+			else
+				removedModes += mode;
+		}
 	}
 
 	// Broadcast mode changes if any were applied
-	if (!appliedModes.empty())
-		return true;
+	std::string	appliedModes;
+	if (!addedModes.empty())
+		appliedModes += "+" + addedModes;
+	if (!removedModes.empty())
+		appliedModes += "-" + removedModes;
+
+	if (appliedModes.empty())
+		return true; // No valid modes were changed
 
 	std::string	modeMsg =	":" + user->getNickname() + " MODE " + channel->get_name()
 							+ " " + appliedModes + modeParams;
@@ -126,9 +149,19 @@ Channel*	Command::validateChannelAndUser(Server* server, User* user, const std::
 	// Validate channel name format, only handle channel modes for now (no user modes)
 	if (target.empty() || !isValidChannelName(target))
 	{
-		logUserAction(user->getNickname(), user->getFd(), toString("sent MODE for non-channel target: ")
-			+ RED + target + RESET);
-		user->replyError(501, "", "Unknown MODE flag");
+		// It's not a channel. Check if it's a user before erroring.
+		if (server->getUser(target))
+		{
+			logUserAction(user->getNickname(), user->getFd(),
+				toString("sent MODE for a user target (unsupported): ") + RED + target + RESET);
+			user->replyError(502, "", "Cant change mode for other users");
+		}
+		else
+		{
+			logUserAction(user->getNickname(), user->getFd(),
+				toString("sent MODE for non-existing user: ") + RED + target + RESET);
+			user->replyError(401, target, "No such nick/channel");
+		}
 		return NULL;
 	}
 
@@ -215,38 +248,34 @@ void	Command::sendModeReply(User* user, Server* server, const std::string& targe
 }
 
 // Applies a single mode change to a channel.
-void	Command::applyChannelMode(Server* server, User* user, Channel* channel, char mode, bool adding,
+bool	Command::applyChannelMode(Server* server, User* user, Channel* channel, char mode, bool adding,
 									const std::vector<std::string>& tokens, size_t& paramIndex,
-									std::string& appliedModes, std::string& modeParams)
+									std::string& modeParams)
 {
 	switch (mode)
 	{
 		case 'i':
 		case 't':
-			applySimpleMode(channel, user, mode, adding, appliedModes);
-			break;
+			return applySimpleMode(channel, user, mode, adding);
 
 		case 'l':
-			applyUserLimit(channel, user, adding, tokens, paramIndex, appliedModes, modeParams);
-			break;
+			return applyUserLimit(channel, user, adding, tokens, paramIndex, modeParams);
 
 		case 'k':
-			applyChannelKey(channel, user, adding, tokens, paramIndex, appliedModes, modeParams);
-			break;
+			return applyChannelKey(channel, user, adding, tokens, paramIndex, modeParams);
 
 		case 'o':
-			applyOperator(server, channel, user, adding, tokens, paramIndex, appliedModes, modeParams);
-			break;
+			return applyOperator(server, channel, user, adding, tokens, paramIndex, modeParams);
 
 		default:
 			logUserAction(user->getNickname(), user->getFd(), toString("tried to set unknown mode: ") + RED + mode + RESET);
 			user->replyError(472, std::string(1, mode), "is unknown mode char to me");
-			break;
+			return false;
 	}
 }
 
 // Handles simple boolean modes like `i` and `t`.
-void	Command::applySimpleMode(Channel* channel, User* user, char mode, bool adding, std::string& appliedModes)
+bool	Command::applySimpleMode(Channel* channel, User* user, char mode, bool adding)
 {
 	std::string	action;
 	if (mode == 'i')
@@ -260,79 +289,96 @@ void	Command::applySimpleMode(Channel* channel, User* user, char mode, bool addi
 		action = "topic protection";
 	}
 
-	appliedModes += (adding ? "+" : "-");
-	appliedModes += mode;
-
 	logUserAction(user->getNickname(), user->getFd(),
 		(adding ? "enabled " : "disabled ") + action + " for " + BLUE + channel->get_name() + RESET);
+
+	return true;
 }
 
 // Handles the `l` (user limit) mode.
-void	Command::applyUserLimit(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
-								size_t& paramIndex, std::string& appliedModes, std::string& modeParams)
+bool	Command::applyUserLimit(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
+								size_t& paramIndex, std::string& modeParams)
 {
 	if (adding)
 	{
-		if (paramIndex < tokens.size())
+		if (paramIndex >= tokens.size())
 		{
-			int	limit = std::atoi(tokens[paramIndex].c_str());
-			if (limit > 0)
-			{
-				channel->set_user_limit(limit);
-				appliedModes += "+l";
-				modeParams += " " + toString(limit);
-				logUserAction(user->getNickname(), user->getFd(), toString("set user limit to ")
-					+ YELLOW + toString(limit) + RESET + " for "
-					+ BLUE + channel->get_name() + RESET);
-			}
-			++paramIndex;
+			logUserAction(user->getNickname(), user->getFd(), "sent MODE l without enough parameters");
+			user->replyError(461, "MODE", "Not enough parameters");
+			return false; // Failed: Missing parameter for user limit
 		}
+
+		int	limit = std::atoi(tokens[paramIndex].c_str());
+
+		if (limit > 0)
+		{
+			channel->set_user_limit(limit);
+			modeParams += " " + tokens[paramIndex];
+			logUserAction(user->getNickname(), user->getFd(), toString("set user limit to ")
+					+ YELLOW + toString(limit) + RESET + " for " + BLUE + channel->get_name() + RESET);
+			++paramIndex;
+			return true;
+		}
+
+		user->replyError(501, "", "Invalid user limit");
+		return false; // Failed: Invalid limit value
 	}
-	else
+	else // Removing user limit
 	{
 		channel->set_user_limit(0);
-		appliedModes += "-l";
 		logUserAction(user->getNickname(), user->getFd(),
 			toString("removed user limit for ") + BLUE + channel->get_name() + RESET);
+		return true;
 	}
 }
 
 // Handles the `k` (channel key/password) mode.
-void	Command::applyChannelKey(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
-								size_t& paramIndex, std::string& appliedModes, std::string& modeParams)
+bool	Command::applyChannelKey(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
+								size_t& paramIndex, std::string& modeParams)
 {
 	if (adding)
 	{
-		if (paramIndex < tokens.size())
+		if (paramIndex >= tokens.size())
 		{
-			const std::string&	key = tokens[paramIndex];
-			channel->set_password(key);
-			appliedModes += "+k";
-
-			// Only operators see the actual key
-			if (channel->is_user_operator(user->getNickname()))
-				modeParams += " " + key;
-
-			logUserAction(user->getNickname(), user->getFd(), toString("set channel key for ")
-				+ BLUE + channel->get_name() + RESET);
-			++paramIndex;
+			logUserAction(user->getNickname(), user->getFd(), "sent MODE k without enough parameters");
+			user->replyError(461, "MODE", "Not enough parameters");
+			return false; // Failed: Missing parameter for channel key
 		}
+
+		const std::string&	key = tokens[paramIndex];
+		channel->set_password(key);
+
+		modeParams += " " + key;
+
+		logUserAction(user->getNickname(), user->getFd(), toString("set channel key for ")
+			+ BLUE + channel->get_name() + RESET);
+		++paramIndex;
+		return true;
 	}
 	else
 	{
+		// Check if a parameter was provided for -k, which is valid but should be ignored.
+		if (paramIndex < tokens.size() && !tokens[paramIndex].empty() && tokens[paramIndex][0] != '+'
+			&& tokens[paramIndex][0] != '-')
+			++paramIndex;
+
 		channel->set_password("");
-		appliedModes += "-k";
 		logUserAction(user->getNickname(), user->getFd(), toString("removed channel key for ")
 			+ BLUE + channel->get_name() + RESET);
+		return true;
 	}
 }
 
 // Handles the `o` (operator) mode.
-void	Command::applyOperator(Server* server, Channel* channel, User* user, bool adding,const std::vector<std::string>& tokens,
-							size_t& paramIndex, std::string& appliedModes, std::string& modeParams)
+bool	Command::applyOperator(Server* server, Channel* channel, User* user, bool adding,const std::vector<std::string>& tokens,
+							size_t& paramIndex, std::string& modeParams)
 {
 	if (paramIndex >= tokens.size())
-		return;
+	{
+		logUserAction(user->getNickname(), user->getFd(), "sent MODE o without enough parameters");
+		user->replyError(461, "MODE", "Not enough parameters");
+		return false; // Failed: Missing parameter.
+	}
 
 	const std::string&	targetNick = tokens[paramIndex];
 	User*				targetUser = server->getUser(targetNick);
@@ -341,14 +387,14 @@ void	Command::applyOperator(Server* server, Channel* channel, User* user, bool a
 	{
 		user->replyError(401, targetNick, "No such nick/channel");
 		++paramIndex;
-		return;
+		return false;
 	}
 
 	if (!channel->is_user_member(targetNick))
 	{
 		user->replyError(441, targetNick + " " + channel->get_name(), "They aren't on that channel");
 		++paramIndex;
-		return;
+		return false;
 	}
 
 	if (adding)
@@ -356,10 +402,10 @@ void	Command::applyOperator(Server* server, Channel* channel, User* user, bool a
 	else
 		channel->remove_user_operator_status(targetNick);
 
-	appliedModes += (adding ? "+o" : "-o");	
 	modeParams += " " + targetNick;
 	logUserAction(user->getNickname(), user->getFd(), (adding ? "gave" : "removed") + toString(" operator status for ")
 		+ GREEN + targetNick + RESET + " in " + BLUE + channel->get_name() + RESET);
 
 	++paramIndex;
+	return true;
 }

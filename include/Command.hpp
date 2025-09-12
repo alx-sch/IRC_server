@@ -65,15 +65,15 @@ class	Command
 		static void		sendModeReply(User* user, Server* server, const std::string& target, const std::string& modes, const std::string& params);
 		
 		static bool		handleModeChanges(Server* server, User* user, Channel* channel, const std::vector<std::string>& tokens);
-		static void		applyChannelMode(Server* server, User* user, Channel* channel, char mode, bool adding, const std::vector<std::string>& tokens,
-							size_t& paramIndex, std::string& appliedModes, std::string& modeParams);
-		static void		applySimpleMode(Channel* channel, User* user, char mode, bool adding, std::string& appliedModes);
-		static void		applyUserLimit(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
-							size_t& paramIndex, std::string& appliedModes, std::string& modeParams);
-		static void		applyChannelKey(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
-							size_t& paramIndex, std::string& appliedModes, std::string& modeParams);
-		static void		applyOperator(Server* server, Channel* channel, User* user, bool adding,const std::vector<std::string>& tokens,
-							size_t& paramIndex, std::string& appliedModes, std::string& modeParams);
+		static bool		applyChannelMode(Server* server, User* user, Channel* channel, char mode, bool adding, const std::vector<std::string>& tokens,
+							size_t& paramIndex, std::string& modeParams);
+		static bool		applySimpleMode(Channel* channel, User* user, char mode, bool adding);
+		static bool		applyUserLimit(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
+							size_t& paramIndex, std::string& modeParams);
+		static bool		applyChannelKey(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
+							size_t& paramIndex, std::string& modeParams);
+		static bool		applyOperator(Server* server, Channel* channel, User* user, bool adding,const std::vector<std::string>& tokens,
+							size_t& paramIndex, std::string& modeParams);
 
 		// === CommandMessaging.cpp ===
 		

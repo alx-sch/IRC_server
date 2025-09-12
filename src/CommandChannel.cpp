@@ -83,7 +83,7 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 	{
 		channel->make_user_operator(user->getNickname());
 		logUserAction(user->getNickname(), user->getFd(),
-			toString("became operator of channel ") + BLUE + channelName + RESET);
+			toString("became operator of ") + BLUE + channelName + RESET);
 	}	
 
 	// Notify user(s) about successful join
