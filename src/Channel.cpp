@@ -72,100 +72,112 @@ bool	Channel::can_user_join(const std::string &user_nick, const std::string &pro
 	return true;
 }
 
+// Enables or disables topic protection for the channel.
+void	Channel::set_topic_protection(bool enable)
+{
+	_topic_protection = enable;
+}
+
 // Returns true if topic protection is enabled.
-bool Channel::has_topic_protection() const
+bool	Channel::has_topic_protection() const
 {
 	return _topic_protection;
 }
 
 // Sets the topic of the channel.
-void Channel::set_topic(const std::string &topic)
+void	Channel::set_topic(const std::string &topic)
 {
 	_channel_topic = topic;
 }
 
 // Retrieves the current channel topic.
-std::string Channel::get_topic() const
+const std::string&	Channel::get_topic() const
 {
 	return _channel_topic;
 }
 
 // Returns true if a user limit is set.
-bool Channel::has_user_limit() const
+bool	Channel::has_user_limit() const
 {
 
 	return (_user_limit > 0);
 }
 
 // Checks if the user limit has been reached.
-bool Channel::is_at_user_limit() const
+bool	Channel::is_at_user_limit() const
 {
 	return (_connected_user_number == _user_limit);
 }
 
 // Sets the maximum number of users allowed in the channel.
-void Channel::set_user_limit(const int new_limit) 
+void	Channel::set_user_limit(const int new_limit)
 {
 	_user_limit = new_limit;
 }
 
 // Gets the current user limit.
-int Channel::get_user_limit() const
+int	Channel::get_user_limit() const
 {
 	return _user_limit;
 }
 
-// Enables invite-only mode for the channel.
-void Channel::set_invite_only()
+// Enables or disables invite-only mode for the channel.
+void	Channel::set_invite_only(bool enable)
 {
-	_invite_only = true;
+	_invite_only = enable;
 }
 
 // Returns true if the channel is invite-only.
-bool Channel::is_invite_only() const
+bool	Channel::is_invite_only() const
 {
 	return _invite_only;
 }
 
 // Checks if a user is on the invitation list.
-bool Channel::is_invited(const std::string& user_nick) const
+bool	Channel::is_invited(const std::string& user_nick) const
 {
 	return (_channel_invitation_list.count(user_nick) > 0);
 }
 
 // Adds a user to the invitation list.
-void Channel::add_invite(const std::string &user_nick)
+void	Channel::add_invite(const std::string &user_nick)
 {
 	_channel_invitation_list.insert(user_nick);
 }
 
 // Returns true if a channel password is set.
-bool Channel::has_password() const
+bool	Channel::has_password() const
 {
 	return !_channel_key.empty();
 }
 
 // Sets the channel password.
-void Channel::set_password(const std::string &password)
+void	Channel::set_password(const std::string &password)
 {
 	_channel_key = password;
 }
 
+// Gets the channel password.
+const std::string&	Channel::get_password() const
+{
+	return _channel_key;
+}
+
 // Validates a given password against the channel password.
 // Returns true for any password if no channel password is set.
-bool Channel::validate_password(const std::string &password) const
+bool	Channel::validate_password(const std::string &password) const
 {
 	return (!has_password() || (password == _channel_key));
 }
 
 // Gets the channel name.
-const std::string& Channel::get_name() const
+const std::string&	Channel::get_name() const
 {
 	return _channel_name;
 }
 
 // Returns a const reference to the list of channel members.
-const std::set<std::string>& Channel::get_members() const
+const std::set<std::string>&	Channel::get_members() const
 {
 	return _channel_members_by_nickname;
 }

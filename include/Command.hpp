@@ -59,6 +59,7 @@ class	Command
 		// === CommandModes.cpp ===
 		
 		static bool		handleMode(Server* server, User* user, const std::vector<std::string>& tokens);
+		static bool		handleModeChanges(Server* server, User* user, Channel* channel, const std::vector<std::string>& tokens);
 
 		// === CommandMessaging.cpp ===
 		
