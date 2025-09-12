@@ -240,12 +240,10 @@ and any parameters, and appends it to the user's output buffer. Also logs the ac
 void	Command::sendModeReply(User* user, Server* server, const std::string& target, const std::string& modes,
 			const std::string& params)
 {
-	user->getOutputBuffer()	+= ":" + server->getServerName() + " 324 " 
-							+ user->getNickname() + " " + target
-							+ (modes.empty() ? "" : " " + modes)
-							+ params + "\r\n";
+	user->sendReply("324 " + user->getNickname() + " " + target + (modes.empty() ? "" : " " + modes) + params);
 
-	logUserAction(user->getNickname(), user->getFd(), toString("queried modes for ") + BLUE + target + RESET);
+	logUserAction(user->getNickname(), user->getFd(), toString("queried modes for ") + BLUE + target + RESET
+		+ (modes.empty() ? " (no modes set)" : toString(" (") + YELLOW + modes + RESET + params + ")"));
 }
 
 // Applies a single mode change to a channel.

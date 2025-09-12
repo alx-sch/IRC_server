@@ -341,7 +341,7 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	if (!channel->is_user_member(targetNick))
 	{
 		logUserAction(user->getNickname(), user->getFd(),
-			toString("tried to KICK user ") + RED + targetNick + RESET + " who is not in channel " + BLUE + channelName + RESET);
+			toString("tried to KICK user ") + GREEN + targetNick + RESET + " who is not in channel " + BLUE + channelName + RESET);
 		user->replyError(441, targetNick + " " + channelName, "They aren't on that channel");
 		return false;
 	}
@@ -517,7 +517,7 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 	if (!channel->is_user_member(user->getNickname()))
 	{
 		logUserAction(user->getNickname(), user->getFd(),
-			toString("tried to invite to channel ") + BLUE + channelName + RESET + " but is not a member");
+			toString("tried to invite to ") + BLUE + channelName + RESET + " but is not a member");
 		user->replyError(442, channelName, "You're not on that channel");
 		return false;
 	}
@@ -545,7 +545,7 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 	if (channel->is_user_member(targetNick))
 	{
 		logUserAction(user->getNickname(), user->getFd(),
-			toString("tried to invite already member ") + GREEN + targetNick + RESET + " to channel "
+			toString("tried to invite already member ") + GREEN + targetNick + RESET + " to "
 			+ BLUE + channelName + RESET);
 		user->replyError(443, targetNick + " " + channelName, "is already on channel");
 		return false;
@@ -564,7 +564,7 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 
 	// log the invite action
 	logUserAction(user->getNickname(), user->getFd(),
-		toString("invited ") + GREEN + targetNick + RESET + " to channel " + BLUE + channelName + RESET);
+		toString("invited ") + GREEN + targetNick + RESET + " to " + BLUE + channelName + RESET);
 
 	return true;
 }

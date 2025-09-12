@@ -40,7 +40,7 @@ void	Server::acceptNewUser()
 
 	try
 	{
-		User* newUser = new User(userFd, this); // 'new' throws std::bad_alloc on failure
+		User*	newUser = new User(userFd, this); // 'new' throws std::bad_alloc on failure
 		_usersFd[userFd] = newUser;
 
 		// Set as "password-passed" when server requires no password
@@ -143,8 +143,8 @@ std::vector<std::string>	Server::extractMessagesFromBuffer(User* user)
 		// Check if line is too long (more than 510 + CRLF = 512); see RFC 1459, 2.3
 		if (msg.size() > 510)
 		{
-			logUserAction(user->getNickname(), user->getFd(), "sent an overlong line ("
-				+ toString(msg.size()) + " > 512 bytes)");
+			logUserAction(user->getNickname(), user->getFd(), toString("sent an overlong line (")
+				+ YELLOW + toString(msg.size()) + RESET + " > 512 bytes)");
 			user->replyError(417, "", "Input line was too long");
 			continue; // Skip this message, do not add to vector
 		}
@@ -175,7 +175,7 @@ void	Server::handleDisconnection(int fd, const std::string& reason, const std::s
 	std::cerr	<< RED << BOLD << "Error: " << source << " failed for user "
 				<< GREEN << nick << RED
 				<< " (" << MAGENTA << "fd " << fd << RED << "): "
-				<< reason << std::endl;
+				<< reason << RESET <<std::endl;
 }
 
 //////////////////////////
