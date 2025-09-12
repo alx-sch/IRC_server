@@ -66,6 +66,7 @@ class Server
 		const std::string		_cModes;	// Channel modes, used in replies
 		const std::string		_uModes;	// User modes, used in replies
 		const int				_maxChannels;	// Max channels per user
+
 		// === ServerSocket.cpp ===
 
 		void		initSocket();

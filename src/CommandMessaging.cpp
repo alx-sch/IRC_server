@@ -140,12 +140,14 @@ static void	handleNoticeToChannel(Server* server, User* sender, const std::strin
 	{
 		logUserAction(sender->getNickname(), sender->getFd(),
 			toString("tried to send NOTICE to non-existing ") + RED + channelName + RESET);
+		sender->replyError(404, channelName, "No such channel");
 		return;
 	}
 	if (!channel->is_user_member(sender->getNickname()))
 	{
 		logUserAction(sender->getNickname(), sender->getFd(), toString("tried to send NOTICE to ")
 			+ BLUE + channelName + RESET + " but is not a member");
+		sender->replyError(404, channelName, "Cannot send to channel");
 		return;
 	}
 
@@ -172,6 +174,7 @@ static void	handleNoticeToUser(Server* server, User* sender, const std::string& 
 	{
 		logUserAction(sender->getNickname(), sender->getFd(),
 			toString("tried to send NOTICE to non-existing ") + RED + targetNick + RESET);
+		sender->replyError(401, targetNick, "No such nick/channel");
 		return;
 	}
 

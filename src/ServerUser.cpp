@@ -207,9 +207,9 @@ void	Server::handleReadyUsers(fd_set& readFds)
 			if (!handleUserInput(userFd))
 			{
 				if (errno == 0) // User disconnected without any error (e.g. CTRL + C)
-					deleteUser(userFd, "disconnected (user logout)");
+					deleteUser(userFd, toString("disconnected (") + YELLOW + "user logout" + RESET + ")");
 				else
-					deleteUser(userFd, strerror(errno));
+					deleteUser(userFd, toString("disconnected (") + YELLOW + strerror(errno) + RESET + ")");
 			}
 		}
 	}
@@ -275,7 +275,7 @@ void	Server::handleSendError(int fd, const std::string& nick)
 	if (errno == EPIPE || errno == ECONNRESET)
 	{
 		handleDisconnection(fd, strerror(errno), "send()");
-		deleteUser(fd, strerror(errno));
+		deleteUser(fd, toString("disconnected (") + YELLOW + strerror(errno) + RESET + ")");
 		return;
 	}
 

@@ -115,6 +115,7 @@ bool Command::handleModeChanges(Server* server, User* user, Channel* channel, co
 	std::string	appliedModes;
 	if (!addedModes.empty())
 		appliedModes += "+" + addedModes;
+
 	if (!removedModes.empty())
 		appliedModes += "-" + removedModes;
 
@@ -150,13 +151,13 @@ Channel*	Command::validateChannelAndUser(Server* server, User* user, const std::
 	if (target.empty() || !isValidChannelName(target))
 	{
 		// It's not a channel. Check if it's a user before erroring.
-		if (server->getUser(target))
+		if (server->getUser(target)) // user exists
 		{
 			logUserAction(user->getNickname(), user->getFd(),
 				toString("sent MODE for a user target (unsupported): ") + RED + target + RESET);
 			user->replyError(502, "", "Cant change mode for other users");
 		}
-		else
+		else // user does not exist
 		{
 			logUserAction(user->getNickname(), user->getFd(),
 				toString("sent MODE for non-existing user: ") + RED + target + RESET);
@@ -216,7 +217,7 @@ void	Command::formatChannelModes(Channel* channel, User* user, std::string& mode
 	{
 		modes += "k";
 		if (channel->is_user_operator(user->getNickname())) // Only show key to channel operators
-		params += " " + channel->get_password();
+			params += " " + channel->get_password();
 	}
 
 	// Only prepend '+' if there are any modes set
@@ -283,7 +284,7 @@ bool	Command::applySimpleMode(Channel* channel, User* user, char mode, bool addi
 		channel->set_invite_only(adding);
 		action = "invite-only";
 	}
-	if (mode == 't')
+	else if (mode == 't')
 	{
 		channel->set_topic_protection(adding);
 		action = "topic protection";
@@ -320,8 +321,10 @@ bool	Command::applyUserLimit(Channel* channel, User* user, bool adding, const st
 			return true;
 		}
 
-		user->replyError(501, "", "Invalid user limit");
-		return false; // Failed: Invalid limit value
+		// limit is zero or negative
+		logUserAction(user->getNickname(), user->getFd(), "sent invalid user limit");
+		user->sendReply("NOTICE " + user->getNickname() + " :User limit must be a positive integer");
+		return false;
 	}
 	else // Removing user limit
 	{
@@ -385,6 +388,8 @@ bool	Command::applyOperator(Server* server, Channel* channel, User* user, bool a
 
 	if (!targetUser)
 	{
+		logUserAction(user->getNickname(), user->getFd(),
+			toString("tried to set operator status for non-existing user: ") + RED + targetNick + RESET);
 		user->replyError(401, targetNick, "No such nick/channel");
 		++paramIndex;
 		return false;
@@ -392,6 +397,9 @@ bool	Command::applyOperator(Server* server, Channel* channel, User* user, bool a
 
 	if (!channel->is_user_member(targetNick))
 	{
+		logUserAction(user->getNickname(), user->getFd(),
+			toString("tried to set operator status for user not in ") + BLUE + channel->get_name() + RESET
+			+ ": " + RED + targetNick + RESET);
 		user->replyError(441, targetNick + " " + channel->get_name(), "They aren't on that channel");
 		++paramIndex;
 		return false;

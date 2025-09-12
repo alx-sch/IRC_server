@@ -33,7 +33,7 @@ Server::~Server()
 
 	// Delete all dynamically allocated User objects
 	while (!_usersFd.empty())
-		deleteUser(_usersFd.begin()->first, "disconnected (server shutdown)");
+		deleteUser(_usersFd.begin()->first, toString("disconnected (") + YELLOW + "server shutdown" + RESET + ")");
 
 	// Delete all dynamically allocated Channel objects
 	while (!_channels.empty())
