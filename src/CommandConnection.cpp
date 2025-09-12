@@ -52,8 +52,8 @@ void	Command::handleQuit(Server* server, User* user, const std::vector<std::stri
 
 		// Remove the user from the channel
 		channel->remove_user(userNick);
-		logUserAction(userNick, user->getFd(), std::string("left ") + BLUE + *it + RESET
-			+ ": " + reason);
+		logUserAction(userNick, user->getFd(), toString("left ") + BLUE + *it + RESET
+			+ ": " + YELLOW + reason + RESET);
 	}
-	server->deleteUser(user->getFd(), "quit: " + reason);	// Remove user from server
+	server->deleteUser(user->getFd(), toString("quit: ") + YELLOW + reason + RESET);	// Remove user from server
 }

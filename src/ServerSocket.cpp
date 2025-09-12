@@ -52,22 +52,22 @@ void	Server::createSocket()
 		// Use SOCK_NONBLOCK on Linux
 		_fd = socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0);  // Create non-blocking IPv4 TCP socket
 		if (_fd == -1)
-			throw std::runtime_error("Failed to create server socket: " + std::string(strerror(errno)));
+			throw std::runtime_error("Failed to create server socket: " + toString(strerror(errno)));
 	#elif defined(MACOS_OS)
 		// Use fcntl() to set non-blocking mode on macOS
 		_fd = socket(AF_INET, SOCK_STREAM, 0);  // Create blocking IPv4 TCP socket
 		if (_fd == -1)
-			throw std::runtime_error("Failed to create server socket: " + std::string(strerror(errno)));
+			throw std::runtime_error("Failed to create server socket: " + toString(strerror(errno)));
 		int	flags = fcntl(_fd, F_GETFL, 0);
 		if (flags == -1)
 		{
 			close(_fd); // Need to close here as destructor won't be called if constructor fails
-			throw std::runtime_error("Failed to get socket flags: " + std::string(strerror(errno)));
+			throw std::runtime_error("Failed to get socket flags: " + toString(strerror(errno)));
 		}
 		if (fcntl(_fd, F_SETFL, flags | O_NONBLOCK) == -1)
 		{
 			close(_fd);
-			throw std::runtime_error("Failed to set socket to non-blocking: " + std::string(strerror(errno)));
+			throw std::runtime_error("Failed to set socket to non-blocking: " + toString(strerror(errno)));
 		}
 	#else
 		#error "Unsupported OS. This code supports only Linux and macOS." // Generate a compile-time error
@@ -85,7 +85,7 @@ void	Server::setSocketOptions()
 	if (setsockopt(_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes)) == -1)
 	{
 		close(_fd); // Need to close here as destructor won't be called if constructor fails
-		throw std::runtime_error("Failed to set SO_REUSEADDR: " + std::string(strerror(errno)));
+		throw std::runtime_error("Failed to set SO_REUSEADDR: " + toString(strerror(errno)));
 	}
 }
 
@@ -111,7 +111,7 @@ void	Server::startListening()
 	if (listen(_fd, SOMAXCONN) == -1)	// Use system's max pending connection queue size (SOMAXCONN)
 	{
 		close(_fd);
-		throw std::runtime_error("Failed to listen on server socket: " + std::string(strerror(errno)));
+		throw std::runtime_error("Failed to listen on server socket: " + toString(strerror(errno)));
 	}
 }
 

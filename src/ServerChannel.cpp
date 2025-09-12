@@ -49,7 +49,7 @@ Channel*	Server::getOrCreateChannel(const std::string& channelName, User* user, 
 		if (!key.empty()) // If a key is provided, set it as the channel password
 			channel->set_password(key);
 		_channels[channelName] = channel; // Add to the server's channel map
-		logUserAction(user->getNickname(), user->getFd(), std::string("created ")
+		logUserAction(user->getNickname(), user->getFd(), toString("created ")
 			+ BLUE + channelName + RESET);
 
 		if (wasCreated)
@@ -58,7 +58,7 @@ Channel*	Server::getOrCreateChannel(const std::string& channelName, User* user, 
 	catch(const std::bad_alloc&)
 	{
 		logUserAction(user->getNickname(), user->getFd(), RED
-			+ std::string("ERROR: Failed to allocate memory for new channel ") + BLUE + channelName + RESET);
+			+ toString("ERROR: Failed to allocate memory for new channel ") + BLUE + channelName + RESET);
 
 		user->replyError(500, "", "Internal server error while creating channel " + channelName);
 		if (wasCreated)
@@ -74,8 +74,8 @@ void	Server::deleteChannel(const std::string& channelName, std::string reason)
 	std::map<std::string, Channel*>::iterator	it = _channels.find(channelName);
 	if (it != _channels.end())
 	{
-		logServerMessage(std::string("Channel ") + BLUE + channelName + RESET
-			+ " deleted (" + reason + ")");
+		logServerMessage(toString("Channel ") + BLUE + channelName + RESET
+			+ " deleted (" + YELLOW + reason + RESET + ")");
 		delete it->second;		// Free memory for the channel
 		_channels.erase(it);	// Remove from the map
 	}

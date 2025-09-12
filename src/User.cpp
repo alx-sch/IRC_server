@@ -52,7 +52,7 @@ for syntax and uniqueness by the caller (e.g., in the command handler).
 */
 void	User::setNickname(const std::string& nickname)
 {
-	logUserAction(_nickname, _fd, std::string("set nickname to ") + GREEN + nickname + RESET);
+	logUserAction(_nickname, _fd, toString("set nickname to ") + GREEN + nickname + RESET);
 
 	// If the user already had a nickname, remove the old one
 	if (!_nickname.empty())

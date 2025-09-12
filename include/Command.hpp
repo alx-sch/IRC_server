@@ -59,7 +59,20 @@ class	Command
 		// === CommandModes.cpp ===
 		
 		static bool		handleMode(Server* server, User* user, const std::vector<std::string>& tokens);
+		static Channel*	validateChannelAndUser(Server* server, User* user, const std::string& target);
+		static void		formatChannelModes(Channel* channel, User* user, std::string& modes, std::string& params);
+		static void		sendModeReply(User* user, Server* server, const std::string& target, const std::string& modes, const std::string& params);
+		
 		static bool		handleModeChanges(Server* server, User* user, Channel* channel, const std::vector<std::string>& tokens);
+		static void		applyChannelMode(Server* server, User* user, Channel* channel, char mode, bool adding, const std::vector<std::string>& tokens,
+							size_t& paramIndex, std::string& appliedModes, std::string& modeParams);
+		static void		applySimpleMode(Channel* channel, User* user, char mode, bool adding, std::string& appliedModes);
+		static void		applyUserLimit(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
+							size_t& paramIndex, std::string& appliedModes, std::string& modeParams);
+		static void		applyChannelKey(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
+							size_t& paramIndex, std::string& appliedModes, std::string& modeParams);
+		static void		applyOperator(Server* server, Channel* channel, User* user, bool adding,const std::vector<std::string>& tokens,
+							size_t& paramIndex, std::string& appliedModes, std::string& modeParams);
 
 		// === CommandMessaging.cpp ===
 		

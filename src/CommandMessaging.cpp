@@ -27,13 +27,13 @@ static void	handlePrivmsgToChannel(Server* server, User* sender, const std::stri
 	if (!channel)
 	{
 		logUserAction(sender->getNickname(), sender->getFd(),
-			std::string("tried to send PRIVMSG to non-existing channel: ") + RED + channelName + RESET);
+			toString("tried to send PRIVMSG to non-existing ") + RED + channelName + RESET);
 		sender->replyError(403, channelName, "No such channel");
 		return;
 	}
 	if (!channel->is_user_member(sender->getNickname()))
 	{
-		logUserAction(sender->getNickname(), sender->getFd(), std::string("tried to send PRIVMSG to ")
+		logUserAction(sender->getNickname(), sender->getFd(), toString("tried to send PRIVMSG to ")
 			+ BLUE + channelName + RESET + " but is not a member");
 		sender->replyError(404, channelName, "Cannot send to channel");
 		return;
@@ -42,7 +42,7 @@ static void	handlePrivmsgToChannel(Server* server, User* sender, const std::stri
 	std::string	line = ":" + sender->buildPrefix() + " PRIVMSG " + channelName + " :" + message;
 	Command::broadcastToChannel(server, channel, line, sender->getNickname());
 
-	logUserAction(sender->getNickname(), sender->getFd(), std::string("sent PRIVMSG to ")
+	logUserAction(sender->getNickname(), sender->getFd(), toString("sent PRIVMSG to ")
 		+ BLUE + channelName + RESET);
 }
 
@@ -61,7 +61,7 @@ static void	handlePrivmsgToUser(Server* server, User* sender, const std::string&
 	if (!targetUser)
 	{
 		logUserAction(sender->getNickname(), sender->getFd(),
-			std::string("tried to send PRIVMSG to non-existing user: ") + RED + targetNick + RESET);
+			toString("tried to send PRIVMSG to non-existing ") + RED + targetNick + RESET);
 		sender->replyError(401, targetNick, "No such nick/channel");
 		return;
 	}
@@ -70,7 +70,7 @@ static void	handlePrivmsgToUser(Server* server, User* sender, const std::string&
 	targetUser->getOutputBuffer() += line;
 
 	logUserAction(sender->getNickname(), sender->getFd(),
-		std::string("sent PRIVMSG to user ") + GREEN + targetNick + RESET);
+		toString("sent PRIVMSG to user ") + GREEN + targetNick + RESET);
 }
 
 /**
@@ -139,12 +139,12 @@ static void	handleNoticeToChannel(Server* server, User* sender, const std::strin
 	if (!channel)
 	{
 		logUserAction(sender->getNickname(), sender->getFd(),
-			std::string("tried to send NOTICE to non-existing channel: ") + RED + channelName + RESET);
+			toString("tried to send NOTICE to non-existing ") + RED + channelName + RESET);
 		return;
 	}
 	if (!channel->is_user_member(sender->getNickname()))
 	{
-		logUserAction(sender->getNickname(), sender->getFd(), std::string("tried to send NOTICE to ")
+		logUserAction(sender->getNickname(), sender->getFd(), toString("tried to send NOTICE to ")
 			+ BLUE + channelName + RESET + " but is not a member");
 		return;
 	}
@@ -152,7 +152,7 @@ static void	handleNoticeToChannel(Server* server, User* sender, const std::strin
 	std::string	line = ":" + sender->buildPrefix() + " NOTICE " + channelName + " :" + message;
 	Command::broadcastToChannel(server, channel, line, sender->getNickname());
 
-	logUserAction(sender->getNickname(), sender->getFd(), std::string("sent NOTICE to ")
+	logUserAction(sender->getNickname(), sender->getFd(), toString("sent NOTICE to ")
 		+ BLUE + channelName + RESET);
 }
 
@@ -171,7 +171,7 @@ static void	handleNoticeToUser(Server* server, User* sender, const std::string& 
 	if (!targetUser)
 	{
 		logUserAction(sender->getNickname(), sender->getFd(),
-			std::string("tried to send NOTICE to non-existing user: ") + RED + targetNick + RESET);
+			toString("tried to send NOTICE to non-existing ") + RED + targetNick + RESET);
 		return;
 	}
 
@@ -179,7 +179,7 @@ static void	handleNoticeToUser(Server* server, User* sender, const std::string& 
 	targetUser->getOutputBuffer() += line;
 
 	logUserAction(sender->getNickname(), sender->getFd(),
-		std::string("sent NOTICE to user ") + GREEN + targetNick + RESET);
+		toString("sent NOTICE to user ") + GREEN + targetNick + RESET);
 }
 
 /**

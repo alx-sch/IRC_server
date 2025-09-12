@@ -20,7 +20,7 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 	// Check if the nickname is valid according to IRC rules
 	if (!isValidNick(nick))
 	{
-		logUserAction(user->getNickname(), user->getFd(), std::string("tried to set an invalid nickname: ")
+		logUserAction(user->getNickname(), user->getFd(), toString("tried to set an invalid nickname: ")
 			+ RED + nick + RESET);
 		user->replyError(432, nick, "Erroneous nickname");
 		return;
@@ -30,7 +30,7 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 	if (server->getNickMap().count(nick) > 0)
 	{
 		logUserAction(user->getNickname(), user->getFd(),
-			std::string("tried to set a nickname already in use: ") + YELLOW + nick + RESET);
+			toString("tried to set a nickname already in use: ") + YELLOW + nick + RESET);
 		user->replyError(433, nick, "Nickname is already in use");
 		return;
 	}

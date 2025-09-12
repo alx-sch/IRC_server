@@ -33,10 +33,10 @@ void	Server::acceptNewUser()
 
 	userFd = accept(_fd, reinterpret_cast<sockaddr*>(&userAddr), &userLen);
 	if (userFd == -1) // Critical! Shut down server / end program
-		throw std::runtime_error("accept() failed: " + std::string(strerror(errno)));
+		throw std::runtime_error("accept() failed: " + toString(strerror(errno)));
 
-	logUserAction("*", userFd, std::string("connected from ") + YELLOW
-		+ std::string(inet_ntoa(userAddr.sin_addr)) + RESET);
+	logUserAction("*", userFd, toString("connected from ") + YELLOW
+		+ toString(inet_ntoa(userAddr.sin_addr)) + RESET);
 
 	try
 	{
@@ -51,7 +51,7 @@ void	Server::acceptNewUser()
 	{
 		close(userFd);	// Close fd to prevent leak
 		logUserAction("*", userFd, RED
-			+ std::string("ERROR: Failed to allocate memory for new user. Connection closed") + RESET);
+			+ toString("ERROR: Failed to allocate memory for new user. Connection closed") + RESET);
 		return; // Keep server running
 	}
 }
@@ -85,8 +85,8 @@ bool	Server::handleUserInput(int fd)
 
 	if (bytesRead < 0) // recv() failed (bytesRead == -1)
 	{
-		logUserAction(user->getNickname(), fd, RED + std::string("ERROR: recv() failed: ")
-			+ strerror(errno) + RESET);
+		logUserAction(user->getNickname(), fd, RED + toString("ERROR: recv() failed: ")
+			+ toString(strerror(errno)) + RESET);
 		return false;
 	}
 
@@ -105,7 +105,7 @@ bool	Server::handleUserInput(int fd)
 		{
 			std::string	cmd = tokens[0];
 
-			logUserAction(user->getNickname(), fd, std::string("sent unknown command: ")
+			logUserAction(user->getNickname(), fd, toString("sent unknown command: ")
 				+ RED + cmd + RESET);
 			user->replyError(421, cmd, "Unknown command");
 		}
@@ -283,8 +283,8 @@ void	Server::handleSendError(int fd, const std::string& nick)
 	// e.g. EAGAIN or EWOULDBLOCK (“Resource temporarily unavailable”)
 	if (user && !user->hasSendErrorLogged())
 	{
-		logUserAction(nick, fd, RED + std::string("ERROR: sending message to client failed: ")
-			+ strerror(errno) + RESET);
+		logUserAction(nick, fd, RED + toString("ERROR: sending message to client failed: ")
+			+ toString(strerror(errno)) + RESET);
 		user->setSendErrorLogged(true); // Prevent multiple logs for the same error
 	}
 }

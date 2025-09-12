@@ -71,7 +71,7 @@ void	Server::run()
 		{
 			if (errno == EINTR) // If interrupted by signal (SIGINT), just return to main.
 				return;
-			throw std::runtime_error("select() failed: " + std::string(strerror(errno)));
+			throw std::runtime_error("select() failed: " + toString(strerror(errno)));
 		}
 
 		// New incoming connection?

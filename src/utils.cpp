@@ -11,7 +11,7 @@ int	parsePort(const char* arg)
 	// - if the entire string was parsed (*end != '\0' means garbage after number)
 	// - valid port range -> max. 16-bit unsigned int: 65535
 	if (*end != '\0' || port <= 0 || port > 65535)
-		throw std::runtime_error("Invalid port number: " + std::string(arg) + " (must be between 1 and 65535)");
+		throw std::runtime_error("Invalid port number: " + toString(arg) + " (must be between 1 and 65535)");
 
 	return static_cast<int>(port);
 }
