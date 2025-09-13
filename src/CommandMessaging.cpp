@@ -204,11 +204,13 @@ void	Command::handleNotice(Server* server, User* user, const std::vector<std::st
 	if (tokens.size() < 2)
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent invalid NOTICE command (too few arguments)");
+		user->replyError(411, "", "No recipient given (NOTICE)");
 		return;
 	}
 	else if (tokens.size() < 3)
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent invalid NOTICE command (too few arguments)");
+		user->replyError(412, "", "No text to send");
 		return;
 	}
 
