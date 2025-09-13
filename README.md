@@ -338,3 +338,5 @@ Making a socket non-blocking means that system calls like `recv()` or `send()` w
 ## References
 
 <a name="footnote1">[1]</a> Oikarinen, J.; Reed, D.(1993). *Internet Relay Chat Protocol*. [Request for Comments: 1459](https://www.rfc-editor.org/rfc/rfc1459)
+
+The project badge is from [this repository](https://github.com/ayogun/42-project-badges) by Ali Ogun.
