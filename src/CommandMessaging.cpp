@@ -140,7 +140,7 @@ static void	handleNoticeToChannel(Server* server, User* sender, const std::strin
 	{
 		logUserAction(sender->getNickname(), sender->getFd(),
 			toString("tried to send NOTICE to non-existing ") + RED + channelName + RESET);
-		sender->replyError(404, channelName, "No such channel");
+		sender->replyError(403, channelName, "No such channel");
 		return;
 	}
 	if (!channel->is_user_member(sender->getNickname()))
