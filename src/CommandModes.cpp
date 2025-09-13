@@ -76,7 +76,7 @@ Applies mode changes to a channel.
  @param tokens	IRC command tokens.
  @return		True if the command processed successfully, false otherwise.
 */
-bool Command::handleModeChanges(Server* server, User* user, Channel* channel, const std::vector<std::string>& tokens)
+bool	Command::handleModeChanges(Server* server, User* user, Channel* channel, const std::vector<std::string>& tokens)
 {
 	const std::string&	modeString = tokens[2];
 	size_t				paramIndex = 3;
