@@ -342,36 +342,11 @@ Making a socket non-blocking means that system calls like `recv()` or `send()` w
 - **`send()`:** `Server::handleWriteReadyUsers()` uses `send()` to push data from a user's output buffer to their connected socket.
 
 - **`recv()`:** `Server::handleUserInput()` uses `recv()` to read data from a user's socket into a buffer. It checks the number of bytes read to determine if the client is still connected or if a message has been received.
-  
----
-
-## Commands to Implement
-
- Command: KICK
- `Parameters: <channel> <user> [<comment>]`
- https://www.rfc-editor.org/rfc/rfc1459#section-4.2.8
- 
- Command: INVITE
- `Parameters: <nickname> <channel>`
- https://www.rfc-editor.org/rfc/rfc1459#section-4.2.7
-
- Command: TOPIC
- `Parameters: <channel> [<topic>]`
- https://www.rfc-editor.org/rfc/rfc1459#section-4.2.4
- 
- Command: MODE
-  `Parameters: <channel> {[+|-]|o|p|s|i|t|n|b|v} [<limit>] [<user>]`
-               `[<ban mask>]`
-OR
-` Parameters: <nickname> {[+|-]|i|w|s|o}`
-https://www.rfc-editor.org/rfc/rfc1459#section-4.2.3
- 
- Command: LIST <---- NOT REQUIRED BY SUBJECT
- `Parameters: [<channel>{,<channel>} [<server>]]`
- https://www.rfc-editor.org/rfc/rfc1459#section-4.2.6
 
 ---
 
 ## References
 
 <a name="footnote1">[1]</a> Oikarinen, J.; Reed, D.(1993). *Internet Relay Chat Protocol*. [Request for Comments: 1459](https://www.rfc-editor.org/rfc/rfc1459)
+
+The project badge is from [this repository](https://github.com/ayogun/42-project-badges) by Ali Ogun.
