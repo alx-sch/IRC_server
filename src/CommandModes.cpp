@@ -51,7 +51,7 @@ bool	Command::handleMode(Server* server, User* user, const std::vector<std::stri
 		std::string	modes;
 		std::string	params;
 		formatChannelModes(channel, user, modes, params);
-		sendModeReply(user, server, target, modes, params);
+		sendModeReply(user, target, modes, params);
 		return true;
 	}
 
@@ -237,7 +237,7 @@ and any parameters, and appends it to the user's output buffer. Also logs the ac
  @param modes	Mode string (e.g., "+it") for the channel.
  @param params	Associated parameters (e.g., user limit, password).
 */
-void	Command::sendModeReply(User* user, Server* server, const std::string& target, const std::string& modes,
+void	Command::sendModeReply(User* user, const std::string& target, const std::string& modes,
 			const std::string& params)
 {
 	user->sendReply("324 " + user->getNickname() + " " + target + (modes.empty() ? "" : " " + modes) + params);
