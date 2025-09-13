@@ -241,15 +241,25 @@ Every message from the server to the client has this general structure:
 | `:<message>`           | Human-readable message text (trailing parameter)                            |
 | `\r\n`                 | Required line ending in all IRC messages                                    |
 
-#### Function: `sendReply()`
+#### Function: `replyServerMsg()`
 
-The following helper method of the `User` class ensures the reply is properly formatted and sent:
+The following helper method of the `User` class ensures the server reply is properly formatted and appended to the user's output buffer, which is eventually sent via `send()` in `handleWriteReadyUsers()`.
 
 ```cpp
-void User::sendReply(const std::string& message)
+/**
+Appends a raw IRC message from the server to the user's output buffer,
+which is eventually flushed via `send()`.
+Automatically prefixes the message with the server name and appends `\r\n`.
+
+ @param message		The already-formatted reply (e.g. "001 Alex :Welcome...")
+*/
+void	User::replyServerMsg(const std::string& message)
 {
-	std::string fullMessage = ":" + serverName + " " + message + "\r\n";
-	send(_fd, fullMessage.c_str(), fullMessage.length(), 0);
+	if (_fd == -1) // User not connected
+		return;
+
+	std::string	fullMessage = ":" + _server->getServerName() + " " + message + "\r\n";
+	_outputBuffer += fullMessage;
 }
 ```
 
@@ -257,12 +267,12 @@ This function:
 
  - Prepends the server name as the prefix
  - Appends `\r\n` to comply with the IRC protocol
- - Uses `send()` to transmit the message to the client’s socket
+ - Stores the message in the user’s output buffer (later flushed via `send()`)
 
 Example usage:
 
 ```cpp
-user->sendReply("001 nick :Welcome to the IRC Network, nick!user@host");
+user->replyServerMsg("001 nick :Welcome to the IRC Network, nick!user@host");
 ```
 
 Which sends the following to the client

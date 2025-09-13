@@ -43,7 +43,7 @@ class	User
 		void				replyWelcome();
 		void				replyError(int code, const std::string& param,
 								const std::string& message);
-		void				sendReply(const std::string& message);
+		void				replyServerMsg(const std::string& message);
 
 		// === UserRegistration.cpp ===
 

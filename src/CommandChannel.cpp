@@ -462,7 +462,7 @@ bool	Command::handleTopic(Server *server, User *user, const std::vector<std::str
 			currentTopic = "(no topic)";
 
 		// Send topic reply to user
-		user->sendReply("332 " + user->getNickname() + " " + channelName + " :" + currentTopic);
+		user->replyServerMsg("332 " + user->getNickname() + " " + channelName + " :" + currentTopic);
 
 		// Log the topic request
 		logUserAction(user->getNickname(), user->getFd(),
@@ -556,7 +556,7 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 		channel->add_invite(targetNick);
 
 	// send confirmation to inviter
-	user->sendReply("341 " + user->getNickname() + " " + targetNick + " " + channelName);
+	user->replyServerMsg("341 " + user->getNickname() + " " + targetNick + " " + channelName);
 
 	// send invitation to target user
 	std::string	invitation = ":" + user->buildPrefix() + " INVITE " + targetNick + " :" + channelName;

@@ -4,7 +4,7 @@
 #include "../include/Server.hpp"
 
 /**
-Sends the standard IRC welcome messages (numeric `001`–`004`)
+Appends the standard IRC welcome messages (numeric `001`–`004`) to user's output buffer
 after a user successfully completes registration.
 
 Source: https://dd.ircdocs.horse/refs/numerics/
@@ -13,20 +13,20 @@ Source: https://dd.ircdocs.horse/refs/numerics/
 */
 void	User::replyWelcome()
 {
-	sendReply("001 " + _nickname + " :Welcome to the " + _server->getNetwork()
+	replyServerMsg("001 " + _nickname + " :Welcome to the " + _server->getNetwork()
 		+ " Network, " + _nickname	 + "!" + _username + "@" + _host); // username@host might be not needed, check with HexChat
 
-	sendReply("002 " + _nickname + " :Your host is " + _server->getServerName()
+	replyServerMsg("002 " + _nickname + " :Your host is " + _server->getServerName()
 		+ ", running version " + _server->getVersion());
 
-	sendReply("003 " + _nickname + " :This server was created " + _server->getCreationTime());
+	replyServerMsg("003 " + _nickname + " :This server was created " + _server->getCreationTime());
 
-	sendReply("004 " + _nickname + " " + _server->getServerName() + " "
+	replyServerMsg("004 " + _nickname + " " + _server->getServerName() + " "
 		+ _server->getVersion() + " " + _server->getUModes() + " " + _server->getCModes());
 }
 
 /**
-Sends an IRC numeric error to the user.
+Appends an IRC numeric error to the user's output buffer (eventually flushed via `send()`).
 
  @param code		Numeric IRC error code (e.g. 464, 462, 433)
  @param param		Optional parameter for the error (e.g. nickname when invalid)
@@ -44,16 +44,17 @@ void	User::replyError(int code, const std::string& param, const std::string& mes
 		oss << " " << param;
 	oss << " :" << message;
 
-	sendReply(oss.str());
+	replyServerMsg(oss.str());
 }
 
 /**
-Appends a raw IRC message from the server to the user's output buffer.
+Appends a raw IRC message from the server to the user's output buffer,
+which is eventually flushed via `send()`.
 Automatically prefixes the message with the server name and appends `\r\n`.
 
  @param message 	The already-formatted reply (e.g. "001 Alex :Welcome...")
 */
-void	User::sendReply(const std::string& message)
+void	User::replyServerMsg(const std::string& message)
 {
 	if (_fd == -1) // User not connected
 		return;

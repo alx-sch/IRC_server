@@ -240,7 +240,7 @@ and any parameters, and appends it to the user's output buffer. Also logs the ac
 void	Command::sendModeReply(User* user, const std::string& target, const std::string& modes,
 			const std::string& params)
 {
-	user->sendReply("324 " + user->getNickname() + " " + target + (modes.empty() ? "" : " " + modes) + params);
+	user->replyServerMsg("324 " + user->getNickname() + " " + target + (modes.empty() ? "" : " " + modes) + params);
 
 	logUserAction(user->getNickname(), user->getFd(), toString("queried modes for ") + BLUE + target + RESET
 		+ (modes.empty() ? " (no modes set)" : toString(" (") + YELLOW + modes + RESET + params + ")"));
@@ -321,7 +321,7 @@ bool	Command::applyUserLimit(Channel* channel, User* user, bool adding, const st
 
 		// limit is zero or negative
 		logUserAction(user->getNickname(), user->getFd(), "sent invalid user limit");
-		user->sendReply("NOTICE " + user->getNickname() + " :User limit must be a positive integer");
+		user->replyServerMsg("NOTICE " + user->getNickname() + " :User limit must be a positive integer");
 		return false;
 	}
 	else // Removing user limit
