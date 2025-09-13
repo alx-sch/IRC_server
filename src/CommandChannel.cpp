@@ -87,7 +87,7 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 	}	
 
 	// Notify user(s) about successful join
-	std::string	joinMessage =	":" + user->buildPrefix() + " JOIN :" + channelName;
+	std::string	joinMessage =	":" + user->buildHostmask() + " JOIN :" + channelName;
 	broadcastToChannel(server, channel, joinMessage);
 
 	logUserAction(user->getNickname(), user->getFd(), toString("joined ") + BLUE + channelName + RESET);
@@ -559,7 +559,7 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 	user->replyServerMsg("341 " + user->getNickname() + " " + targetNick + " " + channelName);
 
 	// send invitation to target user
-	std::string	invitation = ":" + user->buildPrefix() + " INVITE " + targetNick + " :" + channelName;
+	std::string	invitation = ":" + user->buildHostmask() + " INVITE " + targetNick + " :" + channelName;
 	targetUser->getOutputBuffer() += invitation + "\r\n";
 
 	// log the invite action

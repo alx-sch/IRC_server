@@ -15,13 +15,13 @@ class	User
 		User(int fd, Server* server);
 		~User();
 
-		std::string			buildPrefix() const;
+		std::string			buildHostmask() const;
 
 		void				setNickname(const std::string& nickname);
 		void				setUsername(const std::string& username);
 		void				setRealname(const std::string& realname);
 		void				setHost(const std::string& host);
-		void				markDisconnected(); // Sets _fd to -1 after deleting from server
+		void				markDisconnected();
 
 		const int&			getFd() const;
 		std::string&		getInputBuffer();

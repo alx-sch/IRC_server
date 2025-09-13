@@ -39,7 +39,7 @@ static void	handlePrivmsgToChannel(Server* server, User* sender, const std::stri
 		return;
 	}
 
-	std::string	line = ":" + sender->buildPrefix() + " PRIVMSG " + channelName + " :" + message;
+	std::string	line = ":" + sender->buildHostmask() + " PRIVMSG " + channelName + " :" + message;
 	Command::broadcastToChannel(server, channel, line, sender->getNickname());
 
 	logUserAction(sender->getNickname(), sender->getFd(), toString("sent PRIVMSG to ")
@@ -66,7 +66,7 @@ static void	handlePrivmsgToUser(Server* server, User* sender, const std::string&
 		return;
 	}
 
-	std::string	line = ":" + sender->buildPrefix() + " PRIVMSG " + targetNick + " :" + message + "\r\n";
+	std::string	line = ":" + sender->buildHostmask() + " PRIVMSG " + targetNick + " :" + message + "\r\n";
 	targetUser->getOutputBuffer() += line;
 
 	logUserAction(sender->getNickname(), sender->getFd(),
@@ -151,7 +151,7 @@ static void	handleNoticeToChannel(Server* server, User* sender, const std::strin
 		return;
 	}
 
-	std::string	line = ":" + sender->buildPrefix() + " NOTICE " + channelName + " :" + message;
+	std::string	line = ":" + sender->buildHostmask() + " NOTICE " + channelName + " :" + message;
 	Command::broadcastToChannel(server, channel, line, sender->getNickname());
 
 	logUserAction(sender->getNickname(), sender->getFd(), toString("sent NOTICE to ")
@@ -178,7 +178,7 @@ static void	handleNoticeToUser(Server* server, User* sender, const std::string& 
 		return;
 	}
 
-	std::string	line = ":" + sender->buildPrefix() + " NOTICE " + targetNick + " :" + message + "\r\n";
+	std::string	line = ":" + sender->buildHostmask() + " NOTICE " + targetNick + " :" + message + "\r\n";
 	targetUser->getOutputBuffer() += line;
 
 	logUserAction(sender->getNickname(), sender->getFd(),

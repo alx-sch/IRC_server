@@ -47,7 +47,7 @@ void	Command::handleQuit(Server* server, User* user, const std::vector<std::stri
 			continue; // Skip if channel does not exist
 
 		// Broadcast the quit message to all channel members
-		std::string	quitMsg = ":" + user->buildPrefix() + " QUIT :" + reason;
+		std::string	quitMsg = ":" + user->buildHostmask() + " QUIT :" + reason;
 		broadcastToChannel(server, channel, quitMsg, userNick);
 
 		// Remove the user from the channel
