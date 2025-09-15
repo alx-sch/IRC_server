@@ -40,7 +40,7 @@ class	Channel
 
 		void		set_topic(const std::string& topic, const std::string& set_by);
 		const std::string&	get_topic() const;
-		std::string	get_topic_set_info() const;
+		std::string			get_topic_set_info() const;
 		void		set_topic_protection(bool enable = true);
 		bool		has_topic_protection() const;
 
