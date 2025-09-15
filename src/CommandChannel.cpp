@@ -90,6 +90,18 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 	std::string	joinMessage =	":" + user->buildHostmask() + " JOIN :" + channelName;
 	broadcastToChannel(server, channel, joinMessage);
 
+	// Send channel topic to the joining user
+	if (channel->get_topic().empty())
+		user->replyServerMsg(toString("331 ") + user->getNickname() + " " + channelName + " :No topic is set");
+
+	else
+		user->replyServerMsg(toString("332 ") + user->getNickname() + " " + channelName + " :" + channel->get_topic());
+
+	// Send names list to the joining user
+	std::string	namesList = channel->get_names_list();
+	user->replyServerMsg(toString("353 ") + user->getNickname() + " = " + channelName + " :" + namesList);
+	user->replyServerMsg(toString("366 ") + user->getNickname() + " " + channelName + " :End of /NAMES list");
+
 	logUserAction(user->getNickname(), user->getFd(), toString("joined ") + BLUE + channelName + RESET);
 
 	return true;

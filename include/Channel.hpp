@@ -21,6 +21,7 @@ class	Channel
 		const std::string&	get_name() const;
 		Channel*			get_channel(const std::string& channelName) const;
 		const std::set<std::string>&	get_members() const;
+		std::string			get_names_list() const;
 	
 		void		add_user(const std::string& user_nick);
 		void		remove_user(const std::string& user_nick);

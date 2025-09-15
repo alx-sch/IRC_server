@@ -181,3 +181,32 @@ const std::set<std::string>&	Channel::get_members() const
 {
 	return _channel_members_by_nickname;
 }
+
+/**
+Generates a space-separated string of nicknames for an `RPL_NAMREPLY` reply.
+
+This function iterates through all channel members, prefixing channel operators
+with an '@' symbol as required by the IRC protocol. The resulting string is
+formatted for direct use in a 353 numeric reply (`RPL_NAMREPLY`).
+
+ @return	A `std::string` containing the formatted list of member nicknames.
+*/
+std::string	Channel::get_names_list() const
+{
+	std::string	namesList;
+
+	for (std::set<std::string>::const_iterator it = get_members().begin();
+			it != get_members().end(); ++it)
+	{
+		// Prefix operators with '@'
+		if (is_user_operator(*it))
+			namesList += "@" + *it + " ";
+		else
+			namesList += *it + " ";
+	}
+
+	if (!namesList.empty())
+		 namesList.erase(namesList.length() - 1); // Remove trailing space
+
+	return namesList;
+}
