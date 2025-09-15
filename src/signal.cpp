@@ -1,6 +1,5 @@
-#include <iostream>
 #include "../include/signal.hpp"
-#include "../include/utils.hpp"		// logServerMessage()
+#include <stdexcept>	// std::runtime_error
 
 volatile sig_atomic_t	g_running = 1;
 

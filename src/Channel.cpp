@@ -56,7 +56,7 @@ bool	Channel::is_user_operator(const std::string& user_nick) const
 // Checks if a user can join the channel with the provided key.
 // Overwrites `result` with the appropriate JoinResult enum value.
 bool	Channel::can_user_join(const std::string &user_nick, const std::string &provided_key,
-	JoinResult& result) const
+								JoinResult& result) const
 {
 	if (has_user_limit() && is_at_user_limit())
 	{

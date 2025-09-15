@@ -34,17 +34,17 @@ class Server
 
 		// === ServerUser.cpp ===
 
-		User*		getUser(int fd) const;
-		User*		getUser(const std::string& nickname) const;
-		void		disconnectUser(int fd, const std::string& reason);
-		void		deleteUser(int fd, std::string logMsg);
+		User*				getUser(int fd) const;
+		User*				getUser(const std::string& nickname) const;
+		void				disconnectUser(int fd, const std::string& reason);
+		void				deleteUser(int fd, std::string logMsg);
 
 		// === ServerChannel.cpp ===
 
-		Channel*	getChannel(const std::string& channelName) const;
-		Channel*	getOrCreateChannel(const std::string& channelName, User* user,
-						const std::string& key = "", bool* wasCreated = NULL);
-		void		deleteChannel(const std::string& channelName, std::string reason);
+		Channel*			getChannel(const std::string& channelName) const;
+		Channel*			getOrCreateChannel(const std::string& channelName, User* user,
+										const std::string& key = "", bool* wasCreated = NULL);
+		void				deleteChannel(const std::string& channelName, std::string reason);
 
 	private:
 		// Disable default constructor and copying (makes no sense for a server)
@@ -52,45 +52,45 @@ class Server
 		Server(const Server& other); 
 		Server&	operator=(const Server& other);
 
-		enum UserInputResult
+		enum	UserInputResult
 		{
 			INPUT_OK,
 			INPUT_DISCONNECTED,
 			INPUT_ERROR
 		};
 
-		const std::string		_name;		// Server name, used in replies
-		const std::string		_version;	// Server version, used in replies
-		const std::string		_network;	// Network name, used in replies
-		const std::string		_creationTime;	// Server creation time, used in replies
-		const int				_port;		// Server port
-		const std::string		_password;	// Server password for client authentication
+		const std::string	_name;		// Server name, used in replies
+		const std::string	_version;	// Server version, used in replies
+		const std::string	_network;	// Network name, used in replies
+		const std::string	_creationTime;	// Server creation time, used in replies
+		const int			_port;		// Server port
+		const std::string	_password;	// Server password for client authentication
 
-		int						_fd;		// server socket fd (listening socket)
-		std::map<int, User*>	_usersFd;	// Keep track of active users by fd
+		int					_fd;		// server socket fd (listening socket)
+		std::map<int, User*>			_usersFd;	// Keep track of active users by fd
 		std::map<std::string, User*>	_usersNick;	// Keep track of active users by nickname
 
 		std::map<std::string, Channel*>	_channels;	// Keep track of channels by name
-		const std::string		_cModes;	// Channel modes, used in replies
-		const std::string		_uModes;	// User modes, used in replies
-		const int				_maxChannels;	// Max channels per user
+		const std::string	_cModes;	// Channel modes, used in replies
+		const std::string	_uModes;	// User modes, used in replies
+		const int			_maxChannels;	// Max channels per user
 
 		// === ServerSocket.cpp ===
 
-		void		initSocket();
-		void		createSocket();
-		void		setSocketOptions();
-		void		bindSocket();
-		void		startListening();
-		int			prepareReadSet(fd_set& readFds);
-		int			prepareWriteSet(fd_set& writeFds);
+		void				initSocket();
+		void				createSocket();
+		void				setSocketOptions();
+		void				bindSocket();
+		void				startListening();
+		int					prepareReadSet(fd_set& readFds);
+		int					prepareWriteSet(fd_set& writeFds);
 
 		// === ServerUser.cpp ===
 
-		void			acceptNewUser();
-		void			handleReadReadyUsers(fd_set& readFds);
-		void			handleWriteReadyUsers(fd_set& writeFds);
-		UserInputResult	handleUserInput(int fd);
+		void				acceptNewUser();
+		void				handleReadReadyUsers(fd_set& readFds);
+		void				handleWriteReadyUsers(fd_set& writeFds);
+		UserInputResult		handleUserInput(int fd);
 		std::vector<std::string>	extractMessagesFromBuffer(User* user);
 };
 

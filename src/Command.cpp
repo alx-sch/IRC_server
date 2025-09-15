@@ -84,8 +84,8 @@ This function splits an IRC line like:
 If a token starts with a colon (`:`), the rest of the line (including spaces) is treated
 as a single argument (the trailing parameter), as per IRC protocol.
 
- @param message		The raw IRC message line.
- @return			A vector of tokens: command + arguments (with trailing combined).
+ @param message	The raw IRC message line.
+ @return		A vector of tokens: command + arguments (with trailing combined).
 */
 std::vector<std::string>	Command::tokenize(const std::string& message)
 {

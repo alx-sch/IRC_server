@@ -34,11 +34,10 @@ Appends an IRC numeric error to the user's output buffer (eventually flushed via
 */
 void	User::replyError(int code, const std::string& param, const std::string& message)
 {
-	// If the user has no nickname yet, use '*'
-	std::string			target = isRegistered() ? _nickname : "*";
+	std::ostringstream	oss;
+	std::string			target = isRegistered() ? _nickname : "*";	// If no nickname yet, use '*'
 
 	// Build message: <code> <target> [<param>] :<message>
-	std::ostringstream	oss;
 	oss << code << " " << target;
 	if (!param.empty())
 		oss << " " << param;
@@ -52,7 +51,7 @@ Appends a raw IRC message from the server to the user's output buffer,
 which is eventually flushed via `send()`.
 Automatically prefixes the message with the server name and appends `\r\n`.
 
- @param message 	The already-formatted reply (e.g. "001 Alex :Welcome...")
+ @param message	The already-formatted reply (e.g. "001 Alex :Welcome...")
 */
 void	User::replyServerMsg(const std::string& message)
 {

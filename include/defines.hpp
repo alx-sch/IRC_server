@@ -17,7 +17,7 @@
 
 # define RED				"\033[31m"	// used for errors / invalid input
 # define GREEN				"\033[32m"	// used for nicknames
-# define YELLOW				"\033[33m"	// used for IP
+# define YELLOW				"\033[33m"	// used for user settings
 # define MAGENTA			"\033[35m"	// used for fds
 # define CYAN				"\033[36m"	// used for timestamps
 # define BLUE				"\033[34m"	// used for channels

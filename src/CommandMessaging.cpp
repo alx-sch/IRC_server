@@ -15,13 +15,13 @@
 /**
 Sends a `PRIVMSG` from a user to a channel.
 
- @param server			Pointer to the server instance.
- @param sender			Pointer to the user sending the message.
- @param channelName		Name of the target channel.
- @param message			The message content to send.
+ @param server		Pointer to the server instance.
+ @param sender		Pointer to the user sending the message.
+ @param channelName	Name of the target channel.
+ @param message		The message content to send.
 */
 static void	handlePrivmsgToChannel(Server* server, User* sender, const std::string& channelName,
-	const std::string& message)
+									const std::string& message)
 {
 	Channel*	channel = server->getChannel(channelName);
 	if (!channel)
@@ -55,7 +55,7 @@ Sends a `PRIVMSG` from a user to another user.
  @param message		The message content to send.
 */
 static void	handlePrivmsgToUser(Server* server, User* sender, const std::string& targetNick,
-	const std::string& message)
+								const std::string& message)
 {
 	User*	targetUser = server->getUser(targetNick);
 	if (!targetUser)
@@ -134,7 +134,7 @@ Like `PRIVMSG`, but does not trigger automatic replies from the server.
  @param message		The message content to send.
 */
 static void	handleNoticeToChannel(Server* server, User* sender, const std::string& channelName,
-	const std::string& message)
+									const std::string& message)
 {
 	Channel*	channel = server->getChannel(channelName);
 	if (!channel)
@@ -167,7 +167,7 @@ Like `PRIVMSG`, but does not trigger automatic replies from the server.
  @param message			The message content to send.
 */
 static void	handleNoticeToUser(Server* server, User* sender, const std::string& targetNick,
-	const std::string& message)
+								const std::string& message)
 {
 	User*	targetUser = server->getUser(targetNick);
 	if (!targetUser)

@@ -1,6 +1,12 @@
-#include <cctype>	// For ::isalpha() and ::isdigit()
-#include "../include/utils.hpp"
+#include "../include/utils.hpp"		// toString()
 #include "../include/defines.hpp"	// MAX_NICK_LENGTH, color formatting
+
+#include <iostream>		// std::cout
+#include <ctime>		// time_t, gmtime, strftime
+#include <stdexcept>	// std::runtime_error
+#include <iomanip>		// std::setw, std::left, std::right
+#include <cctype>		// For ::isalpha() and ::isdigit()
+#include <cstdlib>		// strtol
 
 // Parses and validates a port number from a C-style string (argument)
 int	parsePort(const char* arg)
@@ -30,8 +36,8 @@ std::string	getFormattedTime()
 {
 	std::time_t	now = std::time(NULL);		// Get current time as time_t (seconds since epoch)
 	std::tm*	gmt = std::gmtime(&now);	// Convert to UTC time (struct tm)
-
 	char		buffer[128];
+
 	// Format: AbbrWeekday AbbrMonth Day Year at HH:MM:SS UTC
 	std::strftime(buffer, sizeof(buffer), "%a %b %d %Y at %H:%M:%S UTC", gmt);
 
@@ -51,8 +57,8 @@ std::string	getTimestamp()
 {
 	std::time_t	now = std::time(NULL);		// Get current time as time_t (seconds since epoch)
 	std::tm*	gmt = std::gmtime(&now);	// Convert to UTC time (struct tm)
-
 	char		buffer[128];
+
 	// Format: YYYY-MM-DD HH:MM:SS UTC
 	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", gmt);
 
@@ -158,9 +164,9 @@ bool	isValidChannelName(const std::string& channelName)
 /**
 Formats a log line with timestamp, aligned nickname and fd columns.
 
- @param nick		The user's nickname
- @param fd			The user's socket fd
- @param message		The message to log
+ @param nick	The user's nickname
+ @param fd		The user's socket fd
+ @param message	The message to log
 */
 void	logUserAction(const std::string& nick, int fd, const std::string& message)
 {

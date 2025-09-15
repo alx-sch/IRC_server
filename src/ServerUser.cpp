@@ -332,7 +332,7 @@ void Server::disconnectUser(int fd, const std::string& reason)
 		if (channel)
 		{
 			const std::set<std::string>&	members = channel->get_members();
-			for (std::set<std::string>::const_iterator mem_it = members.begin(); mem_it != members.end(); ++mem_it)
+			for (std::set<std::string>::const_iterator	mem_it = members.begin(); mem_it != members.end(); ++mem_it)
 			{
 				User*	member = getUser(*mem_it);
 				if (member)
@@ -343,11 +343,11 @@ void Server::disconnectUser(int fd, const std::string& reason)
 	recipients.erase(user); // Don't send QUIT to the user who is quitting
 
 	// Broadcast the quit message
-	for (std::set<User*>::iterator it = recipients.begin(); it != recipients.end(); ++it)
+	for (std::set<User*>::iterator	it = recipients.begin(); it != recipients.end(); ++it)
 		(*it)->getOutputBuffer() += quitMsg;
 
 	// Now, remove the user from all channels they were in
-	for (std::set<std::string>::const_iterator it = channels.begin(); it != channels.end(); ++it)
+	for (std::set<std::string>::const_iterator	it = channels.begin(); it != channels.end(); ++it)
 	{
 		Channel*	channel = getChannel(*it);
 		if (channel)

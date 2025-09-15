@@ -201,7 +201,7 @@ and the 'params' string with associated parameters (e.g., user limit, password).
  @param params	Reference to the string to populate with any mode parameters.
 */
 void	Command::formatChannelModes(Channel* channel, User* user, std::string& modes,
-			std::string& params, std::string& paramsLogging)
+									std::string& params, std::string& paramsLogging)
 {
 	modes.clear();
 	params.clear();
@@ -242,7 +242,7 @@ and any parameters, and appends it to the user's output buffer. Also logs the ac
  @param params	Associated parameters (e.g., user limit, password).
 */
 void	Command::sendModeReply(User* user, const std::string& target, const std::string& modes,
-			const std::string& params, std::string& paramsLogging)
+								const std::string& params, std::string& paramsLogging)
 {
 	user->replyServerMsg("324 " + user->getNickname() + " " + target + (modes.empty() ? "" : " " + modes) + params);
 
@@ -253,8 +253,7 @@ void	Command::sendModeReply(User* user, const std::string& target, const std::st
 
 // Applies a single mode change to a channel.
 bool	Command::applyChannelMode(Server* server, User* user, Channel* channel, char mode, bool adding,
-									const std::vector<std::string>& tokens, size_t& paramIndex,
-									std::string& modeParams)
+									const std::vector<std::string>& tokens, size_t& paramIndex, std::string& modeParams)
 {
 	switch (mode)
 	{
@@ -340,7 +339,7 @@ bool	Command::applyUserLimit(Channel* channel, User* user, bool adding, const st
 
 // Handles the `k` (channel key/password) mode.
 bool	Command::applyChannelKey(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
-								size_t& paramIndex, std::string& modeParams)
+									size_t& paramIndex, std::string& modeParams)
 {
 	if (adding)
 	{
@@ -377,7 +376,7 @@ bool	Command::applyChannelKey(Channel* channel, User* user, bool adding, const s
 
 // Handles the `o` (operator) mode.
 bool	Command::applyOperator(Server* server, Channel* channel, User* user, bool adding,const std::vector<std::string>& tokens,
-							size_t& paramIndex, std::string& modeParams)
+								size_t& paramIndex, std::string& modeParams)
 {
 	if (paramIndex >= tokens.size())
 	{

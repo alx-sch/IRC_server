@@ -1,13 +1,8 @@
 #ifndef UTILS_HPP
 # define UTILS_HPP
 
-# include <cstdlib>		// strtol
-# include <ctime>		// time_t, gmtime, strftime
-# include <iostream>
-# include <iomanip>		// std::setw, std::left, std::right
-# include <sstream>		// std::ostringstream
-# include <stdexcept>	// std::runtime_error
-# include <string>		// std::string
+# include <sstream>	// std::ostringstream
+# include <string>	// std::string
 
 int			parsePort(const char* arg);
 std::string	getFormattedTime();

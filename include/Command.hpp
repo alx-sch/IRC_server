@@ -11,9 +11,9 @@ class	Channel;
 class	Command
 {
 	public:
-		static bool	handleCommand(Server* server, User* user, std::vector<std::string>& tokens);
-		static void	broadcastToChannel(Server* server, Channel* channel,
-						const std::string& message, const std::string& excludeNick = "");
+		static bool		handleCommand(Server* server, User* user, std::vector<std::string>& tokens);
+		static void		broadcastToChannel(Server* server, Channel* channel,
+									const std::string& message, const std::string& excludeNick = "");
 		static std::vector<std::string>	tokenize(const std::string& message);
 
 	private:
@@ -63,18 +63,18 @@ class	Command
 		static Channel*	validateChannelAndUser(Server* server, User* user, const std::string& target);
 		static void		formatChannelModes(Channel* channel, User* user, std::string& modes, std::string& params, std::string& paramsLogging);
 		static void		sendModeReply(User* user, const std::string& target, const std::string& modes, const std::string& params,
-							std::string& paramsLogging);
+										std::string& paramsLogging);
 		
 		static bool		handleModeChanges(Server* server, User* user, Channel* channel, const std::vector<std::string>& tokens);
-		static bool		applyChannelMode(Server* server, User* user, Channel* channel, char mode, bool adding, const std::vector<std::string>& tokens,
-							size_t& paramIndex, std::string& modeParams);
+		static bool		applyChannelMode(Server* server, User* user, Channel* channel, char mode, bool adding,
+										const std::vector<std::string>& tokens, size_t& paramIndex, std::string& modeParams);
 		static bool		applySimpleMode(Channel* channel, User* user, char mode, bool adding);
 		static bool		applyUserLimit(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
-							size_t& paramIndex, std::string& modeParams);
+										size_t& paramIndex, std::string& modeParams);
 		static bool		applyChannelKey(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
-							size_t& paramIndex, std::string& modeParams);
-		static bool		applyOperator(Server* server, Channel* channel, User* user, bool adding,const std::vector<std::string>& tokens,
-							size_t& paramIndex, std::string& modeParams);
+										size_t& paramIndex, std::string& modeParams);
+		static bool		applyOperator(Server* server, Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
+										size_t& paramIndex, std::string& modeParams);
 
 		// === CommandMessaging.cpp ===
 		

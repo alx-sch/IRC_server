@@ -27,9 +27,9 @@ Handles the `QUIT` command from a user.
 This function broadcasts the quit message to all channels the user is in,
 removes the user from those channels, and deletes the user from the server.
 
- @param server		Pointer to the Server object handling the connection.
- @param user		Pointer to the User who issued the QUIT command.
- @param tokens		Vector of parsed command tokens. `tokens[1]` can contain an optional reason.
+ @param server	Pointer to the Server object handling the connection.
+ @param user	Pointer to the User who issued the QUIT command.
+ @param tokens	Vector of parsed command tokens. `tokens[1]` can contain an optional reason.
 */
 void	Command::handleQuit(Server* server, User* user, const std::vector<std::string>& tokens)
 {

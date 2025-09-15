@@ -9,7 +9,7 @@
 
 // Extracts the command type from a message
 // Returns `UNKNOWN` if no valid command is found
-Command::Cmd Command::getCmd(const std::vector<std::string>& tokens)
+Command::Cmd	Command::getCmd(const std::vector<std::string>& tokens)
 {
 	if (tokens.empty())
 		return UNKNOWN;
