@@ -169,7 +169,7 @@ or an error occurred while reading, the user is removed from the server via `del
 
  @param readFds	A set of file descriptors marked as ready to read by `select()`.
 */
-void	Server::handleReadyUsers(fd_set& readFds)
+void	Server::handleReadReadyUsers(fd_set& readFds)
 {
 	std::map<int, User*>::iterator	it = _usersFd.begin();
 

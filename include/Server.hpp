@@ -80,7 +80,7 @@ class Server
 		// === ServerUser.cpp ===
 
 		void		acceptNewUser();
-		void		handleReadyUsers(fd_set& readFds);
+		void		handleReadReadyUsers(fd_set& readFds);
 		void		handleWriteReadyUsers(fd_set& writeFds);
 		bool		handleUserInput(int fd);
 		std::vector<std::string>	extractMessagesFromBuffer(User* user);

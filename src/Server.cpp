@@ -79,7 +79,7 @@ void	Server::run()
 			acceptNewUser(); // Adds user to `_usersFd`
 
 		// Handle user input for all active connections (messages, disconnections)
-		handleReadyUsers(readFds);
+		handleReadReadyUsers(readFds);
 		
 		// Handle pending output to be sent to users
 		handleWriteReadyUsers(writeFds);
