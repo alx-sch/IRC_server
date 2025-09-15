@@ -90,7 +90,7 @@ Server::UserInputResult	Server::handleUserInput(int fd)
 
 	if (bytesRead < 0) // recv() failed (bytesRead == -1)
 	{
-		// Check fir non-fatal, temporary errors
+		// Check if non-fatal, temporary errors
 		if (errno == EAGAIN || errno == EWOULDBLOCK)
 			return INPUT_OK; // No data available right now, try again later
 		
@@ -98,7 +98,7 @@ Server::UserInputResult	Server::handleUserInput(int fd)
 		logUserAction(user->getNickname(), fd, RED + toString("ERROR: recv() failed: ")
 			+ toString(strerror(errno)) + RESET);
 		return INPUT_ERROR;
-	}
+	}	
 
 	// Append the received bytes to the user's input buffer
 	user->getInputBuffer().append(buffer, bytesRead);
@@ -199,7 +199,7 @@ void	Server::handleReadReadyUsers(fd_set& readFds)
 			if (result == INPUT_DISCONNECTED)
 				disconnectUser(userFd, "Connection closed");
 			else if (result == INPUT_ERROR)
-				disconnectUser(userFd, strerror(errno));
+				disconnectUser(userFd, "Read error: " + toString(strerror(errno)));
 		}
 	}
 }
@@ -236,8 +236,9 @@ void	Server::handleWriteReadyUsers(fd_set& writeFds)
 			{
 				if (errno == EPIPE || errno == ECONNRESET)
 				{
-					logUserAction(user->getNickname(), userFd, RED + toString("ERROR on send(). Disconnecting user.") + RESET);
-					deleteUser(userFd, toString("disconnected (") + YELLOW + strerror(errno) + RESET + ")");
+					logUserAction(user->getNickname(), userFd, RED + toString("ERROR: send() failed: ")
+						+ toString(strerror(errno)) + RESET);
+					disconnectUser(userFd, "Write error: " + toString(strerror(errno)));
 				}
 				// If errno is EAGAIN or EWOULDBLOCK, do nothing (temporary issue), just try again in next select() loop
 			}
