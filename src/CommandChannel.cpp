@@ -475,14 +475,15 @@ bool	Command::handleTopic(Server *server, User *user, const std::vector<std::str
 		std::string	currentTopic = channel->get_topic();
 		if (currentTopic.empty())
 		{
-			currentTopic = "(no topic)";
-			return true;
+			user->replyServerMsg("331 " + user->getNickname() + " " + channelName + " :No topic is set");
 		}
-
-		// Send topic reply to user
-		user->replyServerMsg("332 " + user->getNickname() + " " + channelName + " :" + currentTopic);
-		user->replyServerMsg("333 " + user->getNickname() + " " + channelName + " " 
-			+ channel->get_topic_set_info());
+		else
+		{
+			// Send topic reply to user
+			user->replyServerMsg("332 " + user->getNickname() + " " + channelName + " :" + currentTopic);
+			user->replyServerMsg("333 " + user->getNickname() + " " + channelName + " " 
+				+ channel->get_topic_set_info());
+		}
 
 		// Log the topic request
 		logUserAction(user->getNickname(), user->getFd(),
