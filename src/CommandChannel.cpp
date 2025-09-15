@@ -419,7 +419,7 @@ bool	Command::handleTopic(Server *server, User *user, const std::vector<std::str
 {
 	if (tokens.size() < 2)
 	{
-		logUserAction(user->getNickname(), user->getFd(), "sent TOPIC without a channel name\n");
+		logUserAction(user->getNickname(), user->getFd(), "sent TOPIC without a channel name");
 		user->replyError(403, "", "No channel specified");
 		return false;
 	}
