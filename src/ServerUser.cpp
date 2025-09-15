@@ -320,7 +320,7 @@ void Server::disconnectUser(int fd, const std::string& reason)
 	if (!user) return; // User already disconnected
 
 	std::string	userNick = user->getNickname();
-	std::string	quitMsg = ":" + user->buildHostmask() + " QUIT :" + reason;
+	std::string	quitMsg = ":" + user->buildHostmask() + " QUIT :" + reason + "\r\n";
 
 	// Build unique set of users to notify
 	std::set<User*>					recipients;
@@ -344,7 +344,7 @@ void Server::disconnectUser(int fd, const std::string& reason)
 
 	// Broadcast the quit message
 	for (std::set<User*>::iterator it = recipients.begin(); it != recipients.end(); ++it)
-		(*it)->getOutputBuffer() += quitMsg + "\r\n";
+		(*it)->getOutputBuffer() += quitMsg;
 
 	// Now, remove the user from all channels they were in
 	for (std::set<std::string>::const_iterator it = channels.begin(); it != channels.end(); ++it)
