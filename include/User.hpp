@@ -24,7 +24,7 @@ class	User
 		void				setHost(const std::string& host);
 		void				markDisconnected();
 
-		const int&			getFd() const;
+		int					getFd() const;
 		std::string&		getInputBuffer();
 		std::string&		getOutputBuffer();
 		const std::string&	getNickname() const;

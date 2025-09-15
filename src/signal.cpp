@@ -8,9 +8,6 @@ volatile sig_atomic_t	g_running = 1;
 static void	handleSignal(int signum)
 {
 	(void)signum;
-
-	std::cout << std::endl;  // Just a newline for clean output after Ctrl+C
-	logServerMessage("Shutting down server...");
 	g_running = 0;
 }
 

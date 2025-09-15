@@ -41,7 +41,7 @@ void	User::setNickname(const std::string& nickname)
 	logUserAction(_nickname, _fd, toString("set nickname to ") + GREEN + nickname + RESET);
 
 	// If the user already had a nickname, remove the old one
-	if (!_nickname.empty())
+	if (_hasNick)
 		_server->removeNickMapping(_nickname);
 
 	// Add the new nickname to the server's user map and update the user object
@@ -80,7 +80,7 @@ void	User::setHost(const std::string& host)
 /////////////
 
 // Returns the file descriptor (socket) for the user.
-const int&	User::getFd() const
+int	User::getFd() const
 {
 	return _fd;
 }

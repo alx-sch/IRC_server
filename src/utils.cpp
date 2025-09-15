@@ -1,3 +1,4 @@
+#include <cctype>	// For ::isalpha() and ::isdigit()
 #include "../include/utils.hpp"
 #include "../include/defines.hpp"	// MAX_NICK_LENGTH, color formatting
 
@@ -62,16 +63,14 @@ std::string	getTimestamp()
 // Returns true if the character is a letter, false otherwise.
 static bool	isLetter(char c)
 {
-	const std::string	letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	return letters.find(c) != std::string::npos;
+	return std::isalpha(static_cast<unsigned char>(c));
 }
 
 // Checks if a character is a digit (`0-9`)
 // Returns true if the character is a digit, false otherwise.
 static bool	isDigit(char c)
 {
-	const std::string	numbers = "0123456789";
-	return numbers.find(c) != std::string::npos;
+	return std::isdigit(static_cast<unsigned char>(c));
 }
 
 // Checks if a character is a special character
@@ -79,8 +78,20 @@ static bool	isDigit(char c)
 // Returns true if the character is a special character, false otherwise.
 static bool	isSpecial(char c)
 {
-	const std::string	specials = "-[]\\`^{}";
-	return specials.find(c) != std::string::npos;
+	switch (c)
+	{
+		case '-':
+		case '[':
+		case ']':
+		case '\\':
+		case '`':
+		case '^':
+		case '{':
+		case '}':
+			return true;
+		default:
+			return false;
+	}
 }
 
 /**
