@@ -36,6 +36,7 @@ class Server
 
 		User*		getUser(int fd) const;
 		User*		getUser(const std::string& nickname) const;
+		void		disconnectUser(int fd, const std::string& reason);
 		void		deleteUser(int fd, std::string logMsg);
 
 		// === ServerChannel.cpp ===
@@ -50,6 +51,13 @@ class Server
 		Server();
 		Server(const Server& other); 
 		Server&	operator=(const Server& other);
+
+		enum UserInputResult
+		{
+			INPUT_OK,
+			INPUT_DISCONNECTED,
+			INPUT_ERROR
+		};
 
 		const std::string		_name;		// Server name, used in replies
 		const std::string		_version;	// Server version, used in replies
@@ -79,10 +87,10 @@ class Server
 
 		// === ServerUser.cpp ===
 
-		void		acceptNewUser();
-		void		handleReadReadyUsers(fd_set& readFds);
-		void		handleWriteReadyUsers(fd_set& writeFds);
-		bool		handleUserInput(int fd);
+		void			acceptNewUser();
+		void			handleReadReadyUsers(fd_set& readFds);
+		void			handleWriteReadyUsers(fd_set& writeFds);
+		UserInputResult	handleUserInput(int fd);
 		std::vector<std::string>	extractMessagesFromBuffer(User* user);
 };
 

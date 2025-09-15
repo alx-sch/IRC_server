@@ -12,6 +12,7 @@
 #include <arpa/inet.h>	// inet_ntoa()
 
 #include "../include/Server.hpp"
+#include "../include/Channel.hpp"
 #include "../include/User.hpp"
 #include "../include/Command.hpp"
 #include "../include/defines.hpp"
@@ -74,23 +75,29 @@ delimited by newline characters (`\n`). Each complete message is then broadcast 
  @return		`true` if input was successfully handled,
 				`false` if the user disconnected or an error occurred.
 */
-bool	Server::handleUserInput(int fd)
+Server::UserInputResult	Server::handleUserInput(int fd)
 {
 	char						buffer[MAX_BUFFER_SIZE]; // Temp buffer on the stack for incoming data
 	ssize_t						bytesRead = recv(fd, buffer, sizeof(buffer) - 1, 0); // Read from user socket
 	std::vector<std::string>	messages;
 	User*						user = getUser(fd);
+
 	if (!user)
-		return false;
+		return INPUT_ERROR; // Should never happen, but just in case
 
 	if (bytesRead == 0) // Connection closed by the user
-		return false;
+		return INPUT_DISCONNECTED;
 
 	if (bytesRead < 0) // recv() failed (bytesRead == -1)
 	{
+		// Check fir non-fatal, temporary errors
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+			return INPUT_OK; // No data available right now, try again later
+		
+		// Otherwise, it's a fatal error
 		logUserAction(user->getNickname(), fd, RED + toString("ERROR: recv() failed: ")
 			+ toString(strerror(errno)) + RESET);
-		return false;
+		return INPUT_ERROR;
 	}
 
 	// Append the received bytes to the user's input buffer
@@ -113,7 +120,7 @@ bool	Server::handleUserInput(int fd)
 			user->replyError(421, cmd, "Unknown command");
 		}
 	}
-	return true;
+	return INPUT_OK;
 }
 
 /**
@@ -188,13 +195,11 @@ void	Server::handleReadReadyUsers(fd_set& readFds)
 
 		if (FD_ISSET(userFd, &readFds))
 		{
-			if (!handleUserInput(userFd))
-			{
-				if (errno == 0) // User disconnected without any error (e.g. CTRL + C)
-					deleteUser(userFd, toString("disconnected (") + YELLOW + "user logout" + RESET + ")");
-				else
-					deleteUser(userFd, toString("disconnected (") + YELLOW + strerror(errno) + RESET + ")");
-			}
+			UserInputResult	result = handleUserInput(userFd);
+			if (result == INPUT_DISCONNECTED)
+				disconnectUser(userFd, "Connection closed");
+			else if (result == INPUT_ERROR)
+				disconnectUser(userFd, strerror(errno));
 		}
 	}
 }
@@ -289,12 +294,63 @@ void	Server::deleteUser(int fd, std::string logMsg)
 	if (!user)
 		return;
 
+	std::string	nick = user->getNickname();
+
 	// Log before we close and erase everything
-	logUserAction(user->getNickname(), fd, logMsg);
+	logUserAction(nick, fd, logMsg);
 
 	close(fd);
 	user->markDisconnected();
 	_usersFd.erase(fd);
-	_usersNick.erase(user->getNickname());
+	_usersNick.erase(nick);
 	delete user;
+}
+
+/**
+Handles the full disconnection process for a user.
+This is the central point for all disconnections (quit and error).
+It broadcasts the QUIT message and cleans up all server resources.
+*/
+void Server::disconnectUser(int fd, const std::string& reason)
+{
+	User*	user = getUser(fd);
+	if (!user) return; // User already disconnected
+
+	std::string	userNick = user->getNickname();
+	std::string	quitMsg = ":" + user->buildHostmask() + " QUIT :" + reason;
+
+	// Build unique set of users to notify
+	std::set<User*>					recipients;
+	const std::set<std::string>&	channels = user->getChannels();
+
+	for (std::set<std::string>::const_iterator it = channels.begin(); it != channels.end(); ++it)
+	{
+		Channel*	channel = getChannel(*it);
+		if (channel)
+		{
+			const std::set<std::string>&	members = channel->get_members();
+			for (std::set<std::string>::const_iterator mem_it = members.begin(); mem_it != members.end(); ++mem_it)
+			{
+				User*	member = getUser(*mem_it);
+				if (member)
+					recipients.insert(member);
+			}
+		}
+	}
+	recipients.erase(user); // Don't send QUIT to the user who is quitting
+
+	// Broadcast the quit message
+	for (std::set<User*>::iterator it = recipients.begin(); it != recipients.end(); ++it)
+		(*it)->getOutputBuffer() += quitMsg + "\r\n";
+
+	// Now, remove the user from all channels they were in
+	for (std::set<std::string>::const_iterator it = channels.begin(); it != channels.end(); ++it)
+	{
+		Channel*	channel = getChannel(*it);
+		if (channel)
+			channel->remove_user(userNick);
+	}
+
+	// Finally, delete the user from the server
+	deleteUser(fd, toString("disconnected: ") + YELLOW + reason + RESET);
 }
