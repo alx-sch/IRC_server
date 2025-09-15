@@ -1,5 +1,7 @@
 #include <vector>
 #include <string>
+#include <algorithm>	// For std::transform
+#include <cctype>		// For ::toupper
 
 #include "../include/Command.hpp"
 #include "../include/User.hpp"
@@ -12,7 +14,10 @@ Command::Cmd Command::getCmd(const std::vector<std::string>& tokens)
 	if (tokens.empty())
 		return UNKNOWN;
 
-	const std::string&			cmd = tokens[0];
+	std::string	cmd = tokens[0];
+
+	// Make commands case-insensitive by converting to uppercase
+	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
 
 	if (cmd == "NICK")		return NICK;
 	if (cmd == "USER")		return USER;
