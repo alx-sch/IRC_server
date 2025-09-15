@@ -123,7 +123,7 @@ bool	Command::handleModeChanges(Server* server, User* user, Channel* channel, co
 	if (appliedModes.empty())
 		return true; // No valid modes were changed
 
-	std::string	modeMsg =	":" + user->getNickname() + " MODE " + channel->get_name()
+	std::string	modeMsg =	":" + user->buildHostmask() + " MODE " + channel->get_name()
 							+ " " + appliedModes + modeParams;
 	broadcastToChannel(server, channel, modeMsg);
 
