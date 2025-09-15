@@ -9,8 +9,7 @@
 // '*' is default nickname for unregistered users
 User::User(int fd, Server* server)
 	:	_fd(fd), _nickname("*"), _server(server), _hasNick(false),
-		_hasUser(false), _hasPassed(false), _isRegistered(false),
-		_sendErrorLogged(false)
+		_hasUser(false), _hasPassed(false), _isRegistered(false)
 {}
 
 User::~User() {}
@@ -19,19 +18,6 @@ User::~User() {}
 std::string	User::buildHostmask() const
 {
 	return _nickname + "!" + _username + "@" + _host;
-}
-
-// Returns whether a send error has been logged for this user.
-bool	User::hasSendErrorLogged() const
-{
-	return _sendErrorLogged;
-
-}
-
-// Sets the flag indicating whether a send error has been logged for this user.
-void	User::setSendErrorLogged(bool value)
-{
-	_sendErrorLogged = value;
 }
 
 /////////////

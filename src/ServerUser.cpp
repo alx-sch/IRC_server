@@ -155,29 +155,6 @@ std::vector<std::string>	Server::extractMessagesFromBuffer(User* user)
 	return messages;
 }
 
-/**
-Logs and handles an unexpected disconnection event.
-
-This function is called when an I/O error occurs during communication
-(e.g., recv() or send() fails). It logs the user's nickname and file descriptor,
-along with the error source and reason.
-
- @param fd		The file descriptor of the disconnected user.
- @param reason	The reason for disconnection (e.g., "Connection closed", "Broken pipe").
- @param source	A string indicating where the error occurred (e.g., "recv()", "send()").
-*/
-void	Server::handleDisconnection(int fd, const std::string& reason, const std::string& source)
-{
-	// Just for safety,in case User was already deleted
-	User*		user = getUser(fd);
-	std::string	nick = user ? user->getNickname() : "*";
-
-	std::cerr	<< RED << BOLD << "Error: " << source << " failed for user "
-				<< GREEN << nick << RED
-				<< " (" << MAGENTA << "fd " << fd << RED << "): "
-				<< reason << RESET <<std::endl;
-}
-
 //////////////////////////
 // Handling Ready Users //
 //////////////////////////
@@ -240,52 +217,19 @@ void	Server::handleWriteReadyUsers(fd_set& writeFds)
 		{
 			std::string&	outputBuffer = user->getOutputBuffer(); // output buffer: What the server has prepared to send to client
 			ssize_t			bytesSent = send(userFd, outputBuffer.c_str(), outputBuffer.length(), 0);
-			
-			if (bytesSent == -1)
+
+			if (bytesSent > 0) // Successfully sent some data. Remove it from the buffer.
+				outputBuffer.erase(0, bytesSent);
+			else if (bytesSent == -1) // send() failed
 			{
-				// Handle send error - may disconnect user
-				handleSendError(userFd, user->getNickname());
 				if (errno == EPIPE || errno == ECONNRESET)
-					continue; // User was deleted by handleSendError
-			}
-			else if (bytesSent > 0)
-			{
-				outputBuffer.erase(0, bytesSent);	// Remove sent data from buffer
-				user->setSendErrorLogged(false);	// Reset error log flag
+				{
+					logUserAction(user->getNickname(), userFd, RED + toString("ERROR on send(). Disconnecting user.") + RESET);
+					deleteUser(userFd, toString("disconnected (") + YELLOW + strerror(errno) + RESET + ")");
+				}
+				// If errno is EAGAIN or EWOULDBLOCK, do nothing (temporary issue), just try again in next select() loop
 			}
 		}
-	}
-}
-
-/**
-Handles a failed `send()` operation to a user.
-
-Logs the error to the server terminal.
-If the failure was due to a broken or reset connection (`EPIPE` or `ECONNRESET`),
-the user is considered disconnected and is removed from the server.
-
- @param fd		The fd of the user for whom `send()` failed.
- @param nick	The nickname of the user for whom `send()` failed.
-*/
-void	Server::handleSendError(int fd, const std::string& nick)
-{
-	User*	user = getUser(fd);
-
-	// Critical: user is disconnected
-	if (errno == EPIPE || errno == ECONNRESET)
-	{
-		handleDisconnection(fd, strerror(errno), "send()");
-		deleteUser(fd, toString("disconnected (") + YELLOW + strerror(errno) + RESET + ")");
-		return;
-	}
-
-	// Non‑critical send error (temporary): log it ONCE but do not disconnect
-	// e.g. EAGAIN or EWOULDBLOCK (“Resource temporarily unavailable”)
-	if (user && !user->hasSendErrorLogged())
-	{
-		logUserAction(nick, fd, RED + toString("ERROR: sending message to client failed: ")
-			+ toString(strerror(errno)) + RESET);
-		user->setSendErrorLogged(true); // Prevent multiple logs for the same error
 	}
 }
 

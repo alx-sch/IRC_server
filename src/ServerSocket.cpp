@@ -39,7 +39,7 @@ Creates a non-blocking TCP socket.
 The method for setting the non-blocking mode is determined at compile time based on the
 operating system.
  - On Linux, the `SOCK_NONBLOCK` flag is used directly in the `socket()` call.
- - On macOS, the socket is first created in blocking mode,
+ - On macOS, there is no `SOCK_NONBLOCK` flag, so the socket is first created in blocking mode,
    and then the `fcntl()` function is used to set the `O_NONBLOCK` flag.
  - If the operating system is not Linux or macOS, a compile-time error is generated.
 
@@ -58,13 +58,9 @@ void	Server::createSocket()
 		_fd = socket(AF_INET, SOCK_STREAM, 0);  // Create blocking IPv4 TCP socket
 		if (_fd == -1)
 			throw std::runtime_error("Failed to create server socket: " + toString(strerror(errno)));
-		int	flags = fcntl(_fd, F_GETFL, 0);
-		if (flags == -1)
-		{
-			close(_fd); // Need to close here as destructor won't be called if constructor fails
-			throw std::runtime_error("Failed to get socket flags: " + toString(strerror(errno)));
-		}
-		if (fcntl(_fd, F_SETFL, flags | O_NONBLOCK) == -1)
+		
+		// Set the socket to non-blocking, overwriting any existing flags
+		if (fcntl(_fd, F_SETFL, O_NONBLOCK) == -1)
 		{
 			close(_fd);
 			throw std::runtime_error("Failed to set socket to non-blocking: " + toString(strerror(errno)));

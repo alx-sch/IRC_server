@@ -35,9 +35,6 @@ class	User
 		void				addChannel(const std::string& channel);
 		void				removeChannel(const std::string& channel);
 
-		bool				hasSendErrorLogged() const;
-		void				setSendErrorLogged(bool value);
-
 		// === UserReply.cpp ===
 
 		void				replyWelcome();
@@ -73,8 +70,6 @@ class	User
 		bool						_hasUser;		// true if user has sent USER command (got username)
 		bool						_hasPassed;		// true if user has sent PASS command successfully
 		bool						_isRegistered;	// true if user has sent NICK, USER commands to server
-
-		bool						_sendErrorLogged;	// Flag to prevent multiple error logs for the same send error
 };
 
 #endif

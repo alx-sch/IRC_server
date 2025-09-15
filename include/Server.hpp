@@ -82,10 +82,8 @@ class Server
 		void		acceptNewUser();
 		void		handleReadyUsers(fd_set& readFds);
 		void		handleWriteReadyUsers(fd_set& writeFds);
-		void		handleSendError(int fd, const std::string& nick);
 		bool		handleUserInput(int fd);
 		std::vector<std::string>	extractMessagesFromBuffer(User* user);
-		void		handleDisconnection(int fd, const std::string& reason, const std::string& source);
 };
 
 # endif
