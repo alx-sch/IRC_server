@@ -153,7 +153,7 @@ std::vector<std::string>	Server::extractMessagesFromBuffer(User* user)
 			msg.erase(msg.size() - 1);
 
 		// Check if line is too long (more than 510 + CRLF = 512); see RFC 1459, 2.3
-		if (msg.size() > 510)
+		if (msg.size() > MAX_BUFFER_SIZE - 2)
 		{
 			logUserAction(user->getNickname(), user->getFd(), toString("sent an overlong line (")
 				+ YELLOW + toString(msg.size()) + RESET + " > 512 bytes)");
@@ -199,7 +199,7 @@ void	Server::handleReadReadyUsers(fd_set& readFds)
 			else if (result == INPUT_ERROR)
 			{
 				logUserAction(getUser(userFd)->getNickname(), userFd, RED
-					+ toString("ERROR: recv() failed: ") + toString(strerror(errno)) + RESET);
+					"ERROR: recv() failed: " + toString(strerror(errno)) + RESET);
 				disconnectUser(userFd, "Read error: " + toString(strerror(errno)));
 			}
 		}

@@ -33,7 +33,7 @@ int	main(int argc, char** argv)
 		setupSignalHandler();	// Set up signal handler for graceful shutdown via SIGINT
 		server.run();			// Start the server loop, only interrupted by SIGINT or throwing exceptions
 
-		// server.run() has exited, likely due to SIGINT
+		// server.run() has exited due to SIGINT (Ctrl+C)
 		std::cout << std::endl;  // Just a newline for clean output after Ctrl+C
 		logServerMessage("Shutting down server...");
 	}
