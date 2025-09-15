@@ -95,8 +95,6 @@ Server::UserInputResult	Server::handleUserInput(int fd)
 			return INPUT_OK; // No data available right now, try again later
 		
 		// Otherwise, it's a fatal error
-		logUserAction(user->getNickname(), fd, RED + toString("ERROR: recv() failed: ")
-			+ toString(strerror(errno)) + RESET);
 		return INPUT_ERROR;
 	}	
 
@@ -199,7 +197,11 @@ void	Server::handleReadReadyUsers(fd_set& readFds)
 			if (result == INPUT_DISCONNECTED)
 				disconnectUser(userFd, "Connection closed");
 			else if (result == INPUT_ERROR)
+			{
+				logUserAction(getUser(userFd)->getNickname(), userFd, RED
+					+ toString("ERROR: recv() failed: ") + toString(strerror(errno)) + RESET);
 				disconnectUser(userFd, "Read error: " + toString(strerror(errno)));
+			}
 		}
 	}
 }
