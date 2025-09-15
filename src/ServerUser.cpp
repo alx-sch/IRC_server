@@ -35,13 +35,16 @@ void	Server::acceptNewUser()
 	if (userFd == -1) // Critical! Shut down server / end program
 		throw std::runtime_error("accept() failed: " + toString(strerror(errno)));
 
+	std::string	userIp = inet_ntoa(userAddr.sin_addr);
+
 	logUserAction("*", userFd, toString("connected from ") + YELLOW
-		+ toString(inet_ntoa(userAddr.sin_addr)) + RESET);
+		+ toString(userIp) + RESET);
 
 	try
 	{
 		User*	newUser = new User(userFd, this); // 'new' throws std::bad_alloc on failure
 		_usersFd[userFd] = newUser;
+		newUser->setHost(userIp);
 
 		// Set as "password-passed" when server requires no password
 		if (_password.empty())

@@ -1,4 +1,6 @@
 #include "../include/Channel.hpp"
+#include "../include/User.hpp"	// for User* in get_mode_string()
+#include "../include/utils.hpp"	// toString
 
 // Constructor: Initializes the channel with a name and default values.
 Channel::Channel(std::string name)
@@ -209,4 +211,47 @@ std::string	Channel::get_names_list() const
 		 namesList.erase(namesList.length() - 1); // Remove trailing space
 
 	return namesList;
+}
+
+/**
+Constructs the mode string and its parameters for RPL_CHANNELMODEIS (`324`).
+
+This function assembles a string representing the channel's current modes.
+For example, for an invite-only channel with a user limit of 10, it
+would return "+il 10". The channel key (+k) is only included if the
+requesting user is a channel operator.
+
+ @param user	The user who is requesting the modes. Used to check for operator
+				privileges before revealing the channel key.
+ @return		A std::string containing the formatted modes and parameters.
+*/
+std::string	Channel::get_mode_string(const User* user) const
+{
+	std::string modeChars;
+	std::string modeParams;
+
+	if (this->is_invite_only())
+		modeChars += "i";
+
+	if (this->has_topic_protection())
+		modeChars += "t";
+
+	if (this->has_user_limit())
+	{
+		modeChars += "l";
+		modeParams += " " + toString(get_user_limit());
+	}
+
+	if (this->has_password())
+	{
+		modeChars += "k";
+		// Only show the actual key to channel operators for security.
+		if (user && this->is_user_operator(user->getNickname()))
+			modeParams += " " + this->get_password();
+	}
+
+	if (modeChars.empty())
+		return ""; // No modes are set
+
+	return "+" + modeChars + modeParams;
 }

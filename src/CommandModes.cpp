@@ -50,8 +50,9 @@ bool	Command::handleMode(Server* server, User* user, const std::vector<std::stri
 	{
 		std::string	modes;
 		std::string	params;
-		formatChannelModes(channel, user, modes, params);
-		sendModeReply(user, target, modes, params);
+		std::string	paramsLogging; // for logging, does not include password
+		formatChannelModes(channel, user, modes, params, paramsLogging);
+		sendModeReply(user, target, modes, params, paramsLogging);
 		return true;
 	}
 
@@ -199,10 +200,12 @@ and the 'params' string with associated parameters (e.g., user limit, password).
  @param modes	Reference to the string to populate with mode flags (prefixed with '+').
  @param params	Reference to the string to populate with any mode parameters.
 */
-void	Command::formatChannelModes(Channel* channel, User* user, std::string& modes, std::string& params)
+void	Command::formatChannelModes(Channel* channel, User* user, std::string& modes,
+			std::string& params, std::string& paramsLogging)
 {
 	modes.clear();
 	params.clear();
+	paramsLogging.clear();
 
 	if (channel->is_invite_only())
 		modes += "i";
@@ -212,6 +215,7 @@ void	Command::formatChannelModes(Channel* channel, User* user, std::string& mode
 	{
 		modes += "l";
 		params += " " + toString(channel->get_user_limit());
+		paramsLogging += " " + toString(channel->get_user_limit());
 	}
 	if (channel->has_password())
 	{
@@ -238,12 +242,13 @@ and any parameters, and appends it to the user's output buffer. Also logs the ac
  @param params	Associated parameters (e.g., user limit, password).
 */
 void	Command::sendModeReply(User* user, const std::string& target, const std::string& modes,
-			const std::string& params)
+			const std::string& params, std::string& paramsLogging)
 {
 	user->replyServerMsg("324 " + user->getNickname() + " " + target + (modes.empty() ? "" : " " + modes) + params);
 
+
 	logUserAction(user->getNickname(), user->getFd(), toString("queried modes for ") + BLUE + target + RESET
-		+ (modes.empty() ? " (no modes set)" : toString(" (") + YELLOW + modes + RESET + params + ")"));
+		+ (modes.empty() ? " (no modes set)" : toString(" (") + YELLOW + modes + RESET + paramsLogging + ")"));
 }
 
 // Applies a single mode change to a channel.

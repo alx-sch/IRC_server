@@ -35,6 +35,12 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 		return;
 	}
 
+	// Successfully change the nickname
+
+	// If no username is set yet, use temp username
+	if (user->getUsername().empty())
+		user->setUsernameTemp("~" + nick);
+
 	std::string	line = ":" + user->buildHostmask() + " NICK :" + nick + "\r\n";
 	user->getOutputBuffer() += line;
 	user->setNickname(nick);
@@ -61,15 +67,16 @@ void	Command::handleUser(User* user, const std::vector<std::string>& tokens)
 	}
 	
 	logUserAction(user->getNickname(), user->getFd(), "sent valid USER command");
+
+	// Set username and realname / ignore hostname and servername
 	user->setUsername(tokens[1]);
-	user->setHost(tokens[2]);
 
 	// Handle realname
 	std::string realname = tokens[4];
 	if (realname[0] == ':') // Remove leading colon if present
 		realname = realname.substr(1);
-		
 	user->setRealname(realname);
+
 	user->tryRegister();
 }
 

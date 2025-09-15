@@ -19,6 +19,7 @@ class	User
 
 		void				setNickname(const std::string& nickname);
 		void				setUsername(const std::string& username);
+		void				setUsernameTemp(const std::string& username);
 		void				setRealname(const std::string& realname);
 		void				setHost(const std::string& host);
 		void				markDisconnected();
@@ -44,7 +45,7 @@ class	User
 
 		// === UserRegistration.cpp ===
 
-		void				setHasPassed(bool b);	// Used in handlePass() command handler
+		void				setHasPassed(bool b);
 		bool				isRegistered() const;
 		void				tryRegister();
 
@@ -58,8 +59,9 @@ class	User
 
 		std::string					_nickname;
 		std::string					_username;
+		bool						_hasUsername;	// true if username was set via USER command
 		std::string					_realname;		// usually unused
-		std::string					_host;			// rather obsolete, most clients use '*' -> but get from USER command nevertheless
+		std::string					_host;			// rather obsolete, most clients use '*' -> use IP address obtained from socket
 
 		Server*						_server;		// Pointer to the server user is connected to (to use 'Server' methods)
 		std::string					_inputBuffer;	// buffer for incoming messages (client->server), accumulated until a full message is formed

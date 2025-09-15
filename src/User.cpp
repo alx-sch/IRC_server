@@ -57,6 +57,12 @@ void	User::setUsername(const std::string& username)
 	_hasUser = true;
 }
 
+// Set the username for the user temporarily (when NICK is set before USER)
+void	User::setUsernameTemp(const std::string& username)
+{
+	_username = username;
+}
+
 // Set the real name for the user (usually unused)
 void	User::setRealname(const std::string& realname)
 {

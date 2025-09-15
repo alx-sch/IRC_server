@@ -97,6 +97,10 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 	else
 		user->replyServerMsg(toString("332 ") + user->getNickname() + " " + channelName + " :" + channel->get_topic());
 
+	// Send channel mode to the joining user
+	std::string	modeString = channel->get_mode_string(user);
+	user->replyServerMsg(toString("324 ") + user->getNickname() + " " + channelName + " " + modeString);
+
 	// Send names list to the joining user
 	std::string	namesList = channel->get_names_list();
 	user->replyServerMsg(toString("353 ") + user->getNickname() + " = " + channelName + " :" + namesList);
