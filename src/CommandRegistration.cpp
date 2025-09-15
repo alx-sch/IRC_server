@@ -35,6 +35,8 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 		return;
 	}
 
+	std::string	line = ":" + user->buildHostmask() + " NICK :" + nick + "\r\n";
+	user->getOutputBuffer() += line;
 	user->setNickname(nick);
 	user->tryRegister();
 }
