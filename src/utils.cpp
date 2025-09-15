@@ -8,7 +8,7 @@
 #include <cctype>		// For ::isalpha() and ::isdigit()
 #include <cstdlib>		// strtol
 
-// Parses and validates a port number from a C-style string (argument)
+// Parses and validates a port number gitfrom a C-style string (argument)
 int	parsePort(const char* arg)
 {
 	char*	end;
