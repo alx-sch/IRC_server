@@ -126,6 +126,7 @@ void	Command::handlePrivmsg(Server *server, User *user, const std::vector<std::s
 
 /**
 Sends a `NOTICE` from a user to another user.
+Like `PRIVMSG`, but does not trigger automatic replies from the server.
 
  @param server		Pointer to the server instance.
  @param sender		Pointer to the user sending the message.
@@ -140,14 +141,12 @@ static void	handleNoticeToChannel(Server* server, User* sender, const std::strin
 	{
 		logUserAction(sender->getNickname(), sender->getFd(),
 			toString("tried to send NOTICE to non-existing ") + RED + channelName + RESET);
-		sender->replyError(403, channelName, "No such channel");
 		return;
 	}
 	if (!channel->is_user_member(sender->getNickname()))
 	{
 		logUserAction(sender->getNickname(), sender->getFd(), toString("tried to send NOTICE to ")
 			+ BLUE + channelName + RESET + " but is not a member");
-		sender->replyError(404, channelName, "Cannot send to channel");
 		return;
 	}
 
@@ -160,6 +159,7 @@ static void	handleNoticeToChannel(Server* server, User* sender, const std::strin
 
 /**
 Sends a `NOTICE` from a user to a channel.
+Like `PRIVMSG`, but does not trigger automatic replies from the server.
 
  @param server			Pointer to the server instance.
  @param sender			Pointer to the user sending the message.
@@ -174,7 +174,6 @@ static void	handleNoticeToUser(Server* server, User* sender, const std::string& 
 	{
 		logUserAction(sender->getNickname(), sender->getFd(),
 			toString("tried to send NOTICE to non-existing ") + RED + targetNick + RESET);
-		sender->replyError(401, targetNick, "No such nick/channel");
 		return;
 	}
 
@@ -186,9 +185,9 @@ static void	handleNoticeToUser(Server* server, User* sender, const std::string& 
 }
 
 /**
-Just like `PRIVMSG`, but does not send server replies to the user.
-
 Handles the `NOTICE` command from a user.
+Like `PRIVMSG`, but does not trigger automatic replies from the server.
+
 Sends a message to one or more recipients, which can be users or channels.
 Format: `NOTICE <recipient>{,<recipient>} :<text to be sent>`
 
@@ -204,13 +203,11 @@ void	Command::handleNotice(Server* server, User* user, const std::vector<std::st
 	if (tokens.size() < 2)
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent invalid NOTICE command (too few arguments)");
-		user->replyError(411, "", "No recipient given (NOTICE)");
 		return;
 	}
 	else if (tokens.size() < 3)
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent invalid NOTICE command (too few arguments)");
-		user->replyError(412, "", "No text to send");
 		return;
 	}
 
