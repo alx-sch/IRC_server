@@ -35,8 +35,10 @@ void	Command::handleQuit(Server* server, User* user, const std::vector<std::stri
 {
 	std::string	reason = getQuitReason(tokens);
 	std::string	userNick = user->getNickname();
-	
-	// Get the list of channels the user is in
+	std::string	quitMsg = ":" + user->buildHostmask() + " QUIT :" + reason;
+
+	// Build unique set of users to notify (to avoid duplicate messages)
+	std::set<User*>			recipients;
 	const std::set<std::string>&	channels = user->getChannels();
 
 	// Iterate through each channel the user is in
@@ -45,15 +47,34 @@ void	Command::handleQuit(Server* server, User* user, const std::vector<std::stri
 		Channel*	channel = server->getChannel(*it); // Get the channel object by name
 		if (!channel)
 			continue; // Skip if channel does not exist
+		
+		// Get all members of the channel and add them to recipients set (unique)
+		const std::set<std::string>&	members = channel->get_members();
+		for (std::set<std::string>::const_iterator mem_it = members.begin(); mem_it != members.end(); ++mem_it)
+		{
+			User*	member = server->getUser(*mem_it);
+			if (member)
+				recipients.insert(member);
+		}
+	}
 
-		// Broadcast the quit message to all channel members
-		std::string	quitMsg = ":" + user->buildHostmask() + " QUIT :" + reason;
-		broadcastToChannel(server, channel, quitMsg, userNick);
+	// Quitting message should not be sent to the quitting user
+	recipients.erase(user);
 
-		// Remove the user from the channel
-		channel->remove_user(userNick);
+	// Broadcast the quit message to all user which shared a channel with the quitting user
+	for (std::set<User*>::const_iterator it = recipients.begin(); it != recipients.end(); ++it)
+		(*it)->getOutputBuffer() += quitMsg + "\r\n";
+
+	// Now remove the user from all channels they were in
+	for (std::set<std::string>::const_iterator it = channels.begin(); it != channels.end(); ++it)
+	{
+		Channel*	channel = server->getChannel(*it);
+		if (channel)
+			channel->remove_user(userNick);
+
 		logUserAction(userNick, user->getFd(), toString("left ") + BLUE + *it + RESET
 			+ ": " + YELLOW + reason + RESET);
 	}
+	// Finally, remove the user from the server
 	server->deleteUser(user->getFd(), toString("quit: ") + YELLOW + reason + RESET);	// Remove user from server
 }
