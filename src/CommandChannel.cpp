@@ -210,7 +210,7 @@ bool	Command::handleSinglePart(Server* server, User* user, const std::string& ch
 	}
 
 	// Send PART message to all channel members (including the leaving user)
-	std::string partLine = ":" + user->getNickname() + " PART " + channelName;
+	std::string partLine = ":" + user->buildHostmask() + " PART " + channelName;
 	if (!partMessage.empty())
 		partLine += " :" + partMessage;
 
@@ -379,7 +379,7 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	}
 
 	// Send KICK message to all channel members (including kicker and victim)
-	std::string kickLine = ":" + user->getNickname() + " KICK " + channelName + " " + targetNick;
+	std::string kickLine = ":" + user->buildHostmask() + " KICK " + channelName + " " + targetNick;
 	if (!kickReason.empty())
 		kickLine += " :" + kickReason;
 
@@ -458,10 +458,10 @@ bool	Command::handleTopic(Server *server, User *user, const std::vector<std::str
 			user->replyError(482, channelName, "You're not channel operator");
 			return false;
 		}
-		channel->set_topic(newTopic);
+		channel->set_topic(newTopic, user->buildHostmask());
 
 		// Broadcast topic change to all channel members
-		std::string	topicLine = ":" + user->getNickname() + " TOPIC " + channelName + " :" + newTopic;
+		std::string	topicLine = ":" + user->buildHostmask() + " TOPIC " + channelName + " :" + newTopic;
 		broadcastToChannel(server, channel, topicLine); // Everyone gets the topic change
 
 		// Log the topic change
@@ -470,15 +470,19 @@ bool	Command::handleTopic(Server *server, User *user, const std::vector<std::str
 
 		return true;
 	}
-	else
+	else // No new topic provided, just show current topic
 	{
-		// No new topic provided, just show current topic
 		std::string	currentTopic = channel->get_topic();
 		if (currentTopic.empty())
+		{
 			currentTopic = "(no topic)";
+			return true;
+		}
 
 		// Send topic reply to user
 		user->replyServerMsg("332 " + user->getNickname() + " " + channelName + " :" + currentTopic);
+		user->replyServerMsg("333 " + user->getNickname() + " " + channelName + " " 
+			+ channel->get_topic_set_info());
 
 		// Log the topic request
 		logUserAction(user->getNickname(), user->getFd(),

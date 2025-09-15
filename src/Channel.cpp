@@ -2,6 +2,8 @@
 #include "../include/User.hpp"	// for User* in get_mode_string()
 #include "../include/utils.hpp"	// toString
 
+#include <ctime>	// time()
+
 // Constructor: Initializes the channel with a name and default values.
 Channel::Channel(std::string name)
 	:	_channel_name(name), _connected_user_number(0), _user_limit(0),
@@ -87,15 +89,24 @@ bool	Channel::has_topic_protection() const
 }
 
 // Sets the topic of the channel.
-void	Channel::set_topic(const std::string &topic)
+void	Channel::set_topic(const std::string &topic, const std::string& set_by)
 {
 	_channel_topic = topic;
+	_channel_topic_set_by = set_by;
+	_channel_topic_set_at = time(NULL);
 }
 
 // Retrieves the current channel topic.
 const std::string&	Channel::get_topic() const
 {
 	return _channel_topic;
+}
+
+// Retrieves information about who set the topic and when,
+// e.g. "nick!user@host 1697051234"
+std::string	Channel::get_topic_set_info() const
+{
+	return _channel_topic_set_by + " " + toString(_channel_topic_set_at);
 }
 
 // Returns true if a user limit is set.

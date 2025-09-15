@@ -38,8 +38,9 @@ class	Channel
 		bool		can_user_join(const std::string& user_nick,
 						const std::string& provided_key, JoinResult& result) const;
 
-		void		set_topic(const std::string& topic);
+		void		set_topic(const std::string& topic, const std::string& set_by);
 		const std::string&	get_topic() const;
+		std::string	get_topic_set_info() const;
 		void		set_topic_protection(bool enable = true);
 		bool		has_topic_protection() const;
 
@@ -65,6 +66,8 @@ class	Channel
 
 		std::string				_channel_name;
 		std::string				_channel_topic;
+		std::string				_channel_topic_set_by;
+		int						_channel_topic_set_at;
 		std::set<std::string>	_channel_members_by_nickname;
 		std::set<std::string>	_channel_operators_by_nickname;
 		std::set<std::string>	_channel_invitation_list;
