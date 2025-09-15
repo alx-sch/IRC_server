@@ -127,6 +127,10 @@ std::vector<std::string>	Server::extractMessagesFromBuffer(User* user)
 	size_t						newlinePos;
 
 	// Extract complete messages (terminated by '\n')
+	// Technically, IRC messages end with CRLF (\r\n), but many clients
+	// just use LF (\n); also makes usage with terminal tools like netcat easier.
+	// We will handle optional '\r' when processing each line below.
+	// Postel's Law: Be conservative in what you send, liberal in what you accept.
 	while ((newlinePos = buffer.find('\n')) != std::string::npos)
 	{
 		// Get the next full line (up to the newline)
