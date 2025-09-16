@@ -8,69 +8,59 @@
 #include "../include/utils.hpp"		// logUserAction, isValidChannelName
 #include "../include/defines.hpp"	// color formatting
 
-/////////////
-// PRIVMSG //
-/////////////
+static void	handleMessageToChannel(Server* server, User* sender, const std::string& channelName,
+									const std::string& message, const std::string& commandName);
+static void	handleMessageToUser(Server* server, User* sender, const std::string& targetNick,
+								const std::string& message, const std::string& commandName);
 
 /**
-Sends a `PRIVMSG` from a user to a channel.
+Handles sending a message (`PRIVMSG` or `NOTICE`) to users and channels.
 
  @param server		Pointer to the server instance.
- @param sender		Pointer to the user sending the message.
- @param channelName	Name of the target channel.
- @param message		The message content to send.
+ @param user		Pointer to the user sending the message.
+ @param tokens		Tokenized input of the command.
+ @param commandName	The name of the command being executed ("PRIVMSG" or "NOTICE").
 */
-static void	handlePrivmsgToChannel(Server* server, User* sender, const std::string& channelName,
-									const std::string& message)
+void	Command::handleMessage(Server* server, User* user, const std::vector<std::string>& tokens,
+								const std::string& commandName)
 {
-	Channel*	channel = server->getChannel(channelName);
-	if (!channel)
+	// Determine if the command should send error replies.
+	const bool	sendReplies = (commandName == "PRIVMSG");
+
+	if (!checkRegistered(user, commandName))
+		return;
+
+	// Argument checks
+	if (tokens.size() < 2)
 	{
-		logUserAction(sender->getNickname(), sender->getFd(),
-			toString("tried to send PRIVMSG to non-existing ") + RED + channelName + RESET);
-		sender->replyError(403, channelName, "No such channel");
+		logUserAction(user->getNickname(), user->getFd(), "sent invalid " + commandName + " (no recipient)");
+		if (sendReplies)
+			user->replyError(411, "", "No recipient given (" + commandName + ")");
 		return;
 	}
-	if (!channel->is_user_member(sender->getNickname()))
+	if (tokens.size() < 3)
 	{
-		logUserAction(sender->getNickname(), sender->getFd(), toString("tried to send PRIVMSG to ")
-			+ BLUE + channelName + RESET + " but is not a member");
-		sender->replyError(404, channelName, "Cannot send to channel");
-		return;
-	}
-
-	std::string	line = ":" + sender->buildHostmask() + " PRIVMSG " + channelName + " :" + message;
-	Command::broadcastToChannel(server, channel, line, sender->getNickname());
-
-	logUserAction(sender->getNickname(), sender->getFd(), toString("sent PRIVMSG to ")
-		+ BLUE + channelName + RESET);
-}
-
-/**
-Sends a `PRIVMSG` from a user to another user.
-
- @param server		Pointer to the server instance.
- @param sender		Pointer to the user sending the message.
- @param targetNick	Nickname of the recipient user.
- @param message		The message content to send.
-*/
-static void	handlePrivmsgToUser(Server* server, User* sender, const std::string& targetNick,
-								const std::string& message)
-{
-	User*	targetUser = server->getUser(targetNick);
-	if (!targetUser)
-	{
-		logUserAction(sender->getNickname(), sender->getFd(),
-			toString("tried to send PRIVMSG to non-existing ") + RED + targetNick + RESET);
-		sender->replyError(401, targetNick, "No such nick/channel");
+		logUserAction(user->getNickname(), user->getFd(), "sent invalid " + commandName + " (no text)");
+		if (sendReplies)
+			user->replyError(412, "", "No text to send");
 		return;
 	}
 
-	std::string	line = ":" + sender->buildHostmask() + " PRIVMSG " + targetNick + " :" + message + "\r\n";
-	targetUser->getOutputBuffer() += line;
+	// Get message
+	std::string	message = tokens[2];
+	if (!message.empty() && message[0] == ':')
+		message = message.substr(1); // Remove leading ':' if present
 
-	logUserAction(sender->getNickname(), sender->getFd(),
-		toString("sent PRIVMSG to user ") + GREEN + targetNick + RESET);
+	// Send message to each target
+	std::vector<std::string>	targets = splitCommaList(tokens[1]);
+	for (size_t i = 0; i < targets.size(); ++i)
+	{
+		const std::string&	target = targets[i];
+		if (isValidChannelName(target)) // Channel
+			handleMessageToChannel(server, user, target, message, commandName);
+		else // User
+			handleMessageToUser(server, user, target, message, commandName);
+	}
 }
 
 /**
@@ -82,106 +72,9 @@ Format: `PRIVMSG <recipient>{,<recipient>} :<text to be sent>`
  @param user	Pointer to the user sending the message.
  @param tokens	Tokenized input of the PRIVMSG command.
 */
-void	Command::handlePrivmsg(Server *server, User *user, const std::vector<std::string> &tokens)
+void Command::handlePrivmsg(Server *server, User *user, const std::vector<std::string> &tokens)
 {
-	if (!checkRegistered(user, "PRIVMSG"))
-		return ;
-
-	if (tokens.size() < 2)
-	{
-		logUserAction(user->getNickname(), user->getFd(), "sent invalid PRIVMSG command (too few arguments)");
-		user->replyError(411, "", "No recipient given (PRIVMSG)");
-		return;
-	}
-	else if (tokens.size() < 3)
-	{
-		logUserAction(user->getNickname(), user->getFd(), "sent invalid PRIVMSG command (too few arguments)");
-		user->replyError(412, "", "No text to send");
-		return;
-	}
-
-	// Split comma-separated list of targets
-	std::vector<std::string>	targets = splitCommaList(tokens[1]);
-
-	// Get message
-	std::string	message = tokens[2];
-	if (!message.empty() && message[0] == ':')
-		message = message.substr(1); // Remove leading ':' if present
-
-	// Send message to each target
-	for (size_t i = 0; i < targets.size(); ++i)
-	{
-		const std::string&	target = targets[i];
-
-		if (isValidChannelName(target)) // Channel
-			handlePrivmsgToChannel(server, user, target, message);
-		else // User
-			handlePrivmsgToUser(server, user, target, message);
-	}
-}
-
-////////////
-// NOTICE //
-////////////
-
-/**
-Sends a `NOTICE` from a user to a channel.
-Like `PRIVMSG`, but does not trigger automatic replies from the server.
-
- @param server		Pointer to the server instance.
- @param sender		Pointer to the user sending the message.
- @param channelName	Name of the target channel.
- @param message		The message content to send.
-*/
-static void	handleNoticeToChannel(Server* server, User* sender, const std::string& channelName,
-									const std::string& message)
-{
-	Channel*	channel = server->getChannel(channelName);
-	if (!channel)
-	{
-		logUserAction(sender->getNickname(), sender->getFd(),
-			toString("tried to send NOTICE to non-existing ") + RED + channelName + RESET);
-		return;
-	}
-	if (!channel->is_user_member(sender->getNickname()))
-	{
-		logUserAction(sender->getNickname(), sender->getFd(), toString("tried to send NOTICE to ")
-			+ BLUE + channelName + RESET + " but is not a member");
-		return;
-	}
-
-	std::string	line = ":" + sender->buildHostmask() + " NOTICE " + channelName + " :" + message;
-	Command::broadcastToChannel(server, channel, line, sender->getNickname());
-
-	logUserAction(sender->getNickname(), sender->getFd(), toString("sent NOTICE to ")
-		+ BLUE + channelName + RESET);
-}
-
-/**
-Handles the `NOTICE` command from a user.
-Like `PRIVMSG`, but does not trigger automatic replies from the server.
-
- @param server			Pointer to the server instance.
- @param sender			Pointer to the user sending the message.
- @param targetNick		Name of user receiving the message.
- @param message			The message content to send.
-*/
-static void	handleNoticeToUser(Server* server, User* sender, const std::string& targetNick,
-								const std::string& message)
-{
-	User*	targetUser = server->getUser(targetNick);
-	if (!targetUser)
-	{
-		logUserAction(sender->getNickname(), sender->getFd(),
-			toString("tried to send NOTICE to non-existing ") + RED + targetNick + RESET);
-		return;
-	}
-
-	std::string	line = ":" + sender->buildHostmask() + " NOTICE " + targetNick + " :" + message + "\r\n";
-	targetUser->getOutputBuffer() += line;
-
-	logUserAction(sender->getNickname(), sender->getFd(),
-		toString("sent NOTICE to user ") + GREEN + targetNick + RESET);
+	handleMessage(server, user, tokens, "PRIVMSG");
 }
 
 /**
@@ -195,38 +88,75 @@ Format: `NOTICE <recipient>{,<recipient>} :<text to be sent>`
  @param user	Pointer to the user sending the message.
  @param tokens	Tokenized input of the NOTICE command.
 */
-void	Command::handleNotice(Server* server, User* user, const std::vector<std::string>& tokens)
+void Command::handleNotice(Server *server, User *user, const std::vector<std::string> &tokens)
 {
-	if (!checkRegistered(user, "NOTICE"))
-		return ;
+	handleMessage(server, user, tokens, "NOTICE");
+}
 
-	if (tokens.size() < 2)
+////////////
+// HELPER //
+////////////
+
+/**
+Sends a message (`PRIVMSG` or `NOTICE`) from a user to a channel.
+
+ @param commandName	The name of the command ("PRIVMSG" or "NOTICE").
+*/
+static void	handleMessageToChannel(Server* server, User* sender, const std::string& channelName,
+									const std::string& message, const std::string& commandName)
+{
+	const bool	sendReplies = (commandName == "PRIVMSG");
+	Channel*	channel = server->getChannel(channelName);
+
+	if (!channel)
 	{
-		logUserAction(user->getNickname(), user->getFd(), "sent invalid NOTICE command (too few arguments)");
+		logUserAction(sender->getNickname(), sender->getFd(), "tried to send " + commandName
+			+ " to non-existing " + RED + channelName + RESET);
+		if (sendReplies)
+			sender->replyError(403, channelName, "No such channel");
 		return;
 	}
-	else if (tokens.size() < 3)
+	if (!channel->is_user_member(sender->getNickname()))
 	{
-		logUserAction(user->getNickname(), user->getFd(), "sent invalid NOTICE command (too few arguments)");
+		logUserAction(sender->getNickname(), sender->getFd(), "tried to send " + commandName
+			+ " to " + BLUE + channelName + RESET + " but is not a member");
+		if (sendReplies)
+			sender->replyError(404, channelName, "Cannot send to channel");
 		return;
 	}
 
-	// Split comma-separated list of targets
-	std::vector<std::string>	targets = splitCommaList(tokens[1]);
+	// Construct the IRC line and broadcast it
+	std::string line = ":" + sender->buildHostmask() + " " + commandName + " " + channelName + " :" + message;
+	Command::broadcastToChannel(server, channel, line, sender->getNickname());
 
-	// Get message
-	std::string	message = tokens[2];
-	if (!message.empty() && message[0] == ':')
-		message = message.substr(1); // Remove leading ':' if present
+	logUserAction(sender->getNickname(), sender->getFd(), "sent " + commandName + " to "
+		+ BLUE + channelName + RESET);
+}
 
-	// Send message to each target
-	for (size_t i = 0; i < targets.size(); ++i)
+/**
+Sends a message (`PRIVMSG` or `NOTICE`) from a user to another user.
+
+ @param commandName	The name of the command ("PRIVMSG" or "NOTICE").
+*/
+static void handleMessageToUser(Server* server, User* sender, const std::string& targetNick,
+								const std::string& message, const std::string& commandName)
+{
+	const bool	sendReplies = (commandName == "PRIVMSG");
+	User*		targetUser = server->getUser(targetNick);
+
+	if (!targetUser)
 	{
-		const std::string&	target = targets[i];
-
-		if (isValidChannelName(target)) // Channel
-			handleNoticeToChannel(server, user, target, message);
-		else // User
-			handleNoticeToUser(server, user, target, message);
+		logUserAction(sender->getNickname(), sender->getFd(), "tried to send " + commandName
+			+ " to non-existing " + RED + targetNick + RESET);
+		if (sendReplies)
+			sender->replyError(401, targetNick, "No such nick/channel");
+		return;
 	}
+
+	// Construct the IRC line and add to the target user's output buffer
+	std::string	line = ":" + sender->buildHostmask() + " " + commandName + " " + targetNick + " :" + message + "\r\n";
+	targetUser->getOutputBuffer() += line;
+
+	logUserAction(sender->getNickname(), sender->getFd(), "sent " + commandName + " to user "
+		+ GREEN + targetNick + RESET);
 }

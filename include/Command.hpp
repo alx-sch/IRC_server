@@ -61,9 +61,10 @@ class	Command
 		
 		static bool		handleMode(Server* server, User* user, const std::vector<std::string>& tokens);
 		static Channel*	validateChannelAndUser(Server* server, User* user, const std::string& target);
-		static void		formatChannelModes(Channel* channel, User* user, std::string& modes, std::string& params, std::string& paramsLogging);
-		static void		sendModeReply(User* user, const std::string& target, const std::string& modes, const std::string& params,
-										std::string& paramsLogging);
+		static void		formatChannelModes(Channel* channel, User* user, std::string& modes, std::string& params,
+											std::string& paramsLogging);
+		static void		sendModeReply(User* user, const std::string& target, const std::string& modes,
+										const std::string& params, std::string& paramsLogging);
 		
 		static bool		handleModeChanges(Server* server, User* user, Channel* channel, const std::vector<std::string>& tokens);
 		static bool		applyChannelMode(Server* server, User* user, Channel* channel, char mode, bool adding,
@@ -73,13 +74,15 @@ class	Command
 										size_t& paramIndex, std::string& modeParams);
 		static bool		applyChannelKey(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
 										size_t& paramIndex, std::string& modeParams);
-		static bool		applyOperator(Server* server, Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
-										size_t& paramIndex, std::string& modeParams);
+		static bool		applyOperator(Server* server, Channel* channel, User* user, bool adding,
+										const std::vector<std::string>& tokens, size_t& paramIndex, std::string& modeParams);
 
 		// === CommandMessaging.cpp ===
 		
 		static void		handlePrivmsg(Server *server, User *user, const std::vector<std::string> &tokens);
 		static void		handleNotice(Server* server, User* user, const std::vector<std::string>& tokens);
+		static void		handleMessage(Server* server, User* user, const std::vector<std::string>& tokens,
+							 			const std::string& commandName);
 
 		// === CommandConnection.cpp ===
 
