@@ -125,12 +125,12 @@ void	Command::handlePrivmsg(Server *server, User *user, const std::vector<std::s
 ////////////
 
 /**
-Sends a `NOTICE` from a user to another user.
+Sends a `NOTICE` from a user to a channel.
 Like `PRIVMSG`, but does not trigger automatic replies from the server.
 
  @param server		Pointer to the server instance.
  @param sender		Pointer to the user sending the message.
- @param targetNick	Nickname of the recipient user.
+ @param channelName	Name of the target channel.
  @param message		The message content to send.
 */
 static void	handleNoticeToChannel(Server* server, User* sender, const std::string& channelName,
@@ -158,12 +158,12 @@ static void	handleNoticeToChannel(Server* server, User* sender, const std::strin
 }
 
 /**
-Sends a `NOTICE` from a user to a channel.
+Handles the `NOTICE` command from a user.
 Like `PRIVMSG`, but does not trigger automatic replies from the server.
 
  @param server			Pointer to the server instance.
  @param sender			Pointer to the user sending the message.
- @param channelName		Name of the target channel.
+ @param targetNick		Name of user receiving the message.
  @param message			The message content to send.
 */
 static void	handleNoticeToUser(Server* server, User* sender, const std::string& targetNick,
