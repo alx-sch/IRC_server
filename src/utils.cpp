@@ -183,5 +183,7 @@ void	logUserAction(const std::string& nick, int fd, const std::string& message)
 // Logs a general server message with timestamp.
 void	logServerMessage(const std::string& message)
 {
-	std::cout << "[" << CYAN << getTimestamp() << RESET << "] " << message << std::endl;
+	std::cout	<< "[" << CYAN << getTimestamp() << RESET << "] "
+				<< std::left << std::setw(MAX_NICK_LENGTH + 10) << " " // pad for alignment with user logs
+				<< message << std::endl;
 }
