@@ -223,7 +223,7 @@ bool	Command::handleSinglePart(Server* server, User* user, const std::string& ch
 	logUserAction(user->getNickname(), user->getFd(), toString("left channel ") + BLUE + channelName
 		+ RESET + (partMessage.empty() ? "" : toString(": ") + YELLOW + partMessage + RESET));
 
-	if (!channel->get_connected_user_number())
+	if (!channel->get_connected_user_number()) // If the user who left was the last one - delete channel
 		server->deleteChannel(channelName, "no connected users");
 
 	return true;
@@ -590,5 +590,46 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 	logUserAction(user->getNickname(), user->getFd(),
 		toString("invited ") + GREEN + targetNick + RESET + " to " + BLUE + channelName + RESET);
 
+	return true;
+}
+
+bool	Command::handleList(Server* server, User* user, const std::vector<std::string>& tokens)
+{
+	if (tokens.size() == 1) // For now only handling LIST without arguments, and using "invite_only channels" as "private channels" (which is not correct).
+	{
+		logUserAction(user->getNickname(), user->getFd(),
+			toString("sent valid LIST command"));
+		
+		user->replyServerMsg("321 Channel :Users Name");
+
+		int	numerics = 322;
+		std::map<std::string, Channel*> channels = server->getAllChannels();
+
+		std::map<std::string, Channel*>::const_iterator	it;
+		std::map<std::string, Channel*>::const_iterator	ite = channels.end();
+
+		for (it = channels.begin(); it != ite; it++)
+		{
+			if (it->second->is_invite_only() && it->second->get_members().find(user->getNickname()) == it->second->get_members().end())
+				user->replyServerMsg(toString(numerics++) + " Prv " + toString(it->second->get_connected_user_number()));
+			else
+				user->replyServerMsg(toString(numerics++) + " " + toString(it->second->get_name()) + " " + toString(it->second->get_connected_user_number())
+					+ " :" + toString(it->second->get_topic()));
+		}
+
+		user->replyServerMsg(toString(numerics) + " :End of /LIST");
+	}
+
+		// IMPORTANT DISTINCTION -> invite only is NOT the same as private. Implement private as well?
+
+		// Iterate through the channels
+		// If channel is available for user -> list it up by name, amount of users and topic.
+		// If channel is private and user is not a member -> call it "Prv" and only show the amount of members and no topic.
+
+		// This is the format:
+		// 321 Channel :Users  Name
+		// 322 #chat  12 :General chat about anything
+		// 322 #help  5  :Get help with IRC commands
+		// 323 :End of /LIST
 	return true;
 }
