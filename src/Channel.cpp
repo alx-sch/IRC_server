@@ -195,6 +195,12 @@ const std::set<std::string>&	Channel::get_members() const
 	return _channel_members_by_nickname;
 }
 
+// Returns the amount of the channel's connected users.
+int	Channel::get_connected_user_number() const
+{
+	return _connected_user_number;
+}
+
 /**
 Generates a space-separated string of nicknames for an `RPL_NAMREPLY` reply.
 

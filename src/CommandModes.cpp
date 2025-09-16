@@ -311,7 +311,7 @@ bool	Command::applyUserLimit(Channel* channel, User* user, bool adding, const st
 			return false; // Failed: Missing parameter for user limit
 		}
 
-		int	limit = std::atoi(tokens[paramIndex].c_str());
+		int	limit = atoi(tokens[paramIndex].c_str());
 
 		if (limit > 0)
 		{

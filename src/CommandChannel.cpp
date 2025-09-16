@@ -223,6 +223,9 @@ bool	Command::handleSinglePart(Server* server, User* user, const std::string& ch
 	logUserAction(user->getNickname(), user->getFd(), toString("left channel ") + BLUE + channelName
 		+ RESET + (partMessage.empty() ? "" : toString(": ") + YELLOW + partMessage + RESET));
 
+	if (!channel->get_connected_user_number())
+		server->deleteChannel(channelName, "no connected users");
+
 	return true;
 }
 

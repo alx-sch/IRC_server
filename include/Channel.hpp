@@ -25,6 +25,7 @@ class	Channel
 		const std::set<std::string>&	get_members() const;
 		std::string						get_names_list() const;
 		std::string						get_mode_string(const User* user) const;
+		int								get_connected_user_number() const;
 		
 	
 		void	add_user(const std::string& user_nick);

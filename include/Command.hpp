@@ -3,6 +3,7 @@
 
 # include <string>
 # include <vector>
+# include <stdlib.h>
 
 class	Server;
 class	User;
