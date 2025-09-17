@@ -358,6 +358,7 @@ bool	Command::applyUserLimit(Channel* channel, User* user, bool adding, const st
 }
 
 // Handles the `k` (channel key/password) mode.
+// RFC 1459 does not state any restrictions on the key format.
 bool	Command::applyChannelKey(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
 									size_t& paramIndex, std::string& modeParams)
 {
