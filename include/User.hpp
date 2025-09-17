@@ -17,7 +17,7 @@ class	User
 
 		std::string			buildHostmask() const;
 
-		void				setNickname(const std::string& nickname);
+		void				setNickname(const std::string& displayNick, const std::string& canonicalNick);
 		void				setUsername(const std::string& username);
 		void				setUsernameTemp(const std::string& username);
 		void				setRealname(const std::string& realname);

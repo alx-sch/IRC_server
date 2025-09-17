@@ -36,17 +36,17 @@ Sets the user's nickname and updates server state accordingly.
 This function assumes that the nickname has already been validated
 for syntax and uniqueness by the caller (e.g., in the command handler).
 */
-void	User::setNickname(const std::string& nickname)
+void	User::setNickname(const std::string& displayNick, const std::string& normNick)
 {
-	logUserAction(_nickname, _fd, toString("set nickname to ") + GREEN + nickname + RESET);
+	logUserAction(_nickname, _fd, toString("set nickname to ") + GREEN + displayNick + RESET);
 
 	// If the user already had a nickname, remove the old one
 	if (_hasNick)
 		_server->removeNickMapping(_nickname);
 
 	// Add the new nickname to the server's user map and update the user object
-	_server->getNickMap()[nickname] = this;
-	_nickname = nickname;
+	_server->getNickMap()[normNick] = this;
+	_nickname = displayNick;
 	_hasNick = true;
 }
 

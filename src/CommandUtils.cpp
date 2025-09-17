@@ -1,11 +1,10 @@
 #include <vector>
 #include <string>
 #include <algorithm>	// For std::transform
-#include <cctype>		// For ::toupper
 
 #include "../include/Command.hpp"
 #include "../include/User.hpp"
-#include "../include/utils.hpp"		// logUserAction()
+#include "../include/utils.hpp"		// logUserAction(), toUpperChar()
 
 // Extracts the command type from a message
 // Returns `UNKNOWN` if no valid command is found
@@ -17,7 +16,7 @@ Command::Cmd	Command::getCmd(const std::vector<std::string>& tokens)
 	std::string	cmd = tokens[0];
 
 	// Make commands case-insensitive by converting to uppercase
-	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
+	std::transform(cmd.begin(), cmd.end(), cmd.begin(), toUpperChar);
 
 	if (cmd == "NICK")		return NICK;
 	if (cmd == "USER")		return USER;
