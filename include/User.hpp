@@ -17,7 +17,7 @@ class	User
 
 		std::string			buildHostmask() const;
 
-		void				setNickname(const std::string& nickname);
+		void				setNickname(const std::string& displayNick, const std::string& canonicalNick);
 		void				setUsername(const std::string& username);
 		void				setUsernameTemp(const std::string& username);
 		void				setRealname(const std::string& realname);
@@ -28,6 +28,7 @@ class	User
 		std::string&		getInputBuffer();
 		std::string&		getOutputBuffer();
 		const std::string&	getNickname() const;
+		const std::string&  getNicknameLower() const;
 		const std::string&	getUsername() const;
 		const std::string&	getRealname() const;
 		const std::string&	getHost() const;
@@ -57,7 +58,8 @@ class	User
 
 		int							_fd;			// File descriptor (socket) for the user
 
-		std::string					_nickname;
+		std::string					_nickname;		// User's display nickname (as set by NICK command)
+		std::string					_nicknameLower;	// Lowercase version for case-insensitive comparisons
 		std::string					_username;
 		bool						_hasUsername;	// true if username was set via USER command
 		std::string					_realname;		// usually unused

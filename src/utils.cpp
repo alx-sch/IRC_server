@@ -5,8 +5,9 @@
 #include <ctime>		// time_t, gmtime, strftime
 #include <stdexcept>	// std::runtime_error
 #include <iomanip>		// std::setw, std::left, std::right
-#include <cctype>		// For ::isalpha() and ::isdigit()
+#include <cctype>		// For ::isalpha(), ::isdigit(), tolower()
 #include <cstdlib>		// strtol
+#include <algorithm>	// std::transform
 
 // Parses and validates a port number gitfrom a C-style string (argument)
 int	parsePort(const char* arg)
@@ -186,4 +187,35 @@ void	logServerMessage(const std::string& message)
 	std::cout	<< "[" << CYAN << getTimestamp() << RESET << "] "
 				<< std::left << std::setw(MAX_NICK_LENGTH + 10) << " " // pad for alignment with user logs
 				<< message << std::endl;
+}
+
+// Safely converts a character to its lowercase equivalent, as std::tolower
+// may invoke undefined behavior when passed a negative char value.
+// Used as unary operation in std::transform.
+int	toLowerChar(int c)
+{
+	return std::tolower(static_cast<unsigned char>(c));
+}
+
+// IRC-specific case mapping for lowercase conversion.
+// See RFC 1459, section 2.2.2
+static char	ircToLowerChar(char c)
+{
+	if (c >= 'A' && c <= 'Z') return c + 32; // A-Z → a-z
+	if (c == '[') return '{';
+	if (c == ']') return '}';
+	if (c == '\\') return '|';
+	if (c == '~') return '^';
+	return c;
+}
+
+
+// Normalizes a nicknames or channels for case-insensitive storage and lookup
+// lowercase letters and certain special characters are mapped
+// to their lowercase equivalents as per IRC case-mapping rules.
+std::string	normalize(const std::string& name)
+{
+	std::string	result = name;
+	std::transform(result.begin(), result.end(), result.begin(), ircToLowerChar);
+	return result;
 }

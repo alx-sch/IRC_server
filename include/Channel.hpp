@@ -2,6 +2,7 @@
 # define CHANNEL_HPP
 
 # include <set>
+# include <map>
 # include <string>
 
 class	User;
@@ -22,21 +23,21 @@ class	Channel
 
 		const std::string&				get_name() const;
 		Channel*						get_channel(const std::string& channelName) const;
-		const std::set<std::string>&	get_members() const;
+		const std::map<std::string, User*>&	get_members() const;
 		std::string						get_names_list() const;
 		std::string						get_mode_string(const User* user) const;
 		int								get_connected_user_number() const;
 		
 	
-		void	add_user(const std::string& user_nick);
-		void	remove_user(const std::string& user_nick);
-		bool	is_user_member(const std::string& user_nick) const;
+		void	add_user(User *user);
+		void	remove_user(User *user);
+		bool	is_user_member(User *user) const;
 
-		void	make_user_operator(const std::string& user_nick);
-		void	remove_user_operator_status(const std::string& user_nick);
-		bool	is_user_operator(const std::string& user_nick) const;
+		void	make_user_operator(User *user);
+		void	remove_user_operator_status(User *user);
+		bool	is_user_operator(const User *user) const;
 
-		bool	can_user_join(const std::string& user_nick, const std::string& provided_key,
+		bool	can_user_join(User* user, const std::string& provided_key,
 							JoinResult& result) const;
 
 		void	set_topic(const std::string& topic, const std::string& set_by);
@@ -69,8 +70,8 @@ class	Channel
 		std::string				_channel_topic;
 		std::string				_channel_topic_set_by;
 		int						_channel_topic_set_at;
-		std::set<std::string>	_channel_members_by_nickname;
-		std::set<std::string>	_channel_operators_by_nickname;
+		std::map<std::string, User*>	_channel_members_by_nickname;
+		std::map<std::string, User*>	_channel_operators_by_nickname;
 		std::set<std::string>	_channel_invitation_list;
 
 		int						_connected_user_number;

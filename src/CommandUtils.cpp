@@ -1,11 +1,12 @@
 #include <vector>
 #include <string>
 #include <algorithm>	// For std::transform
-#include <cctype>		// For ::toupper
 
 #include "../include/Command.hpp"
 #include "../include/User.hpp"
 #include "../include/utils.hpp"		// logUserAction()
+
+static int	toUpperChar(int c);
 
 // Extracts the command type from a message
 // Returns `UNKNOWN` if no valid command is found
@@ -17,7 +18,7 @@ Command::Cmd	Command::getCmd(const std::vector<std::string>& tokens)
 	std::string	cmd = tokens[0];
 
 	// Make commands case-insensitive by converting to uppercase
-	std::transform(cmd.begin(), cmd.end(), cmd.begin(), ::toupper);
+	std::transform(cmd.begin(), cmd.end(), cmd.begin(), toUpperChar);
 
 	if (cmd == "NICK")		return NICK;
 	if (cmd == "USER")		return USER;
@@ -80,4 +81,17 @@ std::vector<std::string>	Command::splitCommaList(const std::string& list)
 		}
 	}
 	return result;
+}
+
+////////////
+// HELPER //
+////////////
+
+
+// Safely converts a character to its uppercase equivalent, as std::toupper
+// may invoke undefined behavior when passed a negative char value.
+// Used as unary operation in std::transform.
+static int	toUpperChar(int c)
+{
+	return std::toupper(static_cast<unsigned char>(c));
 }

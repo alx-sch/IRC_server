@@ -11,6 +11,7 @@ bool		isValidNick(const std::string& nick);
 bool		isValidChannelName(const std::string& channelName);
 void		logUserAction(const std::string& nick, int fd, const std::string& message);
 void		logServerMessage(const std::string& message);
+std::string	normalize(const std::string& name);
 
 // Converts any type to a `std::string` using stringstream
 template <typename T>

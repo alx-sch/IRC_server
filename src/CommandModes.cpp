@@ -57,7 +57,7 @@ bool	Command::handleMode(Server* server, User* user, const std::vector<std::stri
 	}
 
 	// MODE change: requires operator privileges
-	if (!channel->is_user_operator(user->getNickname()))
+	if (!channel->is_user_operator(user))
 	{
 		logUserAction(user->getNickname(), user->getFd(), toString("tried to change modes for ")
 			+ BLUE + target + RESET + " but is not an operator");
@@ -125,7 +125,7 @@ bool	Command::handleModeChanges(Server* server, User* user, Channel* channel, co
 
 	std::string	modeMsg =	":" + user->buildHostmask() + " MODE " + channel->get_name()
 							+ " " + appliedModes + modeParams;
-	broadcastToChannel(server, channel, modeMsg);
+	broadcastToChannel(channel, modeMsg);
 
 	return true;
 }
@@ -178,7 +178,7 @@ Channel*	Command::validateChannelAndUser(Server* server, User* user, const std::
 	}
 
 	// Check if user is in the channel
-	if (!channel->is_user_member(user->getNickname()))
+	if (!channel->is_user_member(user))
 	{
 		logUserAction(user->getNickname(), user->getFd(),
 			toString("sent MODE but is not a member of ") + BLUE + target + RESET);
@@ -220,7 +220,7 @@ void	Command::formatChannelModes(Channel* channel, User* user, std::string& mode
 	if (channel->has_password())
 	{
 		modes += "k";
-		if (channel->is_user_operator(user->getNickname())) // Only show key to channel operators
+		if (channel->is_user_operator(user)) // Only show key to channel operators
 			params += " " + channel->get_password();
 	}
 
@@ -385,8 +385,9 @@ bool	Command::applyOperator(Server* server, Channel* channel, User* user, bool a
 		return false; // Failed: Missing parameter.
 	}
 
-	const std::string&	targetNick = tokens[paramIndex];
-	User*				targetUser = server->getUser(targetNick);
+	std::string	targetNick = tokens[paramIndex];
+	User*		targetUser = server->getUser(targetNick);
+	targetNick = normalize(targetNick);
 
 	if (!targetUser)
 	{
@@ -397,24 +398,24 @@ bool	Command::applyOperator(Server* server, Channel* channel, User* user, bool a
 		return false;
 	}
 
-	if (!channel->is_user_member(targetNick))
+	if (!channel->is_user_member(targetUser))
 	{
 		logUserAction(user->getNickname(), user->getFd(),
 			toString("tried to set operator status for user not in ") + BLUE + channel->get_name() + RESET
-			+ ": " + RED + targetNick + RESET);
-		user->replyError(441, targetNick + " " + channel->get_name(), "They aren't on that channel");
+			+ ": " + RED + targetUser->getNickname() + RESET);
+		user->replyError(441, targetUser->getNickname() + " " + channel->get_name(), "They aren't on that channel");
 		++paramIndex;
 		return false;
 	}
 
 	if (adding)
-		channel->make_user_operator(targetNick);
+		channel->make_user_operator(targetUser);
 	else
-		channel->remove_user_operator_status(targetNick);
+		channel->remove_user_operator_status(targetUser);
 
-	modeParams += " " + targetNick;
+	modeParams += " " + targetUser->getNickname();
 	logUserAction(user->getNickname(), user->getFd(), (adding ? "gave" : "removed") + toString(" operator status for ")
-		+ GREEN + targetNick + RESET + " in " + BLUE + channel->get_name() + RESET);
+		+ GREEN + targetUser->getNickname() + RESET + " in " + BLUE + channel->get_name() + RESET);
 
 	++paramIndex;
 	return true;

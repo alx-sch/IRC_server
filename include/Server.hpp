@@ -96,4 +96,4 @@ class Server
 		std::vector<std::string>	extractMessagesFromBuffer(User* user);
 };
 
-# endif
+#endif

@@ -1,8 +1,11 @@
 #include "../include/Command.hpp"
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
-#include "../include/utils.hpp"		// logUserAction, isValidNick
+#include "../include/utils.hpp"		// logUserAction, isValidNick, normalize
 #include "../include/defines.hpp"	// color formatting
+
+#include <algorithm>	// For std::transform
+
 
 // Handles the `NICK` command for a user. Also part of the initial client registration.
 // Command: `NICK <nickname>`
@@ -15,23 +18,26 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 		return;
 	}
 
-	const std::string&	nick = tokens[1];
+	const std::string&	displayNick = tokens[1];
 
 	// Check if the nickname is valid according to IRC rules
-	if (!isValidNick(nick))
+	if (!isValidNick(displayNick))
 	{
 		logUserAction(user->getNickname(), user->getFd(), toString("tried to set an invalid nickname: ")
-			+ RED + nick + RESET);
-		user->replyError(432, nick, "Erroneous nickname");
+			+ RED + displayNick + RESET);
+		user->replyError(432, displayNick, "Erroneous nickname");
 		return;
 	}
 
+	// Normalize the nickname for storage and lookup (case-insensitive)
+	std::string	normNick = normalize(displayNick);
+
 	// Nickname is already in use?
-	if (server->getNickMap().count(nick) > 0)
+	if (server->getNickMap().count(normNick) > 0)
 	{
 		logUserAction(user->getNickname(), user->getFd(),
-			toString("tried to set a nickname already in use: ") + YELLOW + nick + RESET);
-		user->replyError(433, nick, "Nickname is already in use");
+			toString("tried to set a nickname already in use: ") + YELLOW + displayNick + RESET);
+		user->replyError(433, displayNick, "Nickname is already in use");
 		return;
 	}
 
@@ -39,11 +45,11 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 
 	// If no username is set yet, use temp username
 	if (user->getUsername().empty())
-		user->setUsernameTemp("~" + nick);
+		user->setUsernameTemp("~" + displayNick);
 
-	std::string	line = ":" + user->buildHostmask() + " NICK :" + nick + "\r\n";
+	std::string	line = ":" + user->buildHostmask() + " NICK :" + displayNick + "\r\n";
 	user->getOutputBuffer() += line;
-	user->setNickname(nick);
+	user->setNickname(displayNick, normNick);
 	user->tryRegister();
 }
 
