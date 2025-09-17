@@ -41,6 +41,7 @@ bool	Command::handleCommand(Server* server, User* user, std::vector<std::string>
 		case INVITE:	handleInvite(server, user, tokens); break;
 		case MODE:		handleMode(server, user, tokens); break;
 		case LIST:		handleList(server, user); break;
+		// case WHO:		handleWho(server, user, tokens); break;
 		default:
 			return false;	// unknown command
 	}
