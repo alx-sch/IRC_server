@@ -342,9 +342,10 @@ bool	Command::applyUserLimit(Channel* channel, User* user, bool adding, const st
 		}
 
 		// limit is zero or negative
-		logUserAction(user->getNickname(), user->getFd(), "sent invalid user limit");
-		// There is no specific IRC error code for invalid limit, but Notify the user
-		user->replyServerMsg("NOTICE " + user->getNickname() + " :User limit must be a positive integer");
+		logUserAction(user->getNickname(), user->getFd(), toString("sent invalid user limit: ") + RED
+			+ tokens[paramIndex] + RESET);
+		user->replyError(696, channel->get_name() + " l " + tokens[paramIndex],
+			"Invalid user limit: Must be a positive number");
 		return false;
 	}
 	else // Removing user limit
