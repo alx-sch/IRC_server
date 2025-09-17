@@ -58,7 +58,7 @@ class	Command
 		static bool		handleInvite(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleTopic(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleKick(Server* server, User* user, const std::vector<std::string>& tokens);
-		static bool		handleList(Server* server, User* user, const std::vector<std::string>& tokens);
+		static bool		handleList(Server* server, User* user);
 
 		// === CommandModes.cpp ===
 		

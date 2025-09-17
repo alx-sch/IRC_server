@@ -593,43 +593,45 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 	return true;
 }
 
-bool	Command::handleList(Server* server, User* user, const std::vector<std::string>& tokens)
+/**
+Handles the IRC `LIST` command, displaying a list of the server's channels.
+
+As opposed to the regular `LIST` command which behaves differently depending
+on if it's parameterized or not - this function will behave the same way
+regardless of if arguments are provided or not.
+It displays the different channels, the amount of connected users in each channel,
+and the topic of the channel (if any).
+
+Syntax:
+	LIST
+
+ @param server	Pointer to the server instance handling the command.
+ @param user	The user issuing the `LIST` command.
+ @param tokens	Parsed IRC command tokens "LIST".
+
+ @return		True if the command was successfully processed,
+				false if an error occurred.
+*/
+bool	Command::handleList(Server* server, User* user)
 {
-	if (tokens.size() == 1) // For now only handling LIST without arguments, and using "invite_only channels" as "private channels" (which is not correct).
+	logUserAction(user->getNickname(), user->getFd(), // Log the list action
+		toString("sent valid LIST command"));
+	
+	user->replyServerMsg("321 " + user->getNickname() + " Channel :Users Name"); // Start of list
+
+	int	numerics = 322;
+	std::map<std::string, Channel*> channels = server->getAllChannels();
+
+	std::map<std::string, Channel*>::const_iterator	it;
+	std::map<std::string, Channel*>::const_iterator	ite = channels.end();
+
+	for (it = channels.begin(); it != ite; it++) // Iterates through each channel and sends to user.
 	{
-		logUserAction(user->getNickname(), user->getFd(),
-			toString("sent valid LIST command"));
-		
-		user->replyServerMsg("321 Channel :Users Name");
-
-		int	numerics = 322;
-		std::map<std::string, Channel*> channels = server->getAllChannels();
-
-		std::map<std::string, Channel*>::const_iterator	it;
-		std::map<std::string, Channel*>::const_iterator	ite = channels.end();
-
-		for (it = channels.begin(); it != ite; it++)
-		{
-			if (it->second->is_invite_only() && it->second->get_members().find(user->getNickname()) == it->second->get_members().end())
-				user->replyServerMsg(toString(numerics++) + " Prv " + toString(it->second->get_connected_user_number()));
-			else
-				user->replyServerMsg(toString(numerics++) + " " + toString(it->second->get_name()) + " " + toString(it->second->get_connected_user_number())
-					+ " :" + toString(it->second->get_topic()));
-		}
-
-		user->replyServerMsg(toString(numerics) + " :End of /LIST");
+			user->replyServerMsg(toString(numerics++) + " " + toString(user->getNickname()) + " " + toString(it->second->get_name()) + " " 
+				+ toString(it->second->get_connected_user_number()) + " :" + toString(it->second->get_topic()));
 	}
 
-		// IMPORTANT DISTINCTION -> invite only is NOT the same as private. Implement private as well?
-
-		// Iterate through the channels
-		// If channel is available for user -> list it up by name, amount of users and topic.
-		// If channel is private and user is not a member -> call it "Prv" and only show the amount of members and no topic.
-
-		// This is the format:
-		// 321 Channel :Users  Name
-		// 322 #chat  12 :General chat about anything
-		// 322 #help  5  :Get help with IRC commands
-		// 323 :End of /LIST
+	user->replyServerMsg(toString(numerics) + " " + toString(user->getNickname()) + " :End of /LIST"); // End of list.
+	
 	return true;
 }
