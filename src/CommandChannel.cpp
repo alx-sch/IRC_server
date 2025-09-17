@@ -313,8 +313,8 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	}
 
 	const std::string&	channelName = tokens[1];
-	std::string			targetNick = tokens[2];
-	targetNick = normalize(targetNick);
+	std::string			targetNickOrig = tokens[2];
+	std::string			targetNick = normalize(targetNickOrig);
 
 	// Validate channel name format
 	if (channelName.empty() || channelName[0] != '#')
@@ -358,8 +358,8 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	if (!targetUser)
 	{
 		logUserAction(user->getNickname(), user->getFd(), 
-			toString("tried to KICK non-existing ") + RED + targetUser->getNickname() + RESET);
-		user->replyError(401, targetUser->getNickname(), "No such nick/channel");
+			toString("tried to KICK non-existing ") + RED + targetNickOrig + RESET);
+		user->replyError(401, targetNickOrig, "No such nick/channel");
 		return false;
 	}
 
@@ -374,7 +374,7 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	}
 
 	// Extract kick reason if provided
-	std::string kickReason = "";
+	std::string	kickReason = "";
 	if (tokens.size() > 3)
 	{
 		// Reconstruct the kick reason from tokens[3] onward
@@ -390,7 +390,7 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	}
 
 	// Send KICK message to all channel members (including kicker and victim)
-	std::string kickLine = ":" + user->buildHostmask() + " KICK " + channelName + " " + targetUser->getNickname();
+	std::string	kickLine = ":" + user->buildHostmask() + " KICK " + channelName + " " + targetUser->getNickname();
 	if (!kickReason.empty())
 		kickLine += " :" + kickReason;
 
@@ -464,7 +464,7 @@ bool	Command::handleTopic(Server *server, User *user, const std::vector<std::str
 	{
 		std::string	newTopic = tokens[2];
 		if (newTopic[0] == ':')
-			newTopic = newTopic.substr(1); // Remove leading ':'
+			newTopic = newTopic.substr(1); // Remove leading ':', if present
 		if (channel->has_topic_protection() && !channel->is_user_operator(user))
 		{
 			logUserAction(user->getNickname(), user->getFd(), toString("tried to set topic for ")
@@ -507,6 +507,7 @@ bool	Command::handleTopic(Server *server, User *user, const std::vector<std::str
 	}
 }
 
+#include <iostream> // For debugging output
 /**
 Handles the IRC `INVITE` command, allowing a user to invite another user to a channel.
 
@@ -538,8 +539,8 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 		return false;
 	}
 
-	std::string	targetNick = tokens[1];
-	targetNick = normalize(targetNick);
+	std::string	targetNickOrig = tokens[1];
+	std::string	targetNick = normalize(targetNickOrig);
 	const std::string&	channelName = tokens[2];
 
 	// Check if channel exists
@@ -575,8 +576,8 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 	if (!targetUser)
 	{
 		logUserAction(user->getNickname(), user->getFd(),
-			toString("tried to invite non-existing ") + RED + targetUser->getNickname() + RESET);
-		user->replyError(401, targetUser->getNickname(), "No such nick/channel");
+		 	toString("tried to invite non-existing ") + RED + targetNickOrig + RESET);
+		user->replyError(401, targetNickOrig, "No such nick/channel");
 		return false;
 	}
 
@@ -589,6 +590,8 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 		user->replyError(443, targetUser->getNickname() + " " + channelName, "is already on channel");
 		return false;
 	}
+
+	std::cout << "DEBU3: INVITE targetNick='" << targetNick << "' channelName='" << channelName << "'\n";
 
 	// Add to invite list (for invite-only channels)
 	if (channel->is_invite_only())

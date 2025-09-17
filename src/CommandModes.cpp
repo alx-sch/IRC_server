@@ -385,15 +385,15 @@ bool	Command::applyOperator(Server* server, Channel* channel, User* user, bool a
 		return false; // Failed: Missing parameter.
 	}
 
-	std::string	targetNick = tokens[paramIndex];
-	targetNick = normalize(targetNick);
+	std::string	targetNickOrig = tokens[paramIndex];
+	std::string	targetNick = normalize(targetNickOrig);
 	User*		targetUser = server->getUser(targetNick);
 
 	if (!targetUser)
 	{
 		logUserAction(user->getNickname(), user->getFd(),
-			toString("tried to set operator status for non-existing user: ") + RED + targetUser->getNickname() + RESET);
-		user->replyError(401, targetUser->getNickname(), "No such nick/channel");
+			toString("tried to set operator status for non-existing user: ") + RED + targetNickOrig + RESET);
+		user->replyError(401, targetNickOrig, "No such nick/channel");
 		++paramIndex;
 		return false;
 	}

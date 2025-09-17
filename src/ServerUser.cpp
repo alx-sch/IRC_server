@@ -82,8 +82,11 @@ Server::UserInputResult	Server::handleUserInput(int fd)
 	std::vector<std::string>	messages;
 	User*						user = getUser(fd);
 
-	if (!user)
-		return INPUT_ERROR; // Should never happen, but just in case
+	if (!user) // Should never happen, but just to be safe
+	{
+		logServerMessage(RED + toString("ERROR: No user found for fd ") + toString(fd) + RESET);
+		return INPUT_ERROR;
+	}
 
 	if (bytesRead == 0) // Connection closed by the user
 		return INPUT_DISCONNECTED;
@@ -317,7 +320,8 @@ It broadcasts the QUIT message and cleans up all server resources.
 void	Server::disconnectUser(int fd, const std::string& reason)
 {
 	User*	user = getUser(fd);
-	if (!user) return; // User already disconnected
+	if (!user)
+		return; // User already disconnected
 
 	std::string	quitMsg = ":" + user->buildHostmask() + " QUIT :" + reason + "\r\n";
 
