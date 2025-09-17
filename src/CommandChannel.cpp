@@ -390,7 +390,7 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	}
 
 	// Send KICK message to all channel members (including kicker and victim)
-	std::string kickLine = ":" + user->buildHostmask() + " KICK " + channelName + " " + targetNick;
+	std::string kickLine = ":" + user->buildHostmask() + " KICK " + channelName + " " + targetUser->getNickname();
 	if (!kickReason.empty())
 		kickLine += " :" + kickReason;
 
