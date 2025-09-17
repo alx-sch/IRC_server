@@ -47,6 +47,7 @@ void	User::setNickname(const std::string& displayNick, const std::string& normNi
 	// Add the new nickname to the server's user map and update the user object
 	_server->getNickMap()[normNick] = this;
 	_nickname = displayNick;
+	_nicknameLower = normNick;
 	_hasNick = true;
 }
 
@@ -89,6 +90,12 @@ int	User::getFd() const
 const std::string&	User::getNickname() const
 {
 		return _nickname;
+}
+
+// Returns the normalized nickname of the user.
+const std::string&	User::getNicknameLower() const
+{
+		return _nicknameLower;
 }
 
 // Returns the username of the user.

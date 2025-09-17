@@ -16,7 +16,8 @@ Channel::~Channel() {}
 // Adds a user to the channel and increments member count if successful.
 void	Channel::add_user(const std::string& user_nick)
 {
-	bool	inserted = _channel_members_by_nickname.insert(user_nick).second;
+	std::string	nick_lower = normalize(user_nick);
+	bool	inserted = _channel_members_by_nickname.insert(nick_lower).second;
 	if (inserted)
 		++_connected_user_number;
 }
@@ -24,7 +25,8 @@ void	Channel::add_user(const std::string& user_nick)
 // Removes a user from the channel and decrements member count if they were present.
 void	Channel::remove_user(const std::string& user_nick)
 {
-	bool	removed = _channel_members_by_nickname.erase(user_nick);
+	std::string	nick_lower = normalize(user_nick);
+	bool	removed = _channel_members_by_nickname.erase(nick_lower);
 	if (removed)
 		--_connected_user_number;
 }
@@ -32,25 +34,29 @@ void	Channel::remove_user(const std::string& user_nick)
 // Grants operator status to the given user.
 void	Channel::make_user_operator(const std::string& user_nick)
 {
-	_channel_operators_by_nickname.insert(user_nick);
+	std::string	nick_lower = normalize(user_nick);
+	_channel_operators_by_nickname.insert(nick_lower);
 }
 
 // Revokes operator status from the given user.
 void	Channel::remove_user_operator_status(const std::string& user_nick)
 {
-	_channel_operators_by_nickname.erase(user_nick);
+	std::string	nick_lower = normalize(user_nick);
+	_channel_operators_by_nickname.erase(nick_lower);
 }
 
 // Checks whether the given user is a channel member.
 bool	Channel::is_user_member(const std::string& user_nick) const
 {
-	return (_channel_members_by_nickname.count(user_nick) > 0);
+	std::string	nick_lower = normalize(user_nick);
+	return (_channel_members_by_nickname.count(nick_lower) > 0);
 }
 
 // Checks whether the given user is a channel operator.
 bool	Channel::is_user_operator(const std::string& user_nick) const
 {
-	return (_channel_operators_by_nickname.count(user_nick) > 0);
+	std::string	nick_lower = normalize(user_nick);
+	return (_channel_operators_by_nickname.count(nick_lower) > 0);
 }
 
 // Checks if a user can join the channel with the provided key.
@@ -58,6 +64,8 @@ bool	Channel::is_user_operator(const std::string& user_nick) const
 bool	Channel::can_user_join(const std::string &user_nick, const std::string &provided_key,
 								JoinResult& result) const
 {
+	std::string	nick_lower = normalize(user_nick);
+
 	if (has_user_limit() && is_at_user_limit())
 	{
 		result = JOIN_FULL;
@@ -67,8 +75,8 @@ bool	Channel::can_user_join(const std::string &user_nick, const std::string &pro
 	{
 		result = JOIN_BAD_KEY;
 		return false;
-	}	
-	if (is_invite_only() && !is_invited(user_nick))
+	}
+	if (is_invite_only() && !is_invited(nick_lower))
 	{
 		result = JOIN_INVITE_ONLY;
 		return false;
@@ -112,7 +120,6 @@ std::string	Channel::get_topic_set_info() const
 // Returns true if a user limit is set.
 bool	Channel::has_user_limit() const
 {
-
 	return (_user_limit > 0);
 }
 
@@ -149,13 +156,15 @@ bool	Channel::is_invite_only() const
 // Checks if a user is on the invitation list.
 bool	Channel::is_invited(const std::string& user_nick) const
 {
-	return (_channel_invitation_list.count(user_nick) > 0);
+	std::string	nick_lower = normalize(user_nick);
+	return (_channel_invitation_list.count(nick_lower) > 0);
 }
 
 // Adds a user to the invitation list.
 void	Channel::add_invite(const std::string &user_nick)
 {
-	_channel_invitation_list.insert(user_nick);
+	std::string	nick_lower = normalize(user_nick);
+	_channel_invitation_list.insert(nick_lower);
 }
 
 // Returns true if a channel password is set.

@@ -1,12 +1,11 @@
 #include "../include/Command.hpp"
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
-#include "../include/utils.hpp"		// logUserAction, isValidNick
+#include "../include/utils.hpp"		// logUserAction, isValidNick, normalize
 #include "../include/defines.hpp"	// color formatting
 
 #include <algorithm>	// For std::transform
 
-static std::string	normalizeNick(const std::string& nick);
 
 // Handles the `NICK` command for a user. Also part of the initial client registration.
 // Command: `NICK <nickname>`
@@ -31,7 +30,7 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 	}
 
 	// Normalize the nickname for storage and lookup (case-insensitive)
-	std::string	normNick = normalizeNick(displayNick);
+	std::string	normNick = normalize(displayNick);
 
 	// Nickname is already in use?
 	if (server->getNickMap().count(normNick) > 0)
@@ -119,17 +118,4 @@ void	Command::handlePass(Server* server, User* user, const std::vector<std::stri
 	logUserAction(user->getNickname(), user->getFd(), "sent valid PASS command");
 	user->setHasPassed(true);
 	user->tryRegister();
-}
-
-////////////
-// HELPER //
-////////////
-
-// Converts a nickname to its canonical (lowercase) form for lookups.
-static std::string	normalizeNick(const std::string& nick)
-{
-	std::string	lower_nick = nick;
-	std::transform(lower_nick.begin(), lower_nick.end(), lower_nick.begin(), toLowerChar);
-
-	return lower_nick;
 }

@@ -4,7 +4,9 @@
 
 #include "../include/Command.hpp"
 #include "../include/User.hpp"
-#include "../include/utils.hpp"		// logUserAction(), toUpperChar()
+#include "../include/utils.hpp"		// logUserAction()
+
+static int	toUpperChar(int c);
 
 // Extracts the command type from a message
 // Returns `UNKNOWN` if no valid command is found
@@ -78,4 +80,17 @@ std::vector<std::string>	Command::splitCommaList(const std::string& list)
 		}
 	}
 	return result;
+}
+
+////////////
+// HELPER //
+////////////
+
+
+// Safely converts a character to its uppercase equivalent, as std::toupper
+// may invoke undefined behavior when passed a negative char value.
+// Used as unary operation in std::transform.
+static int	toUpperChar(int c)
+{
+	return std::toupper(static_cast<unsigned char>(c));
 }

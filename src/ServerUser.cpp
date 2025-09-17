@@ -275,7 +275,7 @@ Retrieves an `User` object by its nickname in a safe manner.
 This method safely searches the `_usersNick` map using `.find()` (instead of `[]`)
 to avoid accidental insertion of invalid keys.
 
- @param nickname	The nickname of the user to retrieve.
+ @param nickname	The normalized nickname of the user to retrieve.
  @return			Pointer to the `User` object if found, `NULL` otherwise.
 */
 User*	Server::getUser(const std::string& nickname) const
