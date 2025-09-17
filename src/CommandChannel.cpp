@@ -34,18 +34,21 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 	}
 
 	// Is User already in this channel?
-	if (user->getChannels().count(channelName) > 0)
+	if (user->getChannels().count(normalize(channelName)) > 0)
 	{
-		logUserAction(user->getNickname(), user->getFd(),
-			toString("tried to join already joined: ") + BLUE + channelName + RESET);
-		user->replyError(443, channelName, "is already on channel");
+		Channel*	existingChannel = server->getChannel(channelName);
+
+		logUserAction(user->getNickname(), user->getFd(), toString("tried to join already joined ")
+			+ BLUE + existingChannel->get_name() + RESET);
+		user->replyError(443, existingChannel->get_name(), "is already on channel");
 		return false;
 	}
 
 	bool		wasCreated;
-	Channel*	channel = server->getOrCreateChannel(channelName, user, key, &wasCreated);
+	Channel*	channel = server->getOrCreateChannel(channelName, user, &wasCreated);
 	if (!channel)
 		return false; // Creation failed, error already logged
+	std::string	channelNameOrig = channel->get_name();
 
 	// Check if user can join the channel
 	Channel::JoinResult	result;
@@ -55,20 +58,20 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 		{
 			case Channel::JOIN_INVITE_ONLY:
 				logUserAction(user->getNickname(), user->getFd(), toString("tried to join invite-only channel ")
-					+ BLUE + channelName + RESET + " without being invited");
-				user->replyError(473, channelName, "Cannot join channel (+i)");
+					+ BLUE + channelNameOrig + RESET + " without being invited");
+				user->replyError(473, channelNameOrig, "Cannot join channel (+i)");
 				break;
 
 			case Channel::JOIN_FULL:
 				logUserAction(user->getNickname(), user->getFd(),
-					toString("tried to join full ") + BLUE + channelName + RESET);
-				user->replyError(471, channelName, "Cannot join channel (+l)");
+					toString("tried to join full ") + BLUE + channelNameOrig + RESET);
+				user->replyError(471, channelNameOrig, "Cannot join channel (+l)");
 				break;
 
 			case Channel::JOIN_BAD_KEY:
 				logUserAction(user->getNickname(), user->getFd(),
-					toString("tried to join channel ") + BLUE + channelName + RESET + " with bad key");
-				user->replyError(475, channelName, "Cannot join channel (+k)");
+					toString("tried to join channel ") + BLUE + channelNameOrig + RESET + " with bad key");
+				user->replyError(475, channelNameOrig, "Cannot join channel (+k)");
 				break;
 		}
 		return false;
@@ -87,26 +90,26 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 	}	
 
 	// Notify user(s) about successful join
-	std::string	joinMessage =	":" + user->buildHostmask() + " JOIN :" + channelName;
+	std::string	joinMessage =	":" + user->buildHostmask() + " JOIN :" + channelNameOrig;
 	broadcastToChannel(channel, joinMessage);
 
 	// Send channel topic to the joining user
 	if (channel->get_topic().empty())
-		user->replyServerMsg(toString("331 ") + user->getNickname() + " " + channelName + " :No topic is set");
+		user->replyServerMsg(toString("331 ") + user->getNickname() + " " + channelNameOrig + " :No topic is set");
 
 	else
-		user->replyServerMsg(toString("332 ") + user->getNickname() + " " + channelName + " :" + channel->get_topic());
+		user->replyServerMsg(toString("332 ") + user->getNickname() + " " + channelNameOrig + " :" + channel->get_topic());
 
 	// Send channel mode to the joining user
 	std::string	modeString = channel->get_mode_string(user);
-	user->replyServerMsg(toString("324 ") + user->getNickname() + " " + channelName + " " + modeString);
+	user->replyServerMsg(toString("324 ") + user->getNickname() + " " + channelNameOrig + " " + modeString);
 
 	// Send names list to the joining user
 	std::string	namesList = channel->get_names_list();
-	user->replyServerMsg(toString("353 ") + user->getNickname() + " = " + channelName + " :" + namesList);
-	user->replyServerMsg(toString("366 ") + user->getNickname() + " " + channelName + " :End of /NAMES list");
+	user->replyServerMsg(toString("353 ") + user->getNickname() + " = " + channelNameOrig + " :" + namesList);
+	user->replyServerMsg(toString("366 ") + user->getNickname() + " " + channelNameOrig + " :End of /NAMES list");
 
-	logUserAction(user->getNickname(), user->getFd(), toString("joined ") + BLUE + channelName + RESET);
+	logUserAction(user->getNickname(), user->getFd(), toString("joined ") + BLUE + channelNameOrig + RESET);
 
 	return true;
 }
@@ -207,13 +210,13 @@ bool	Command::handleSinglePart(Server* server, User* user, const std::string& ch
 	if (!channel->is_user_member(user))
 	{
 		logUserAction(user->getNickname(), user->getFd(), toString("tried to leave ")
-			+ BLUE + channelName + RESET + " but is not a member");
-		user->replyError(442, channelName, "You're not on that channel");
+			+ BLUE + channel->get_name() + RESET + " but is not a member");
+		user->replyError(442, channel->get_name(), "You're not on that channel");
 		return false;
 	}
 
 	// Send PART message to all channel members (including the leaving user)
-	std::string partLine = ":" + user->buildHostmask() + " PART " + channelName;
+	std::string partLine = ":" + user->buildHostmask() + " PART " + channel->get_name();
 	if (!partMessage.empty())
 		partLine += " :" + partMessage;
 
@@ -223,7 +226,7 @@ bool	Command::handleSinglePart(Server* server, User* user, const std::string& ch
 	channel->remove_user(user);
 	user->removeChannel(channelName);
 
-	logUserAction(user->getNickname(), user->getFd(), toString("left channel ") + BLUE + channelName
+	logUserAction(user->getNickname(), user->getFd(), toString("left channel ") + BLUE + channel->get_name()
 		+ RESET + (partMessage.empty() ? "" : toString(": ") + YELLOW + partMessage + RESET));
 
 	if (!channel->get_connected_user_number()) // If the user who left was the last one - delete channel

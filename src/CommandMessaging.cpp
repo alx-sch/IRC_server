@@ -113,7 +113,7 @@ static void	handleMessageToChannel(Server* server, User* sender, const std::stri
 		logUserAction(sender->getNickname(), sender->getFd(), "tried to send " + commandName
 			+ " to non-existing " + RED + channelName + RESET);
 		if (sendReplies)
-			sender->replyError(403, channelName, "No sch channel");
+			sender->replyError(403, channelName, "No such channel");
 		return;
 	}
 	if (!channel->is_user_member(sender))
@@ -142,7 +142,7 @@ static void handleMessageToUser(Server* server, User* sender, const std::string&
 								const std::string& message, const std::string& commandName)
 {
 	const bool	sendReplies = (commandName == "PRIVMSG");
-	User*		targetUser = server->getUser(targetNick);
+	User*		targetUser = server->getUser(normalize(targetNick));
 
 	if (!targetUser)
 	{
@@ -154,9 +154,10 @@ static void handleMessageToUser(Server* server, User* sender, const std::string&
 	}
 
 	// Construct the IRC line and add to the target user's output buffer
-	std::string	line = ":" + sender->buildHostmask() + " " + commandName + " " + targetNick + " :" + message + "\r\n";
+	std::string	line =	":" + sender->buildHostmask() + " " + commandName + " " + targetUser->getNickname()
+							+ " :" + message + "\r\n";
 	targetUser->getOutputBuffer() += line;
 
 	logUserAction(sender->getNickname(), sender->getFd(), "sent " + commandName + " to user "
-		+ GREEN + targetNick + RESET);
+		+ GREEN + targetUser->getNickname() + RESET);
 }

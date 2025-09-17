@@ -12,7 +12,8 @@ Retrieves an `Channel` object by its name.
 */
 Channel*	Server::getChannel(const std::string& channelName) const
 {
-	std::map<std::string, Channel*>::const_iterator	it = _channels.find(channelName);
+	std::string	normalized = normalize(channelName);
+	std::map<std::string, Channel*>::const_iterator	it = _channels.find(normalized);
 	if (it != _channels.end())
 		return it->second;
 	return NULL;
@@ -32,7 +33,7 @@ In case of memory allocation failure, an error is logged and the user is notifie
 
  @return			Pointer to the `Channel` object, or `NULL` on failure.
 */
-Channel*	Server::getOrCreateChannel(const std::string& channelName, User* user, const std::string& key, bool* wasCreated)
+Channel*	Server::getOrCreateChannel(const std::string& channelName, User* user, bool* wasCreated)
 {
 	Channel*	channel = getChannel(channelName);
 	if (channel)
@@ -46,9 +47,7 @@ Channel*	Server::getOrCreateChannel(const std::string& channelName, User* user, 
 	try
 	{
 		channel = new Channel(channelName);
-		if (!key.empty()) // If a key is provided, set it as the channel password
-			channel->set_password(key);
-		_channels[channelName] = channel; // Add to the server's channel map
+		_channels[normalize(channelName)] = channel; // Add to the server's channel map
 		logUserAction(user->getNickname(), user->getFd(), toString("created ")
 			+ BLUE + channelName + RESET);
 
@@ -70,10 +69,10 @@ Channel*	Server::getOrCreateChannel(const std::string& channelName, User* user, 
 // Deletes a channel by name, frees its memory, removes it from the map, and logs the reason.
 void	Server::deleteChannel(const std::string& channelName, std::string reason)
 {
-	std::map<std::string, Channel*>::iterator	it = _channels.find(channelName);
+	std::map<std::string, Channel*>::iterator	it = _channels.find(normalize(channelName));
 	if (it != _channels.end())
 	{
-		logServerMessage(toString("Channel ") + BLUE + channelName + RESET
+		logServerMessage(toString("Channel ") + BLUE + it->second->get_name() + RESET
 			+ " deleted (" + YELLOW + reason + RESET + ")");
 		delete it->second;		// Free memory for the channel
 		_channels.erase(it);	// Remove from the map

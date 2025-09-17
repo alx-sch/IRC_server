@@ -22,6 +22,7 @@ class	Channel
 		};
 
 		const std::string&				get_name() const;
+		const std::string&				get_name_lower() const;
 		Channel*						get_channel(const std::string& channelName) const;
 		const std::map<std::string, User*>&	get_members() const;
 		std::string						get_names_list() const;
@@ -67,6 +68,7 @@ class	Channel
 		Channel&	operator=(const Channel& other);
 
 		std::string				_channel_name;
+		std::string				_channel_name_lower;
 		std::string				_channel_topic;
 		std::string				_channel_topic_set_by;
 		int						_channel_topic_set_at;

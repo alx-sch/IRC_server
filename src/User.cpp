@@ -141,12 +141,12 @@ const std::set<std::string>&	User::getChannels() const
 // Adds a channel to the user's set of joined channels.
 void	User::addChannel(const std::string& channel)
 {
-	_channels.insert(channel);
+	_channels.insert(normalize(channel));
 }
 
 // Removes a channel from the user's set of joined channels.
 void	User::removeChannel(const std::string& channel)
 {
-	_channels.erase(channel);
+	_channels.erase(normalize(channel));
 }
 

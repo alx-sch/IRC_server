@@ -327,7 +327,7 @@ void	Server::disconnectUser(int fd, const std::string& reason)
 
 	// Build unique set of users to notify
 	std::set<User*>					recipients;
-	const std::set<std::string>&	channels = user->getChannels();
+	const std::set<std::string>		channels = user->getChannels();
 
 	for (std::set<std::string>::const_iterator it = channels.begin(); it != channels.end(); ++it)
 	{

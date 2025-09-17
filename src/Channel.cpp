@@ -7,8 +7,9 @@
 
 // Constructor: Initializes the channel with a name and default values.
 Channel::Channel(std::string name)
-	:	_channel_name(name), _connected_user_number(0), _user_limit(0),
-		_invite_only(false), _topic_protection(false)
+	:	_channel_name(name), _channel_name_lower(normalize(name)),
+		_channel_topic_set_at(0), _connected_user_number(0),
+		_user_limit(0), _invite_only(false), _topic_protection(false)
 {}
 
 // Default destructor
@@ -218,6 +219,12 @@ bool	Channel::validate_password(const std::string &password) const
 const std::string&	Channel::get_name() const
 {
 	return _channel_name;
+}
+
+// Gets the lowercase / normalized channel name
+const std::string&	Channel::get_name_lower() const
+{
+	return _channel_name_lower;
 }
 
 // Returns a const reference to the list of channel members.
