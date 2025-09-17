@@ -78,7 +78,7 @@ void	Command::handleUser(User* user, const std::vector<std::string>& tokens)
 	user->setUsername(tokens[1]);
 
 	// Handle realname
-	std::string realname = tokens[4];
+	std::string	realname = tokens[4];
 	if (realname[0] == ':') // Remove leading colon if present
 		realname = realname.substr(1);
 	user->setRealname(realname);

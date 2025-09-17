@@ -15,7 +15,7 @@ static std::string	getQuitReason(const std::vector<std::string>& tokens)
 	if (tokens.size() < 2 || tokens[1].empty())
 		return "Client Quit";	// Default reason if none provided
 
-	std::string reason = tokens[1];
+	std::string	reason = tokens[1];
 	if (reason[0] == ':')	// Remove leading ':' if present
 		reason = reason.substr(1);
 	return reason;

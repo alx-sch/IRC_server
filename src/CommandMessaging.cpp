@@ -128,7 +128,7 @@ static void	handleMessageToChannel(Server* server, User* sender, const std::stri
 	}
 
 	// Construct the IRC line and broadcast it
-	std::string line = ":" + sender->buildHostmask() + " " + commandName + " " + channelNameOrig + " :" + message;
+	std::string	line = ":" + sender->buildHostmask() + " " + commandName + " " + channelNameOrig + " :" + message;
 	Command::broadcastToChannel(channel, line, sender->getNicknameLower()); // exclude sender
 
 	logUserAction(sender->getNickname(), sender->getFd(), "sent " + commandName + " to "

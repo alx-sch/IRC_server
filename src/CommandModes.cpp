@@ -406,8 +406,7 @@ bool	Command::applyOperator(Server* server, Channel* channel, User* user, bool a
 	}
 
 	std::string	targetNickOrig = tokens[paramIndex];
-	std::string	targetNick = normalize(targetNickOrig);
-	User*		targetUser = server->getUser(targetNick);
+	User*		targetUser = server->getUser(normalize(targetNickOrig));
 
 	if (!targetUser)
 	{

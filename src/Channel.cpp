@@ -282,8 +282,8 @@ requesting user is a channel operator.
 */
 std::string	Channel::get_mode_string(const User* user) const
 {
-	std::string modeChars;
-	std::string modeParams;
+	std::string	modeChars;
+	std::string	modeParams;
 
 	if (this->is_invite_only())
 		modeChars += "i";

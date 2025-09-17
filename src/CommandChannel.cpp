@@ -218,7 +218,7 @@ bool	Command::handleSinglePart(Server* server, User* user, const std::string& ch
 	}
 
 	// Send PART message to all channel members (including the leaving user)
-	std::string partLine = ":" + user->buildHostmask() + " PART " + channelNameOrig;
+	std::string	partLine = ":" + user->buildHostmask() + " PART " + channelNameOrig;
 	if (!partMessage.empty())
 		partLine += " :" + partMessage;
 
@@ -319,7 +319,6 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 
 	const std::string&	channelName = tokens[1];
 	std::string			targetNickOrig = tokens[2];
-	std::string			targetNick = normalize(targetNickOrig);
 
 	// Validate channel name format
 	if (channelName.empty() || channelName[0] != '#')
@@ -361,7 +360,7 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	}
 
 	// Check if target user exists
-	User*	targetUser = server->getUser(targetNick);
+	User*	targetUser = server->getUser(normalize(targetNickOrig));
 	if (!targetUser)
 	{
 		logUserAction(user->getNickname(), user->getFd(), 
@@ -552,7 +551,6 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 	}
 
 	std::string	targetNickOrig = tokens[1];
-	std::string	targetNick = normalize(targetNickOrig);
 	const std::string&	channelName = tokens[2];
 
 	// Check if channel exists
@@ -586,7 +584,7 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 	}
 
 	// Check if target user exists
-	User*	targetUser = server->getUser(targetNick);
+	User*	targetUser = server->getUser(normalize(targetNickOrig));
 	if (!targetUser)
 	{
 		logUserAction(user->getNickname(), user->getFd(),
@@ -607,7 +605,7 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 
 	// Add to invite list (for invite-only channels)
 	if (channel->is_invite_only())
-		channel->add_invite(targetNick);
+		channel->add_invite(targetNickOrig); // Normalized inside add_invite
 
 	// send confirmation to inviter
 	user->replyServerMsg("341 " + user->getNickname() + " " + targetUser->getNickname() + " " + channelNameOrig);
