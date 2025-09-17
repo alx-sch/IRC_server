@@ -13,8 +13,8 @@ class	Command
 {
 	public:
 		static bool		handleCommand(Server* server, User* user, std::vector<std::string>& tokens);
-		static void		broadcastToChannel(Server* server, Channel* channel,
-									const std::string& message, const std::string& excludeNick = "");
+		static void		broadcastToChannel(Channel* channel, const std::string& message,
+							const std::string& excludeNick = "");
 		static std::vector<std::string>	tokenize(const std::string& message);
 
 	private:
@@ -98,4 +98,4 @@ class	Command
 		static std::vector<std::string>	splitCommaList(const std::string& list);
 };
 
-# endif
+#endif

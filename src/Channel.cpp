@@ -3,6 +3,7 @@
 #include "../include/utils.hpp"	// toString
 
 #include <ctime>	// time()
+#include <utility>	// std::make_pair
 
 // Constructor: Initializes the channel with a name and default values.
 Channel::Channel(std::string name)
@@ -14,57 +15,78 @@ Channel::Channel(std::string name)
 Channel::~Channel() {}
 
 // Adds a user to the channel and increments member count if successful.
-void	Channel::add_user(const std::string& user_nick)
+void	Channel::add_user(User *user)
 {
-	std::string	nick_lower = normalize(user_nick);
-	bool	inserted = _channel_members_by_nickname.insert(nick_lower).second;
+	if (!user)
+		return;
+
+	const std::string	nick_lower = user->getNicknameLower();
+	bool	inserted = _channel_members_by_nickname.insert(std::make_pair(nick_lower, user)).second;
 	if (inserted)
 		++_connected_user_number;
 }
 
 // Removes a user from the channel and decrements member count if they were present.
-void	Channel::remove_user(const std::string& user_nick)
+void	Channel::remove_user(User* user)
 {
-	std::string	nick_lower = normalize(user_nick);
+	if (!user)
+		return;
+
+	const std::string	nick_lower = user->getNicknameLower();
 	bool	removed = _channel_members_by_nickname.erase(nick_lower);
 	if (removed)
 		--_connected_user_number;
 }
 
 // Grants operator status to the given user.
-void	Channel::make_user_operator(const std::string& user_nick)
+void	Channel::make_user_operator(User* user)
 {
-	std::string	nick_lower = normalize(user_nick);
-	_channel_operators_by_nickname.insert(nick_lower);
+	if (!user)
+		return;
+
+	const std::string	nick_lower = user->getNicknameLower();
+	_channel_operators_by_nickname.insert(std::make_pair(nick_lower, user));
 }
 
 // Revokes operator status from the given user.
-void	Channel::remove_user_operator_status(const std::string& user_nick)
+void	Channel::remove_user_operator_status(User* user)
 {
-	std::string	nick_lower = normalize(user_nick);
+	if (!user)
+		return;
+
+	std::string	nick_lower = user->getNicknameLower();
 	_channel_operators_by_nickname.erase(nick_lower);
 }
 
 // Checks whether the given user is a channel member.
-bool	Channel::is_user_member(const std::string& user_nick) const
+bool	Channel::is_user_member(User* user) const
 {
-	std::string	nick_lower = normalize(user_nick);
+	if (!user)
+		return false;
+
+	std::string	nick_lower = user->getNicknameLower();
 	return (_channel_members_by_nickname.count(nick_lower) > 0);
 }
 
 // Checks whether the given user is a channel operator.
-bool	Channel::is_user_operator(const std::string& user_nick) const
+bool	Channel::is_user_operator(const User* user) const
 {
-	std::string	nick_lower = normalize(user_nick);
+	if (!user)
+		return false;
+
+	std::string	nick_lower = user->getNicknameLower();
 	return (_channel_operators_by_nickname.count(nick_lower) > 0);
 }
 
 // Checks if a user can join the channel with the provided key.
 // Overwrites `result` with the appropriate JoinResult enum value.
-bool	Channel::can_user_join(const std::string &user_nick, const std::string &provided_key,
+bool	Channel::can_user_join(User* user, const std::string &provided_key,
 								JoinResult& result) const
 {
-	std::string	nick_lower = normalize(user_nick);
+	if (!user)
+		return false;
+
+	std::string	nick_lower = user->getNicknameLower();
 
 	if (has_user_limit() && is_at_user_limit())
 	{
@@ -161,7 +183,7 @@ bool	Channel::is_invited(const std::string& user_nick) const
 }
 
 // Adds a user to the invitation list.
-void	Channel::add_invite(const std::string &user_nick)
+void	Channel::add_invite(const std::string& user_nick)
 {
 	std::string	nick_lower = normalize(user_nick);
 	_channel_invitation_list.insert(nick_lower);
@@ -199,7 +221,7 @@ const std::string&	Channel::get_name() const
 }
 
 // Returns a const reference to the list of channel members.
-const std::set<std::string>&	Channel::get_members() const
+const std::map<std::string, User*>&	Channel::get_members() const
 {
 	return _channel_members_by_nickname;
 }
@@ -223,14 +245,14 @@ std::string	Channel::get_names_list() const
 {
 	std::string	namesList;
 
-	for (std::set<std::string>::const_iterator it = get_members().begin();
+	for (std::map<std::string, User*>::const_iterator it = get_members().begin();
 			it != get_members().end(); ++it)
 	{
 		// Prefix operators with '@'
-		if (is_user_operator(*it))
-			namesList += "@" + *it + " ";
+		if (is_user_operator(it->second))
+			namesList += "@" + it->second->getNickname() + " ";
 		else
-			namesList += *it + " ";
+			namesList += it->second->getNickname() + " ";
 	}
 
 	if (!namesList.empty())
@@ -272,7 +294,7 @@ std::string	Channel::get_mode_string(const User* user) const
 	{
 		modeChars += "k";
 		// Only show the actual key to channel operators for security.
-		if (user && this->is_user_operator(user->getNickname()))
+		if (this->is_user_operator(user))
 			modeParams += " " + this->get_password();
 	}
 

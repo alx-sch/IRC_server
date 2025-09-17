@@ -319,7 +319,6 @@ void	Server::disconnectUser(int fd, const std::string& reason)
 	User*	user = getUser(fd);
 	if (!user) return; // User already disconnected
 
-	std::string	userNick = user->getNickname();
 	std::string	quitMsg = ":" + user->buildHostmask() + " QUIT :" + reason + "\r\n";
 
 	// Build unique set of users to notify
@@ -331,10 +330,10 @@ void	Server::disconnectUser(int fd, const std::string& reason)
 		Channel*	channel = getChannel(*it);
 		if (channel)
 		{
-			const std::set<std::string>&	members = channel->get_members();
-			for (std::set<std::string>::const_iterator mem_it = members.begin(); mem_it != members.end(); ++mem_it)
+			const std::map<std::string, User*>&	members = channel->get_members();
+			for (std::map<std::string, User*>::const_iterator mem_it = members.begin(); mem_it != members.end(); ++mem_it)
 			{
-				User*	member = getUser(*mem_it);
+				User*	member = mem_it->second;
 				if (member)
 					recipients.insert(member);
 			}
@@ -351,7 +350,7 @@ void	Server::disconnectUser(int fd, const std::string& reason)
 	{
 		Channel*	channel = getChannel(*it);
 		if (channel)
-			channel->remove_user(userNick);
+			channel->remove_user(user);
 	}
 
 	// Finally, delete the user from the server

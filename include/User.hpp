@@ -58,7 +58,7 @@ class	User
 
 		int							_fd;			// File descriptor (socket) for the user
 
-		std::string					_nickname;			// User's display nickname (as set by NICK command)
+		std::string					_nickname;		// User's display nickname (as set by NICK command)
 		std::string					_nicknameLower;	// Lowercase version for case-insensitive comparisons
 		std::string					_username;
 		bool						_hasUsername;	// true if username was set via USER command

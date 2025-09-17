@@ -1,4 +1,4 @@
-#include <set>
+#include <map>
 #include <string>	// std::string::size_type (size / position in strings)
 
 #include "../include/Command.hpp"
@@ -50,24 +50,22 @@ bool	Command::handleCommand(Server* server, User* user, std::vector<std::string>
 /**
 Sends a message to all members of a given channel, optionally excluding one user.
 
- @param server		Pointer to the server object for user lookup.
  @param channel		Pointer to the channel whose members will receive the message.
  @param message		The message to broadcast (without trailing "\r\n")
  @param excludeNick	Optional nickname of a user to exclude from receiving the message.
 */
-void	Command::broadcastToChannel(Server* server, Channel* channel, const std::string& message,
-									const std::string& excludeNick)
+void	Command::broadcastToChannel(Channel* channel, const std::string& message,const std::string& excludeNick)
 {
-	const std::set<std::string>&	members = channel->get_members();
-	std::string						formattedMessage = message + "\r\n";
+	const std::map<std::string, User*>&	members = channel->get_members();
+	std::string							formattedMessage = message + "\r\n";
 
-	for (std::set<std::string>::const_iterator it = members.begin(); it != members.end(); ++it)
+	for (std::map<std::string, User*>::const_iterator it = members.begin(); it != members.end(); ++it)
 	{
 		// Skip excluded user if specified
-		if (!excludeNick.empty() && *it == excludeNick)
+		if (!excludeNick.empty() && it->first == excludeNick)
 			continue;
 
-		User*	member = server->getUser(*it);
+		User*	member = it->second;
 		if (member)
 			member->getOutputBuffer() += formattedMessage;
 	}

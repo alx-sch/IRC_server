@@ -113,10 +113,10 @@ static void	handleMessageToChannel(Server* server, User* sender, const std::stri
 		logUserAction(sender->getNickname(), sender->getFd(), "tried to send " + commandName
 			+ " to non-existing " + RED + channelName + RESET);
 		if (sendReplies)
-			sender->replyError(403, channelName, "No such channel");
+			sender->replyError(403, channelName, "No sch channel");
 		return;
 	}
-	if (!channel->is_user_member(sender->getNickname()))
+	if (!channel->is_user_member(sender))
 	{
 		logUserAction(sender->getNickname(), sender->getFd(), "tried to send " + commandName
 			+ " to " + BLUE + channelName + RESET + " but is not a member");
@@ -127,7 +127,7 @@ static void	handleMessageToChannel(Server* server, User* sender, const std::stri
 
 	// Construct the IRC line and broadcast it
 	std::string line = ":" + sender->buildHostmask() + " " + commandName + " " + channelName + " :" + message;
-	Command::broadcastToChannel(server, channel, line, sender->getNickname());
+	Command::broadcastToChannel(channel, line, sender->getNicknameLower()); // exclude sender
 
 	logUserAction(sender->getNickname(), sender->getFd(), "sent " + commandName + " to "
 		+ BLUE + channelName + RESET);
