@@ -223,7 +223,7 @@ bool	Command::handleSinglePart(Server* server, User* user, const std::string& ch
 	logUserAction(user->getNickname(), user->getFd(), toString("left channel ") + BLUE + channelName
 		+ RESET + (partMessage.empty() ? "" : toString(": ") + YELLOW + partMessage + RESET));
 
-	if (!channel->get_connected_user_number())
+	if (!channel->get_connected_user_number()) // If the user who left was the last one - delete channel
 		server->deleteChannel(channelName, "no connected users");
 
 	return true;
@@ -590,5 +590,48 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 	logUserAction(user->getNickname(), user->getFd(),
 		toString("invited ") + GREEN + targetNick + RESET + " to " + BLUE + channelName + RESET);
 
+	return true;
+}
+
+/**
+Handles the IRC `LIST` command, displaying a list of the server's channels.
+
+As opposed to the regular `LIST` command which behaves differently depending
+on if it's parameterized or not - this function will behave the same way
+regardless of if arguments are provided or not.
+It displays the different channels, the amount of connected users in each channel,
+and the topic of the channel (if any).
+
+Syntax:
+	LIST
+
+ @param server	Pointer to the server instance handling the command.
+ @param user	The user issuing the `LIST` command.
+ @param tokens	Parsed IRC command tokens "LIST".
+
+ @return		True if the command was successfully processed,
+				false if an error occurred.
+*/
+bool	Command::handleList(Server* server, User* user)
+{
+	logUserAction(user->getNickname(), user->getFd(), // Log the list action
+		toString("sent valid LIST command"));
+	
+	user->replyServerMsg("321 " + user->getNickname() + " Channel :Users Name"); // Start of list
+
+	int	numerics = 322;
+	std::map<std::string, Channel*> channels = server->getAllChannels();
+
+	std::map<std::string, Channel*>::const_iterator	it;
+	std::map<std::string, Channel*>::const_iterator	ite = channels.end();
+
+	for (it = channels.begin(); it != ite; it++) // Iterates through each channel and sends to user.
+	{
+			user->replyServerMsg(toString(numerics++) + " " + toString(user->getNickname()) + " " + toString(it->second->get_name()) + " " 
+				+ toString(it->second->get_connected_user_number()) + " :" + toString(it->second->get_topic()));
+	}
+
+	user->replyServerMsg(toString(numerics) + " " + toString(user->getNickname()) + " :End of /LIST"); // End of list.
+	
 	return true;
 }

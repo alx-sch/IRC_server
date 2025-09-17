@@ -41,10 +41,12 @@ class Server
 
 		// === ServerChannel.cpp ===
 
-		Channel*			getChannel(const std::string& channelName) const;
-		Channel*			getOrCreateChannel(const std::string& channelName, User* user,
-										const std::string& key = "", bool* wasCreated = NULL);
-		void				deleteChannel(const std::string& channelName, std::string reason);
+		Channel*							getChannel(const std::string& channelName) const;
+		Channel*							getOrCreateChannel(const std::string& channelName, User* user,
+														const std::string& key = "", bool* wasCreated = NULL);
+		void								deleteChannel(const std::string& channelName, std::string reason);
+		std::map<std::string, Channel*>&	getAllChannels();
+
 
 	private:
 		// Disable default constructor and copying (makes no sense for a server)

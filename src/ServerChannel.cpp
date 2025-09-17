@@ -79,3 +79,8 @@ void	Server::deleteChannel(const std::string& channelName, std::string reason)
 		_channels.erase(it);	// Remove from the map
 	}
 }
+
+std::map<std::string, Channel*>&	Server::getAllChannels()
+{
+	return _channels;
+}

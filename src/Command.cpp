@@ -40,6 +40,7 @@ bool	Command::handleCommand(Server* server, User* user, std::vector<std::string>
 		case KICK:		handleKick(server, user, tokens); break;
 		case INVITE:	handleInvite(server, user, tokens); break;
 		case MODE:		handleMode(server, user, tokens); break;
+		case LIST:		handleList(server, user); break;
 		default:
 			return false;	// unknown command
 	}

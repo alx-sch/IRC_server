@@ -32,6 +32,7 @@ Command::Cmd	Command::getCmd(const std::vector<std::string>& tokens)
 	if (cmd == "KICK")		return KICK;
 	if (cmd == "INVITE")	return INVITE;
 	if (cmd == "MODE")		return MODE;
+	if (cmd == "LIST")		return LIST;
 
 	return UNKNOWN;
 }
