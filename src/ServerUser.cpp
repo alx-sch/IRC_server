@@ -334,6 +334,7 @@ void	Server::disconnectUser(int fd, const std::string& reason)
 		Channel*	channel = getChannel(*it);
 		if (channel)
 		{
+			// Collect members of all channels quitter is in
 			const std::map<std::string, User*>&	members = channel->get_members();
 			for (std::map<std::string, User*>::const_iterator mem_it = members.begin(); mem_it != members.end(); ++mem_it)
 			{
@@ -355,6 +356,14 @@ void	Server::disconnectUser(int fd, const std::string& reason)
 		Channel*	channel = getChannel(*it);
 		if (channel)
 			channel->remove_user(user);
+	}
+
+	// If quitter was last user in any channel, delete that channel
+	for (std::set<std::string>::const_iterator it = channels.begin(); it != channels.end(); ++it)
+	{
+		Channel*	channel = getChannel(*it);
+		if (channel && !channel->get_connected_user_number())
+			deleteChannel(*it, "no connected users");
 	}
 
 	// Finally, delete the user from the server

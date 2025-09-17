@@ -404,6 +404,10 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 		toString("kicked ") + GREEN + targetUser->getNickname() + RESET + " from channel " + BLUE + channelName
 		+ RESET + (kickReason.empty() ? "" : toString(": ") + YELLOW + kickReason + RESET));
 
+	// If the kicked user was the last one, delete the channel
+	if (!channel->get_connected_user_number())
+		server->deleteChannel(channelName, "no connected users");
+
 	return true;
 }
 
