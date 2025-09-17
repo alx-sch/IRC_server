@@ -181,6 +181,9 @@ Broadcasts the part message to all channel members.
 */
 bool	Command::handleSinglePart(Server* server, User* user, const std::string& channelName, const std::string& partMessage)
 {
+	if (!checkRegistered(user, "PART"))
+		return false;
+
 	// Validate channel name format
 	if (!isValidChannelName(channelName))
 	{
@@ -299,6 +302,9 @@ Syntax:
 */
 bool	Command::handleKick(Server* server, User* user, const std::vector<std::string>& tokens)
 {
+	if (!checkRegistered(user, "KICK"))
+		return false;
+
 	if (tokens.size() < 3)
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent KICK without enough parameters");
@@ -422,6 +428,9 @@ Syntax:
 */
 bool	Command::handleTopic(Server *server, User *user, const std::vector<std::string> &tokens)
 {
+	if (!checkRegistered(user, "TOPIC"))
+		return false;
+
 	if (tokens.size() < 2)
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent TOPIC without a channel name");
@@ -518,6 +527,9 @@ Syntax:
 */
 bool	Command::handleInvite(Server* server, User* user, const std::vector<std::string>& tokens)
 {
+	if (!checkRegistered(user, "INVITE"))
+		return false;
+
 	if (tokens.size() < 3)
 	{
 		logUserAction(user->getNickname(), user->getFd(),
@@ -617,18 +629,19 @@ Syntax:
 */
 bool	Command::handleList(Server* server, User* user)
 {
-	logUserAction(user->getNickname(), user->getFd(), // Log the list action
-		toString("sent valid LIST command"));
-	
+	if (!checkRegistered(user, "LIST"))
+		return false;
+
+	logUserAction(user->getNickname(), user->getFd(), "sent valid LIST command");
 	user->replyServerMsg("321 " + user->getNickname() + " Channel :Users Name"); // Start of list
 
 	int	numerics = 322;
 	std::map<std::string, Channel*> channels = server->getAllChannels();
 
-	std::map<std::string, Channel*>::const_iterator	it;
+	std::map<std::string, Channel*>::const_iterator	it = channels.begin();
 	std::map<std::string, Channel*>::const_iterator	ite = channels.end();
 
-	for (it = channels.begin(); it != ite; it++) // Iterates through each channel and sends to user.
+	for (; it != ite; it++) // Iterates through each channel and sends to user.
 	{
 			user->replyServerMsg(toString(numerics++) + " " + toString(user->getNickname()) + " " + toString(it->second->get_name()) + " " 
 				+ toString(it->second->get_connected_user_number()) + " :" + toString(it->second->get_topic()));
