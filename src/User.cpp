@@ -116,6 +116,12 @@ const std::string&	User::getHost() const
 	return _host;
 }
 
+// Returns a pointer to the server the user is connected to.
+const Server*	User::getServer() const
+{
+	return _server;
+}
+
 // Returns the input buffer where incoming messages are stored.
 std::string&	User::getInputBuffer()
 {

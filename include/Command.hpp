@@ -73,7 +73,7 @@ class	Command
 		
 		static bool		handleModeChanges(Server* server, User* user, Channel* channel, const std::vector<std::string>& tokens);
 		static bool		applyChannelMode(Server* server, User* user, Channel* channel, char mode, bool adding,
-										const std::vector<std::string>& tokens, size_t& paramIndex, std::string& modeParams);
+										const std::vector<std::string>& tokens, size_t& paramIndex, std::string& modeParams, bool& validModeFound);
 		static bool		applySimpleMode(Channel* channel, User* user, char mode, bool adding);
 		static bool		applyUserLimit(Channel* channel, User* user, bool adding, const std::vector<std::string>& tokens,
 										size_t& paramIndex, std::string& modeParams);

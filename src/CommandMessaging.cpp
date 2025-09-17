@@ -116,21 +116,23 @@ static void	handleMessageToChannel(Server* server, User* sender, const std::stri
 			sender->replyError(403, channelName, "No such channel");
 		return;
 	}
+
+	std::string	channelNameOrig = channel->get_name();
 	if (!channel->is_user_member(sender))
 	{
 		logUserAction(sender->getNickname(), sender->getFd(), "tried to send " + commandName
-			+ " to " + BLUE + channelName + RESET + " but is not a member");
+			+ " to " + BLUE + channelNameOrig + RESET + " but is not a member");
 		if (sendReplies)
-			sender->replyError(404, channelName, "Cannot send to channel");
+			sender->replyError(404, channelNameOrig, "Cannot send to channel");
 		return;
 	}
 
 	// Construct the IRC line and broadcast it
-	std::string line = ":" + sender->buildHostmask() + " " + commandName + " " + channelName + " :" + message;
+	std::string line = ":" + sender->buildHostmask() + " " + commandName + " " + channelNameOrig + " :" + message;
 	Command::broadcastToChannel(channel, line, sender->getNicknameLower()); // exclude sender
 
 	logUserAction(sender->getNickname(), sender->getFd(), "sent " + commandName + " to "
-		+ BLUE + channelName + RESET);
+		+ BLUE + channelNameOrig + RESET);
 }
 
 /**

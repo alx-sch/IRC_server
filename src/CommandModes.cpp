@@ -95,6 +95,7 @@ bool	Command::handleModeChanges(Server* server, User* user, Channel* channel, co
 		return false;
 	}
 
+	bool	validModeFound = false;
 	for (size_t i = 0; i < modeString.length(); ++i)
 	{
 		char	mode = modeString[i];
@@ -102,7 +103,7 @@ bool	Command::handleModeChanges(Server* server, User* user, Channel* channel, co
 		if (mode == '+') { adding = true; continue; }
 		if (mode == '-') { adding = false; continue; }
 
-		bool	success = applyChannelMode(server, user, channel, mode, adding, tokens, paramIndex, modeParams);
+		bool	success = applyChannelMode(server, user, channel, mode, adding, tokens, paramIndex, modeParams, validModeFound);
 		if (success)
 		{
 			if (adding)
@@ -110,6 +111,13 @@ bool	Command::handleModeChanges(Server* server, User* user, Channel* channel, co
 			else
 				removedModes += mode;
 		}
+	}
+
+	if (addedModes.empty() && removedModes.empty() && !validModeFound) // just + or - with no valid modes
+	{
+		logUserAction(user->getNickname(), user->getFd(), "sent MODE without parameters");
+		user->replyError(461, "MODE", "Not enough parameters");
+		return false;
 	}
 
 	// Broadcast mode changes if any were applied
@@ -177,12 +185,14 @@ Channel*	Command::validateChannelAndUser(Server* server, User* user, const std::
 		return NULL;
 	}
 
+	std::string	channelNameOrig = channel->get_name();
+
 	// Check if user is in the channel
 	if (!channel->is_user_member(user))
 	{
 		logUserAction(user->getNickname(), user->getFd(),
-			toString("sent MODE but is not a member of ") + BLUE + target + RESET);
-		user->replyError(442, target, "You're not on that channel");
+			toString("sent MODE but is not a member of ") + BLUE + channelNameOrig + RESET);
+		user->replyError(442, channelNameOrig, "You're not on that channel");
 		return NULL;
 	}
 
@@ -244,17 +254,25 @@ and any parameters, and appends it to the user's output buffer. Also logs the ac
 void	Command::sendModeReply(User* user, const std::string& target, const std::string& modes,
 								const std::string& params, std::string& paramsLogging)
 {
-	user->replyServerMsg("324 " + user->getNickname() + " " + target + (modes.empty() ? "" : " " + modes) + params);
+	// Get the channel's actual name for logging
+	Channel*	channel = user->getServer()->getChannel(target);
+	if (!channel)
+		return; // Should not happen as already validated before
+	std::string	channelNameOrig = channel->get_name();
 
+	user->replyServerMsg("324 " + user->getNickname() + " " + channelNameOrig
+		+ (modes.empty() ? "" : " " + modes) + params);
 
-	logUserAction(user->getNickname(), user->getFd(), toString("queried modes for ") + BLUE + target + RESET
+	logUserAction(user->getNickname(), user->getFd(), toString("queried modes for ") + BLUE + channelNameOrig + RESET
 		+ (modes.empty() ? " (no modes set)" : toString(" (") + YELLOW + modes + RESET + paramsLogging + ")"));
 }
 
 // Applies a single mode change to a channel.
 bool	Command::applyChannelMode(Server* server, User* user, Channel* channel, char mode, bool adding,
-									const std::vector<std::string>& tokens, size_t& paramIndex, std::string& modeParams)
+									const std::vector<std::string>& tokens, size_t& paramIndex, std::string& modeParams, bool& validModeFound)
 {
+	validModeFound = true;
+
 	switch (mode)
 	{
 		case 'i':
@@ -325,6 +343,7 @@ bool	Command::applyUserLimit(Channel* channel, User* user, bool adding, const st
 
 		// limit is zero or negative
 		logUserAction(user->getNickname(), user->getFd(), "sent invalid user limit");
+		// There is no specific IRC error code for invalid limit, but Notify the user
 		user->replyServerMsg("NOTICE " + user->getNickname() + " :User limit must be a positive integer");
 		return false;
 	}

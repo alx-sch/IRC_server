@@ -206,17 +206,19 @@ bool	Command::handleSinglePart(Server* server, User* user, const std::string& ch
 		return false;
 	}
 
+	std::string	channelNameOrig = channel->get_name();
+
 	// Check membership
 	if (!channel->is_user_member(user))
 	{
 		logUserAction(user->getNickname(), user->getFd(), toString("tried to leave ")
-			+ BLUE + channel->get_name() + RESET + " but is not a member");
-		user->replyError(442, channel->get_name(), "You're not on that channel");
+			+ BLUE + channelNameOrig + RESET + " but is not a member");
+		user->replyError(442, channelNameOrig, "You're not on that channel");
 		return false;
 	}
 
 	// Send PART message to all channel members (including the leaving user)
-	std::string partLine = ":" + user->buildHostmask() + " PART " + channel->get_name();
+	std::string partLine = ":" + user->buildHostmask() + " PART " + channelNameOrig;
 	if (!partMessage.empty())
 		partLine += " :" + partMessage;
 
@@ -226,11 +228,11 @@ bool	Command::handleSinglePart(Server* server, User* user, const std::string& ch
 	channel->remove_user(user);
 	user->removeChannel(channelName);
 
-	logUserAction(user->getNickname(), user->getFd(), toString("left channel ") + BLUE + channel->get_name()
+	logUserAction(user->getNickname(), user->getFd(), toString("left channel ") + BLUE + channelNameOrig
 		+ RESET + (partMessage.empty() ? "" : toString(": ") + YELLOW + partMessage + RESET));
 
 	if (!channel->get_connected_user_number()) // If the user who left was the last one - delete channel
-		server->deleteChannel(channelName, "no connected users");
+		server->deleteChannel(channelNameOrig, "no connected users");
 
 	return true;
 }
@@ -338,12 +340,14 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 		return false;
 	}
 
+	std::string	channelNameOrig = channel->get_name();
+
 	// Check if kicker is in the channel
 	if (!channel->is_user_member(user))
 	{
 		logUserAction(user->getNickname(), user->getFd(), 
-			toString("tried to KICK from channel ") + BLUE + channelName + RESET + " but is not a member");
-		user->replyError(442, channelName, "You're not on that channel");
+			toString("tried to KICK from channel ") + BLUE + channelNameOrig + RESET + " but is not a member");
+		user->replyError(442, channelNameOrig, "You're not on that channel");
 		return false;
 	}
 
@@ -351,8 +355,8 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	if (!channel->is_user_operator(user))
 	{
 		logUserAction(user->getNickname(), user->getFd(), 
-			toString("tried to KICK from channel ") + BLUE + channelName + RESET + " but is not an operator");
-		user->replyError(482, channelName, "You're not channel operator");
+			toString("tried to KICK from channel ") + BLUE + channelNameOrig + RESET + " but is not an operator");
+		user->replyError(482, channelNameOrig, "You're not channel operator");
 		return false;
 	}
 
@@ -371,8 +375,8 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	{
 		logUserAction(user->getNickname(), user->getFd(),
 			toString("tried to KICK user ") + GREEN + targetUser->getNickname() + RESET + " who is not in channel "
-			+ BLUE + channelName + RESET);
-		user->replyError(441, targetUser->getNickname() + " " + channelName, "They aren't on that channel");
+			+ BLUE + channelNameOrig + RESET);
+		user->replyError(441, targetUser->getNickname() + " " + channelNameOrig, "They aren't on that channel");
 		return false;
 	}
 
@@ -393,7 +397,7 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	}
 
 	// Send KICK message to all channel members (including kicker and victim)
-	std::string	kickLine = ":" + user->buildHostmask() + " KICK " + channelName + " " + targetUser->getNickname();
+	std::string	kickLine = ":" + user->buildHostmask() + " KICK " + channelNameOrig + " " + targetUser->getNickname();
 	if (!kickReason.empty())
 		kickLine += " :" + kickReason;
 
@@ -404,12 +408,12 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	targetUser->removeChannel(channelName);
 
 	logUserAction(user->getNickname(), user->getFd(),
-		toString("kicked ") + GREEN + targetUser->getNickname() + RESET + " from channel " + BLUE + channelName
+		toString("kicked ") + GREEN + targetUser->getNickname() + RESET + " from channel " + BLUE + channelNameOrig
 		+ RESET + (kickReason.empty() ? "" : toString(": ") + YELLOW + kickReason + RESET));
 
 	// If the kicked user was the last one, delete the channel
 	if (!channel->get_connected_user_number())
-		server->deleteChannel(channelName, "no connected users");
+		server->deleteChannel(channelNameOrig, "no connected users");
 
 	return true;
 }
@@ -457,12 +461,14 @@ bool	Command::handleTopic(Server *server, User *user, const std::vector<std::str
 		return false;
 	}
 
+	std::string	channelNameOrig = channel->get_name();
+
 	// Check if user is a member of the channel
 	if (!channel->is_user_member(user))
 	{
 		logUserAction(user->getNickname(), user->getFd(), toString("tried to check/set topic for ")
-			+ BLUE + channelName + RESET + " but is not a member");
-		user->replyError(442, channelName, "You're not on that channel");
+			+ BLUE + channelNameOrig + RESET + " but is not a member");
+		user->replyError(442, channelNameOrig, "You're not on that channel");
 		return false;
 	}
 
@@ -475,19 +481,19 @@ bool	Command::handleTopic(Server *server, User *user, const std::vector<std::str
 		if (channel->has_topic_protection() && !channel->is_user_operator(user))
 		{
 			logUserAction(user->getNickname(), user->getFd(), toString("tried to set topic for ")
-				+ BLUE + channelName + RESET + " but is not an operator");
-			user->replyError(482, channelName, "You're not channel operator");
+				+ BLUE + channelNameOrig + RESET + " but is not an operator");
+			user->replyError(482, channelNameOrig, "You're not channel operator");
 			return false;
 		}
 		channel->set_topic(newTopic, user->buildHostmask());
 
 		// Broadcast topic change to all channel members
-		std::string	topicLine = ":" + user->buildHostmask() + " TOPIC " + channelName + " :" + newTopic;
+		std::string	topicLine = ":" + user->buildHostmask() + " TOPIC " + channelNameOrig + " :" + newTopic;
 		broadcastToChannel(channel, topicLine); // Everyone gets the topic change
 
 		// Log the topic change
 		logUserAction(user->getNickname(), user->getFd(), toString("set topic for ")
-			+ BLUE + channelName + RESET + " to: " + YELLOW + newTopic + RESET);
+			+ BLUE + channelNameOrig + RESET + " to: " + YELLOW + newTopic + RESET);
 
 		return true;
 	}
@@ -496,25 +502,24 @@ bool	Command::handleTopic(Server *server, User *user, const std::vector<std::str
 		std::string	currentTopic = channel->get_topic();
 		if (currentTopic.empty())
 		{
-			user->replyServerMsg("331 " + user->getNickname() + " " + channelName + " :No topic is set");
+			user->replyServerMsg("331 " + user->getNickname() + " " + channelNameOrig + " :No topic is set");
 		}
 		else
 		{
 			// Send topic reply to user
-			user->replyServerMsg("332 " + user->getNickname() + " " + channelName + " :" + currentTopic);
-			user->replyServerMsg("333 " + user->getNickname() + " " + channelName + " " 
+			user->replyServerMsg("332 " + user->getNickname() + " " + channelNameOrig + " :" + currentTopic);
+			user->replyServerMsg("333 " + user->getNickname() + " " + channelNameOrig + " "
 				+ channel->get_topic_set_info());
 		}
 
 		// Log the topic request
 		logUserAction(user->getNickname(), user->getFd(),
-			toString("queried topic for ") + BLUE + channelName + RESET);
+			toString("queried topic for ") + BLUE + channelNameOrig + RESET);
 
 		return true;
 	}
 }
 
-#include <iostream> // For debugging output
 /**
 Handles the IRC `INVITE` command, allowing a user to invite another user to a channel.
 
@@ -560,12 +565,14 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 		return false;
 	}
 
+	std::string	channelNameOrig = channel->get_name();
+
 	// Check if user is on the channel (required to invite others)
 	if (!channel->is_user_member(user))
 	{
 		logUserAction(user->getNickname(), user->getFd(),
-			toString("tried to invite to ") + BLUE + channelName + RESET + " but is not a member");
-		user->replyError(442, channelName, "You're not on that channel");
+			toString("tried to invite to ") + BLUE + channelNameOrig + RESET + " but is not a member");
+		user->replyError(442, channelNameOrig, "You're not on that channel");
 		return false;
 	}
 
@@ -573,8 +580,8 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 	if (channel->is_invite_only() && !channel->is_user_operator(user))
 	{
 		logUserAction(user->getNickname(), user->getFd(),
-			toString("tried to invite to invite-only ") + BLUE + channelName + RESET + " but is not an operator");
-		user->replyError(482, channelName, "You're not channel operator");
+			toString("tried to invite to invite-only ") + BLUE + channelNameOrig + RESET + " but is not an operator");
+		user->replyError(482, channelNameOrig, "You're not channel operator");
 		return false;
 	}
 
@@ -593,27 +600,25 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 	{
 		logUserAction(user->getNickname(), user->getFd(),
 			toString("tried to invite already member ") + GREEN + targetUser->getNickname() + RESET + " to "
-			+ BLUE + channelName + RESET);
-		user->replyError(443, targetUser->getNickname() + " " + channelName, "is already on channel");
+			+ BLUE + channelNameOrig + RESET);
+		user->replyError(443, targetUser->getNickname() + " " + channelNameOrig, "is already on channel");
 		return false;
 	}
-
-	std::cout << "DEBU3: INVITE targetNick='" << targetNick << "' channelName='" << channelName << "'\n";
 
 	// Add to invite list (for invite-only channels)
 	if (channel->is_invite_only())
 		channel->add_invite(targetNick);
 
 	// send confirmation to inviter
-	user->replyServerMsg("341 " + user->getNickname() + " " + targetUser->getNickname() + " " + channelName);
+	user->replyServerMsg("341 " + user->getNickname() + " " + targetUser->getNickname() + " " + channelNameOrig);
 
 	// send invitation to target user
-	std::string	invitation = ":" + user->buildHostmask() + " INVITE " + targetUser->getNickname() + " :" + channelName + "\r\n";
+	std::string	invitation = ":" + user->buildHostmask() + " INVITE " + targetUser->getNickname() + " :" + channelNameOrig + "\r\n";
 	targetUser->getOutputBuffer() += invitation;
 
 	// log the invite action
 	logUserAction(user->getNickname(), user->getFd(),
-		toString("invited ") + GREEN + targetUser->getNickname() + RESET + " to " + BLUE + channelName + RESET);
+		toString("invited ") + GREEN + targetUser->getNickname() + RESET + " to " + BLUE + channelNameOrig + RESET);
 
 	return true;
 }

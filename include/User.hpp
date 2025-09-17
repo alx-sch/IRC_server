@@ -32,6 +32,7 @@ class	User
 		const std::string&	getUsername() const;
 		const std::string&	getRealname() const;
 		const std::string&	getHost() const;
+		const Server*		getServer() const;
 
 		const std::set<std::string>&	getChannels() const;
 		void				addChannel(const std::string& channel);
