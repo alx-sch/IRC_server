@@ -26,6 +26,6 @@ void	User::tryRegister()
 	{
 		_isRegistered = true;
 		logUserAction(_nickname, _fd, "successfully registered");
-		replyWelcome();	// Send welcome messages
+		sendWelcome();	// Send welcome messages
 	}
 }

@@ -40,7 +40,7 @@ class	User
 
 		// === UserReply.cpp ===
 
-		void				replyWelcome();
+		void				sendWelcome();
 		void				sendError(int code, const std::string& param,
 								const std::string& message);
 		void				sendServerMsg(const std::string& message);

@@ -11,7 +11,7 @@ Source: https://dd.ircdocs.horse/refs/numerics/
 
  @param server	Pointer to the Server object (used to get server name, version, modes, etc.)
 */
-void	User::replyWelcome()
+void	User::sendWelcome()
 {
 	sendServerMsg("001 " + _nickname + " :Welcome to the " + _server->getNetwork()
 		+ " Network, " + _nickname	 + "!" + _username + "@" + _host); // username@host might be not needed, check with HexChat
