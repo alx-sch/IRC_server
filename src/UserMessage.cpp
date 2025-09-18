@@ -61,3 +61,19 @@ void	User::sendServerMsg(const std::string& message)
 	std::string	fullMessage = ":" + _server->getServerName() + " " + message + "\r\n";
 	_outputBuffer += fullMessage;
 }
+
+/**
+Appends a raw IRC message from another user to this user's output buffer.
+Automatically prefixes the message with the sender's hostmask and appends `\r\n`.
+
+ @param sender	The User who is the origin of the message.
+ @param message	The already-formatted command and parameters (e.g., "KICK #chan Bob :reason")
+*/
+void	User::sendMsgFromUser(const User* sender, const std::string& message)
+{
+	if (_fd == -1 || sender == NULL) // This user or sender not connected
+		return;
+
+	std::string	fullMessage = ":" + sender->buildHostmask() + " " + message + "\r\n";
+	_outputBuffer += fullMessage;
+}

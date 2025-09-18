@@ -156,9 +156,8 @@ static void handleMessageToUser(Server* server, User* sender, const std::string&
 	}
 
 	// Construct the IRC line and add to the target user's output buffer
-	std::string	line =	":" + sender->buildHostmask() + " " + commandName + " " + targetUser->getNickname()
-							+ " :" + message + "\r\n";
-	targetUser->getOutputBuffer() += line;
+	std::string	line =	commandName + " " + targetUser->getNickname() + " :" + message;
+	targetUser->sendMsgFromUser(sender, line);
 
 	logUserAction(sender->getNickname(), sender->getFd(), "sent " + commandName + " to user "
 		+ GREEN + targetUser->getNickname() + RESET);

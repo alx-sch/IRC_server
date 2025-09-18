@@ -8,7 +8,7 @@ SRCS_FILES :=	main.cpp \
 				ServerSocket.cpp \
 				ServerChannel.cpp \
 				User.cpp \
-				UserReply.cpp \
+				UserMessage.cpp \
 				UserRegistration.cpp \
 				Command.cpp \
 				CommandRegistration.cpp \

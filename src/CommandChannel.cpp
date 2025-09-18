@@ -611,8 +611,7 @@ bool	Command::handleInvite(Server* server, User* user, const std::vector<std::st
 	user->sendServerMsg("341 " + user->getNickname() + " " + targetUser->getNickname() + " " + channelNameOrig);
 
 	// send invitation to target user
-	std::string	invitation = ":" + user->buildHostmask() + " INVITE " + targetUser->getNickname() + " :" + channelNameOrig + "\r\n";
-	targetUser->getOutputBuffer() += invitation;
+	targetUser->sendMsgFromUser(user, "INVITE " + targetUser->getNickname() + " :" + channelNameOrig);
 
 	// log the invite action
 	logUserAction(user->getNickname(), user->getFd(),

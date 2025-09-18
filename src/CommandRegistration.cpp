@@ -47,8 +47,7 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 	if (user->getUsername().empty())
 		user->setUsernameTemp("~" + displayNick);
 
-	std::string	line = ":" + user->buildHostmask() + " NICK :" + displayNick + "\r\n";
-	user->getOutputBuffer() += line;
+	user->sendMsgFromUser(user, "NICK :" + displayNick); // Notify user of their own nick change
 	user->setNickname(displayNick, normNick);
 	user->tryRegister();
 }
