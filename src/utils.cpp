@@ -201,7 +201,6 @@ static char	ircToLowerChar(char c)
 	return c;
 }
 
-
 // Normalizes a nicknames or channels for case-insensitive storage and lookup
 // lowercase letters and certain special characters are mapped
 // to their lowercase equivalents as per IRC case-mapping rules.
