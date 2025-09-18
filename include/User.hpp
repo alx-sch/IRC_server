@@ -38,7 +38,7 @@ class	User
 		void				addChannel(const std::string& channel);
 		void				removeChannel(const std::string& channel);
 
-		// === UserMessage.cpp ===
+		// === UserMessaging.cpp ===
 
 		void				sendWelcome();
 		void				sendError(int code, const std::string& param, const std::string& message);
