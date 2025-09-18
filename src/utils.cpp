@@ -5,7 +5,7 @@
 #include <ctime>		// time_t, gmtime, strftime
 #include <stdexcept>	// std::runtime_error
 #include <iomanip>		// std::setw, std::left, std::right
-#include <cctype>		// For ::isalpha(), ::isdigit(), tolower()
+#include <cctype>		// For ::isalpha(), ::isdigit()
 #include <cstdlib>		// strtol
 #include <algorithm>	// std::transform
 
@@ -187,14 +187,6 @@ void	logServerMessage(const std::string& message)
 	std::cout	<< "[" << CYAN << getTimestamp() << RESET << "] "
 				<< std::left << std::setw(MAX_NICK_LENGTH + 10) << " " // pad for alignment with user logs
 				<< message << std::endl;
-}
-
-// Safely converts a character to its lowercase equivalent, as std::tolower
-// may invoke undefined behavior when passed a negative char value.
-// Used as unary operation in std::transform.
-int	toLowerChar(int c)
-{
-	return std::tolower(static_cast<unsigned char>(c));
 }
 
 // IRC-specific case mapping for lowercase conversion.
