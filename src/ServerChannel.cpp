@@ -58,7 +58,7 @@ Channel*	Server::getOrCreateChannel(const std::string& channelName, User* user, 
 	{
 		logUserAction(user->getNickname(), user->getFd(), RED
 			+ toString("ERROR: Failed to allocate memory for new channel ") + BLUE + channelName + RESET);
-		user->replyError(500, "", "Internal server error while creating channel " + channelName);
+		user->sendError(500, "", "Internal server error while creating channel " + channelName);
 		if (wasCreated)
 			*wasCreated = false;
 		return NULL;

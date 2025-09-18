@@ -14,7 +14,7 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 	if (tokens.size() < 2)
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent NICK without a nickname");
-		user->replyError(431, "", "No nickname given");
+		user->sendError(431, "", "No nickname given");
 		return;
 	}
 
@@ -25,7 +25,7 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 	{
 		logUserAction(user->getNickname(), user->getFd(), toString("tried to set an invalid nickname: ")
 			+ RED + displayNick + RESET);
-		user->replyError(432, displayNick, "Erroneous nickname");
+		user->sendError(432, displayNick, "Erroneous nickname");
 		return;
 	}
 
@@ -37,7 +37,7 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 	{
 		logUserAction(user->getNickname(), user->getFd(),
 			toString("tried to set a nickname already in use: ") + YELLOW + displayNick + RESET);
-		user->replyError(433, displayNick, "Nickname is already in use");
+		user->sendError(433, displayNick, "Nickname is already in use");
 		return;
 	}
 
@@ -60,7 +60,7 @@ void	Command::handleUser(User* user, const std::vector<std::string>& tokens)
 	if (user->isRegistered())
 	{
 		logUserAction(user->getNickname(), user->getFd(), "tried to resend USER after registration");
-		user->replyError(462, "", "You may not reregister");
+		user->sendError(462, "", "You may not reregister");
 		return;
 	}
 
@@ -68,7 +68,7 @@ void	Command::handleUser(User* user, const std::vector<std::string>& tokens)
 	if (tokens.size() < 5)
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent invalid USER command (too few arguments)");
-		user->replyError(461, "USER", "Not enough parameters");
+		user->sendError(461, "USER", "Not enough parameters");
 		return;
 	}
 	
@@ -93,14 +93,14 @@ void	Command::handlePass(Server* server, User* user, const std::vector<std::stri
 	if (user->isRegistered())
 	{
 		logUserAction(user->getNickname(), user->getFd(), "tried to resend PASS after registration");
-		user->replyError(462, "", "You may not reregister");
+		user->sendError(462, "", "You may not reregister");
 		return;
 	}
 
 	if (tokens.size() < 2)
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent invalid PASS command (missing password)");
-		user->replyError(461, "PASS", "Not enough parameters");
+		user->sendError(461, "PASS", "Not enough parameters");
 		return;
 	}
 
@@ -111,7 +111,7 @@ void	Command::handlePass(Server* server, User* user, const std::vector<std::stri
 	if (requiresPassword && password != server->getPassword())
 	{
 		logUserAction(user->getNickname(), user->getFd(), "provided incorrect password");
-		user->replyError(464, "", "Password incorrect");
+		user->sendError(464, "", "Password incorrect");
 		return;
 	}
 

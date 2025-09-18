@@ -13,15 +13,15 @@ Source: https://dd.ircdocs.horse/refs/numerics/
 */
 void	User::replyWelcome()
 {
-	replyServerMsg("001 " + _nickname + " :Welcome to the " + _server->getNetwork()
+	sendServerMsg("001 " + _nickname + " :Welcome to the " + _server->getNetwork()
 		+ " Network, " + _nickname	 + "!" + _username + "@" + _host); // username@host might be not needed, check with HexChat
 
-	replyServerMsg("002 " + _nickname + " :Your host is " + _server->getServerName()
+	sendServerMsg("002 " + _nickname + " :Your host is " + _server->getServerName()
 		+ ", running version " + _server->getVersion());
 
-	replyServerMsg("003 " + _nickname + " :This server was created " + _server->getCreationTime());
+	sendServerMsg("003 " + _nickname + " :This server was created " + _server->getCreationTime());
 
-	replyServerMsg("004 " + _nickname + " " + _server->getServerName() + " "
+	sendServerMsg("004 " + _nickname + " " + _server->getServerName() + " "
 		+ _server->getVersion() + " " + _server->getUModes() + " " + _server->getCModes());
 }
 
@@ -32,7 +32,7 @@ Appends an IRC numeric error to the user's output buffer (eventually flushed via
  @param param		Optional parameter for the error (e.g. nickname when invalid)
  @param message		Human-readable message to display
 */
-void	User::replyError(int code, const std::string& param, const std::string& message)
+void	User::sendError(int code, const std::string& param, const std::string& message)
 {
 	std::ostringstream	oss;
 	std::string			target = isRegistered() ? _nickname : "*";	// If no nickname yet, use '*'
@@ -43,7 +43,7 @@ void	User::replyError(int code, const std::string& param, const std::string& mes
 		oss << " " << param;
 	oss << " :" << message;
 
-	replyServerMsg(oss.str());
+	sendServerMsg(oss.str());
 }
 
 /**
@@ -53,7 +53,7 @@ Automatically prefixes the message with the server name and appends `\r\n`.
 
  @param message	The already-formatted reply (e.g. "001 Alex :Welcome...")
 */
-void	User::replyServerMsg(const std::string& message)
+void	User::sendServerMsg(const std::string& message)
 {
 	if (_fd == -1) // User not connected
 		return;

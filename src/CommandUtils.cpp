@@ -45,7 +45,7 @@ bool	Command::checkRegistered(User* user, const std::string& command)
 	{
 		logUserAction(user->getNickname(), user->getFd(),
 			"tried to execute " + command + " before registration");
-		user->replyError(451, "", "You have not registered");
+		user->sendError(451, "", "You have not registered");
 		return false;
 	}
 	return true;

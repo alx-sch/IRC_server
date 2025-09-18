@@ -35,14 +35,14 @@ void	Command::handleMessage(Server* server, User* user, const std::vector<std::s
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent invalid " + commandName + " (no recipient)");
 		if (sendReplies)
-			user->replyError(411, "", "No recipient given (" + commandName + ")");
+			user->sendError(411, "", "No recipient given (" + commandName + ")");
 		return;
 	}
 	if (tokens.size() < 3)
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent invalid " + commandName + " (no text)");
 		if (sendReplies)
-			user->replyError(412, "", "No text to send");
+			user->sendError(412, "", "No text to send");
 		return;
 	}
 
@@ -113,7 +113,7 @@ static void	handleMessageToChannel(Server* server, User* sender, const std::stri
 		logUserAction(sender->getNickname(), sender->getFd(), "tried to send " + commandName
 			+ " to non-existing " + RED + channelName + RESET);
 		if (sendReplies)
-			sender->replyError(403, channelName, "No such channel");
+			sender->sendError(403, channelName, "No such channel");
 		return;
 	}
 
@@ -123,7 +123,7 @@ static void	handleMessageToChannel(Server* server, User* sender, const std::stri
 		logUserAction(sender->getNickname(), sender->getFd(), "tried to send " + commandName
 			+ " to " + BLUE + channelNameOrig + RESET + " but is not a member");
 		if (sendReplies)
-			sender->replyError(404, channelNameOrig, "Cannot send to channel");
+			sender->sendError(404, channelNameOrig, "Cannot send to channel");
 		return;
 	}
 
@@ -151,7 +151,7 @@ static void handleMessageToUser(Server* server, User* sender, const std::string&
 		logUserAction(sender->getNickname(), sender->getFd(), "tried to send " + commandName
 			+ " to non-existing " + RED + targetNick + RESET);
 		if (sendReplies)
-			sender->replyError(401, targetNick, "No such nick/channel");
+			sender->sendError(401, targetNick, "No such nick/channel");
 		return;
 	}
 

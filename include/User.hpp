@@ -41,9 +41,9 @@ class	User
 		// === UserReply.cpp ===
 
 		void				replyWelcome();
-		void				replyError(int code, const std::string& param,
+		void				sendError(int code, const std::string& param,
 								const std::string& message);
-		void				replyServerMsg(const std::string& message);
+		void				sendServerMsg(const std::string& message);
 
 		// === UserRegistration.cpp ===
 

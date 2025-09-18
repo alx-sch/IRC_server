@@ -241,7 +241,7 @@ Every message from the server to the client has this general structure:
 | `:<message>`           | Human-readable message text (trailing parameter)                            |
 | `\r\n`                 | Required line ending in all IRC messages                                    |
 
-#### Function: `replyServerMsg()`
+#### Function: `sendServerMsg()`
 
 The following helper method of the `User` class ensures the server reply is properly formatted and appended to the user's output buffer, which is eventually sent via `send()` in `handleWriteReadyUsers()`.
 
@@ -253,7 +253,7 @@ Automatically prefixes the message with the server name and appends `\r\n`.
 
  @param message		The already-formatted reply (e.g. "001 Alex :Welcome...")
 */
-void	User::replyServerMsg(const std::string& message)
+void	User::sendServerMsg(const std::string& message)
 {
 	if (_fd == -1) // User not connected
 		return;
@@ -272,7 +272,7 @@ This function:
 Example usage:
 
 ```cpp
-user->replyServerMsg("001 nick :Welcome to the IRC Network, nick!user@host");
+user->sendServerMsg("001 nick :Welcome to the IRC Network, nick!user@host");
 ```
 
 Which sends the following to the client

@@ -118,7 +118,7 @@ Server::UserInputResult	Server::handleUserInput(int fd)
 
 			logUserAction(user->getNickname(), fd, toString("sent unknown command: ")
 				+ RED + cmd + RESET);
-			user->replyError(421, cmd, "Unknown command");
+			user->sendError(421, cmd, "Unknown command");
 		}
 	}
 	return INPUT_OK;
@@ -160,7 +160,7 @@ std::vector<std::string>	Server::extractMessagesFromBuffer(User* user)
 		{
 			logUserAction(user->getNickname(), user->getFd(), toString("sent an overlong line (")
 				+ YELLOW + toString(msg.size()) + RESET + " > 512 bytes)");
-			user->replyError(417, "", "Input line was too long");
+			user->sendError(417, "", "Input line was too long");
 			continue; // Skip this message, do not add to vector
 		}
 
