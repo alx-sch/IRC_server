@@ -326,8 +326,13 @@ The project is structured around several key classes:
 
 ## Core Server Functions
 
--  **`socket()`:** `Server::createSocket()` uses `socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)` to create the server socket. The `SOCK_STREAM` specifies a TCP socket, and `AF_INET` sets the address family to IPv4. The `SOCK_NONBLOCK` flag is an important part, as it makes the socket non-blocking.
-Making a socket non-blocking means that system calls like `recv()` or `send()` will not pause the program if an operation cannot be completed immediately. Instead of waiting for data to arrive or for the network buffer to clear, the call will return immediately with an error, typically `EAGAIN` or `EWOULDBLOCK`.
+### Non-Blocking I/O
+
+**Non-blocking I/O** is a programming technique where a function call for an I/O operation (like `recv()` or `send()`) doesn't wait for the operation to complete. Instead, it returns immediately, indicating how much data was processed or if the operation couldn't be completed. This is crucial for building efficient, single-threaded servers that must handle many client connections simultaneously.   
+
+The alternative, blocking I/O, would cause the server to freeze while it waits for a single operation to finish. For example, if the `recv()` function is called on a blocking socket and there is no data to read, the entire program would pause until data arrives. This makes it impossible to handle other clients or perform other tasks.
+
+-  **`socket()`:** `Server::createSocket()` uses `socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)` to create the server socket. The `SOCK_STREAM` specifies a TCP socket, and `AF_INET` sets the address family to IPv4. The `SOCK_NONBLOCK` flag is an important part, as it makes the socket non-blocking. On a macOS, the `socket()` call creates a standard blocking socket first. Then, the `fcntl()` function is used with the `F_SETFL` flag to explicitly set the `O_NONBLOCK` option, modifying the socket to be non-blocking
 
 - **`setsockopt()`:** In `Server::setSocketOptions()`, this function is used to set the `SO_REUSEADDR` option. This allows the server to restart immediately on the same port without waiting for the operating system to clear the previous socket's state.
 
@@ -335,7 +340,7 @@ Making a socket non-blocking means that system calls like `recv()` or `send()` w
 
 -  **`listen()`:** `Server::startListening()` method calls `listen()` to put the socket into a state where it waits for incoming connections. The `SOMAXCONN` constant is used as the backlog, which tells the operating system how many incoming connections can be queued up while the server is busy.
 
--  **`select()`:** `Server::run()` uses `select()` as the central mechanism for its event loop. This function is what allows the server to monitor all sockets at once for incoming messages or readiness to send data. The `prepareReadSet()` and `prepareWriteSet()` functions are specifically written to work with `select()`.
+-  **`select()`:** `Server::run()` uses `select()` as the central mechanism for its event loop. This function is what allows the server to monitor all sockets at once for incoming messages or readiness to send data. The `prepareReadSet()` and `prepareWriteSet()` functions are specifically written to work with `select()`. `select()` blocks until one or more monitored sockets become ready for an event (reading from / writing to). Once the function returns, you can iterate through the sets and find the ready sockets and then apply non-blocking I/O operations (like `recv()` or `send()`) on them.
 
 - **`accept()`:** In `Server::acceptNewUser()`, the `accept()` call is used to create a new socket for an incoming connection. This new socket is then used to communicate with the specific client.
 
