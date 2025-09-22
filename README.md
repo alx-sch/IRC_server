@@ -326,11 +326,17 @@ The project is structured around several key classes:
 
 ## Core Server Functions
 
-### Non-Blocking I/O
+#### Non-Blocking I/O
 
-**Non-blocking I/O** is a programming technique where a function call for an I/O operation (like `recv()` or `send()`) doesn't wait for the operation to complete. Instead, it returns immediately, indicating how much data was processed or if the operation couldn't be completed. This is crucial for building efficient, single-threaded servers that must handle many client connections simultaneously.   
+**Non-blocking I/O** is a programming technique where a function call for an I/O operation doesn't wait for the operation to complete. Instead, it returns immediately, indicating how much data was processed or if the operation couldn't be completed. This is crucial for building efficient, single-threaded servers that must handle many client connections simultaneously.   
 
 The alternative, blocking I/O, would cause the server to freeze while it waits for a single operation to finish. For example, if the `recv()` function is called on a blocking socket and there is no data to read, the entire program would pause until data arrives. This makes it impossible to handle other clients or perform other tasks.
+
+#### Handling Non-Blocking Errors
+
+When you perform a non-blocking I/O operation (like `recv()` or `send()`) on a socket that is not yet ready, the system call will return an error code, typically `EAGAIN` or `EWOULDBLOCK`. These are not critical failures; instead, they are signals that the operation could not be completed immediately because the resource is temporarily unavailable.
+
+In a server using `select()`, this happens if you mistakenly try to read from a socket that `select()` hasn't marked as ready to be read from, or try to write to a socket whose buffer is full. The correct way to handle these errors is to simply ignore them and try again on the next iteration of the main loop. This ensures the server never gets stuck and can continue monitoring other connections.
 
 -  **`socket()`:** `Server::createSocket()` uses `socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)` to create the server socket. The `SOCK_STREAM` specifies a TCP socket, and `AF_INET` sets the address family to IPv4. The `SOCK_NONBLOCK` flag is an important part, as it makes the socket non-blocking. On a macOS, the `socket()` call creates a standard blocking socket first. Then, the `fcntl()` function is used with the `F_SETFL` flag to explicitly set the `O_NONBLOCK` option, modifying the socket to be non-blocking
 
@@ -340,7 +346,7 @@ The alternative, blocking I/O, would cause the server to freeze while it waits f
 
 -  **`listen()`:** `Server::startListening()` method calls `listen()` to put the socket into a state where it waits for incoming connections. The `SOMAXCONN` constant is used as the backlog, which tells the operating system how many incoming connections can be queued up while the server is busy.
 
--  **`select()`:** `Server::run()` uses `select()` as the central mechanism for its event loop. This function is what allows the server to monitor all sockets at once for incoming messages or readiness to send data. The `prepareReadSet()` and `prepareWriteSet()` functions are specifically written to work with `select()`. `select()` blocks until one or more monitored sockets become ready for an event (reading from / writing to). Once the function returns, you can iterate through the sets and find the ready sockets and then apply non-blocking I/O operations (like `recv()` or `send()`) on them.
+-  **`select()`:** `Server::run()` uses `select()` as the central mechanism for its event loop. This function is what allows the server to monitor all sockets at once for incoming messages or readiness to send data. The `prepareReadSet()` and `prepareWriteSet()` functions are specifically written to work with `select()`. `select()` blocks until one or more monitored sockets become ready for an event (reading from / writing to). Once the function returns, you can iterate through the sets and find the ready sockets and then apply non-blocking I/O operations on them.
 
 - **`accept()`:** In `Server::acceptNewUser()`, the `accept()` call is used to create a new socket for an incoming connection. This new socket is then used to communicate with the specific client.
 
