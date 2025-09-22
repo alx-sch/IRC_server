@@ -354,6 +354,49 @@ In a server using `select()`, this happens if you mistakenly try to read from a 
 
 - **`recv()`:** `Server::handleUserInput()` uses `recv()` to read data from a user's socket into a buffer. It checks the number of bytes read to determine if the client is still connected or if a message has been received.
 
+----
+
+## File transfer
+
+#### DCC
+
+**DCC** is the standard for direct client-to-client transfers in IRC. The IRC server does not carry the file — it just passes the DCC request (IP + port) to the other client. This means that the transfer happens directly between two clients, without a central server mediating the data flow. DCC always uses direct TCP; which involves that the IP is crucial, because the file doesn’t go through the server.
+
+By default, HexChat (and other IRC clients) chooses an IP address automatically for DCC transfers, which may not be reachable by other hosts (e.g. loopback address or WAN IP). To facilitate file sharing between several hosts, the DCC IP address has to be changed manually. If sending data over the internet, you’d need the external/WAN IP and port forwarding, which our IRC project is not looking into. But for LAN transfers the following method works:
+
+- Retrieve your computer's LAN IP Address by using the command `hostname -i`.
+- Log into Hexchat.
+- In the menu bar: Settings -> Preferences -> Network setup -> File transfers.
+- In the bar called DCC IP address -> paste your LAN IP Address.
+- LAN file transfer should now work.
+
+## File Transfer
+
+#### DCC
+
+**DCC (Direct Client-to-Client)** is the standard method for transferring files between IRC clients. The IRC server itself does **not** carry the file; it only passes along the DCC request (IP address and port) to the receiving client. This means the transfer occurs **directly between two clients**, without a central server mediating the data. Since DCC always uses direct TCP connections, the IP address is crucial — the receiving client must be able to reach the sending client’s address.
+
+By default, HexChat (and many other IRC clients) automatically selects an IP address for DCC transfers. This automatically chosen IP may not be reachable by other hosts, for example:  
+- A loopback address (`127.0.0.1`)  
+- A WAN/external IP that is not accessible from the local network  
+
+To enable file sharing between multiple hosts on the same local network, the DCC IP must be set manually. For LAN transfers, you can use the following steps:
+
+1. Retrieve your computer’s LAN IP address by running:  
+   ```bash
+   hostname -i
+   ```
+2. Open HexChat and log into your IRC server.
+
+3. Navigate to:
+Settings → Preferences → Network Setup → File Transfers
+
+4. In the DCC IP address field, paste your LAN IP address.
+
+5. File transfers between hosts on the same LAN should now work.
+
+*Note: If you were sending files over the internet, you would need to use your external/WAN IP and set up port forwarding. For local network transfers, the above steps are sufficient.*
+
 ---
 
 ## References
