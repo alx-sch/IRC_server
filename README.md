@@ -382,17 +382,11 @@ By default, HexChat (and many other IRC clients) automatically selects an IP add
 
 To enable file sharing between multiple hosts on the same local network, the DCC IP must be set manually. For LAN transfers, you can use the following steps:
 
-1. Retrieve your computer’s LAN IP address by running:  
-   ```bash
-   hostname -i
-   ```
+1. Retrieve your computer’s LAN IP address by running: `hostname -i`
 2. Open HexChat and log into your IRC server.
-
 3. Navigate to:
 Settings → Preferences → Network Setup → File Transfers
-
 4. In the DCC IP address field, paste your LAN IP address.
-
 5. File transfers between hosts on the same LAN should now work.
 
 *Note: If you were sending files over the internet, you would need to use your external/WAN IP and set up port forwarding. For local network transfers, the above steps are sufficient.*
