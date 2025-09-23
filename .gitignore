@@ -1,10 +1,2 @@
-# Project-specific files to ignore
-README.md
-.assets/
-.devcontainer/
-
-# IDE and editor configuration
-.vscode/
-.idea/
-*.swp
-*~
+CLAUDE.md
+caveat.txt
