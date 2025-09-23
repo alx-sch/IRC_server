@@ -1,2 +1,12 @@
-CLAUDE.md
-caveat.txt
+# IDE and editor configuration
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Log files
+*.log
