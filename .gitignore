@@ -1,2 +1,10 @@
-CLAUDE.md
-caveat.txt
+# Project-specific files to ignore
+README.md
+.assets/
+.devcontainer/
+
+# IDE and editor configuration
+.vscode/
+.idea/
+*.swp
+*~
