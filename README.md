@@ -8,9 +8,9 @@ This project is about building a functional IRC (Internet Relay Chat) server fro
 
 This project is a collaboration between:
 
-- **[Pavlos](https://github.com/sysex89)**: TASKS TDB
-- **[Alex](https://github.com/alx-sch)**: TASKS TDB
-- **[Natalie](https://github.com/busedame)**: TASKS TDB
+- **[Alex](https://github.com/alx-sch)**: Server core & connection management, message handling, this ReadMe.
+- **[Pavlos](https://github.com/sysex89)**: Channel logic.
+- **[Natalie](https://github.com/busedame)**: Bonus: File transfer and server bot.
   
 ---
 
