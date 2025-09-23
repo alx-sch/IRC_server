@@ -10,7 +10,7 @@ This project is a collaboration between:
 
 - **[Alex](https://github.com/alx-sch)**: Server core & connection management, message handling, this ReadMe.
 - **[Pavlos](https://github.com/sysex89)**: Channel logic.
-- **[Natalie](https://github.com/busedame)**: Bonus: File transfer and server bot.
+- **[Natalie](https://github.com/busedame)**: File transfer and server bot.
   
 ---
 
