@@ -40,8 +40,7 @@ class	Command
 			KICK,		// Kick a user from a channel (ops only)
 			INVITE,		// Invite a user to a channel
 			MODE,		// Change channel or user mode
-			LIST,		// Lists the server's existing channels
-			WHO			// Displays info about all users who share common channels with the requesting user, or (if specified) a specific user.
+			LIST		// Lists the server's existing channels
 		};
 
 		// === CommandRegistration.cpp ===
@@ -60,7 +59,6 @@ class	Command
 		static bool		handleTopic(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleKick(Server* server, User* user, const std::vector<std::string>& tokens);
 		static bool		handleList(Server* server, User* user);
-		// static bool		handleWho(Server* server, User* user, const std::vector<std::string>& tokens);
 
 		// === CommandModes.cpp ===
 		

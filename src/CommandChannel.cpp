@@ -662,27 +662,3 @@ bool	Command::handleList(Server* server, User* user)
 
 	return true;
 }
-
-/**
-Handles the IRC `WHO` command.
-
-As opposed to the regular `WHO` command which behaves differently depending
-on if it's parameterized or not - this function will behave the same way
-regardless of if arguments are provided or not.
-It displays the different channels, the amount of connected users in each channel,
-and the topic of the channel (if any).
-
-Syntax:
-	LIST
-
-//  @param server	Pointer to the server instance handling the command.
-//  @param user	The user issuing the `WHO` command.
-//  @param tokens	Parsed IRC command tokens "WHO".
-
-//  @return		True if the command was successfully processed,
-// 				false if an error occurred.
-// */
-// bool	Command::handleWho(Server* server, User* user, const std::vector<std::string>& tokens)
-// {
-	
-// }
