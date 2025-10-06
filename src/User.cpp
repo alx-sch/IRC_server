@@ -9,7 +9,7 @@
 // '*' is default nickname for unregistered users
 User::User(int fd, Server* server)
 	:	_fd(fd), _nickname("*"), _server(server), _hasNick(false),
-		_hasUser(false), _hasPassed(false), _isRegistered(false)
+		_hasUser(false), _hasPassed(false), _isRegistered(false), _isBot(false)
 {}
 
 User::~User() {}
@@ -76,6 +76,12 @@ void	User::setHost(const std::string& host)
 	_host = host;
 }
 
+// Sets the _isBot variable to true
+void	User::setIsBotToTrue(void)
+{
+	_isBot = true;
+}
+
 /////////////
 // Getters //
 /////////////
@@ -132,6 +138,12 @@ std::string&	User::getInputBuffer()
 std::string&	User::getOutputBuffer()
 {
 	return _outputBuffer;
+}
+
+// True if user is IRCbot.
+bool	User::getIsBot() const
+{
+	return _isBot;
 }
 
 ////////////////////////

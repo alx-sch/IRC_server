@@ -28,11 +28,13 @@ void	Server::initBotCredentials(void)
 	acceptNewUser();
 
 	std::map<int, User*>::iterator it = _usersFd.begin();
-	it->second->setNickname("IRCbot", "ircbot");
-	it->second->setRealname("IRC botty botteson botti");
-	it->second->setUsername("IRC botty botteson botti");
-	it->second->setHasPassed(true);
-	it->second->tryRegister();
+	_botUser = it->second;
+	_botUser->setNickname("IRCbot", "ircbot");
+	_botUser->setRealname("IRC botty botteson botti");
+	_botUser->setUsername("IRC botty botteson botti");
+	_botUser->setHasPassed(true);
+	_botUser->setIsBotToTrue();
+	_botUser->tryRegister();
 }
 
 void	Server::initBot(void)

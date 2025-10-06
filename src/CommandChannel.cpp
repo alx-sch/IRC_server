@@ -38,9 +38,12 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 	{
 		Channel*	existingChannel = server->getChannel(channelName);
 
-		logUserAction(user->getNickname(), user->getFd(), toString("tried to join already joined ")
-			+ BLUE + existingChannel->get_name() + RESET);
-		user->sendError(443, existingChannel->get_name(), "is already on channel");
+		if (!user->getIsBot())
+		{
+			logUserAction(user->getNickname(), user->getFd(), toString("tried to join already joined ")
+				+ BLUE + existingChannel->get_name() + RESET);
+			user->sendError(443, existingChannel->get_name(), "is already on channel");
+		}
 		return false;
 	}
 
@@ -165,6 +168,8 @@ bool	Command::handleJoin(Server* server, User* user, const std::vector<std::stri
 		std::string		key = (i < keys.size()) ? keys[i] : "";
 
 		handleSingleJoin(server, user, channelName, key);
+		if (server->getBotMode())
+			handleSingleJoin(server, server->getBotUser(), channelName, key);
 	}
 	return true;
 }
@@ -231,9 +236,6 @@ bool	Command::handleSinglePart(Server* server, User* user, const std::string& ch
 	logUserAction(user->getNickname(), user->getFd(), toString("left channel ") + BLUE + channelNameOrig
 		+ RESET + (partMessage.empty() ? "" : toString(": ") + YELLOW + partMessage + RESET));
 
-	if (!channel->get_connected_user_number()) // If the user who left was the last one - delete channel
-		server->deleteChannel(channelNameOrig, "no connected users");
-
 	return true;
 }
 
@@ -282,7 +284,14 @@ bool Command::handlePart(Server* server, User* user, const std::vector<std::stri
 
 	// Process each channel
 	for (size_t i = 0; i < channels.size(); ++i)
+	{
 		handleSinglePart(server, user, channels[i], partMessage);
+		if (server->getBotMode() && server->getChannel(channels[i])->get_connected_user_number() == 1)
+		{
+			server->getBotUser()->removeChannel(channels[i]);
+			server->deleteChannel(channels[i], "no connected users");
+		}
+	}
 
 	return true;
 }

@@ -23,6 +23,7 @@ class	User
 		void				setRealname(const std::string& realname);
 		void				setHost(const std::string& host);
 		void				markDisconnected();
+		void				setIsBotToTrue(void);
 
 		int					getFd() const;
 		std::string&		getInputBuffer();
@@ -33,6 +34,7 @@ class	User
 		const std::string&	getRealname() const;
 		const std::string&	getHost() const;
 		const Server*		getServer() const;
+		bool				getIsBot() const;
 
 		const std::set<std::string>&	getChannels() const;
 		void				addChannel(const std::string& channel);
@@ -75,6 +77,8 @@ class	User
 		bool						_hasUser;		// true if user has sent USER command (got username)
 		bool						_hasPassed;		// true if user has sent PASS command successfully
 		bool						_isRegistered;	// true if user has sent NICK, USER commands to server
+
+		bool						_isBot; // true if user is IRCbot
 };
 
 #endif

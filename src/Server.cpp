@@ -19,7 +19,7 @@ Server::Server(int port, const std::string& password)
 	:	_name(SERVER_NAME), _version(VERSION), _network(NETWORK),
 		_creationTime(getFormattedTime()), _port(port),
 		_password(password), _fd(-1), _cModes(C_MODES), _uModes(U_MODES),
-		_maxChannels(MAX_CHANNELS), _botMode(false), _botFd(-1)
+		_maxChannels(MAX_CHANNELS), _botMode(false), _botFd(-1), _botUser(NULL)
 {
 	initSocket();
 }
@@ -151,6 +151,19 @@ int	Server::getMaxChannels() const
 {
 	return _maxChannels;
 }
+
+// True if program is running in bot mode, as defined in Makefile.
+bool	Server::getBotMode() const
+{
+	return _botMode;
+}
+
+// Returns the IRC bot user instance.
+User*	Server::getBotUser() const
+{
+	return _botUser;
+}
+
 
 //////////////////
 // Nick Mapping //
