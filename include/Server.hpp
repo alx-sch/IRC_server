@@ -76,6 +76,13 @@ class Server
 		const std::string	_cModes;	// Channel modes, used in replies
 		const std::string	_uModes;	// User modes, used in replies
 		const int			_maxChannels;	// Max channels per user
+		bool				_botMode; // Is bot mode enabled
+		int					_botFd; // Stores the bot socket
+
+		// === ServerBot.cpp ===
+		void	initBot(void);
+		void	initBotSocket(void);
+		void	initBotCredentials(void);
 
 		// === ServerSocket.cpp ===
 

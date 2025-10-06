@@ -4,6 +4,7 @@ NAME :=			ircserv
 SRCS_DIR :=		src
 SRCS_FILES :=	main.cpp \
 				Server.cpp \
+				ServerBot.cpp \
 				ServerUser.cpp \
 				ServerSocket.cpp \
 				ServerChannel.cpp \
@@ -62,6 +63,9 @@ RED :=			\033[91m
 ###########
 ## RULES ##
 ###########
+
+# Used for bot
+CPPFLAGS += -DBOT_MODE
 
 all:		$(NAME)
 

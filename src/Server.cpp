@@ -19,7 +19,7 @@ Server::Server(int port, const std::string& password)
 	:	_name(SERVER_NAME), _version(VERSION), _network(NETWORK),
 		_creationTime(getFormattedTime()), _port(port),
 		_password(password), _fd(-1), _cModes(C_MODES), _uModes(U_MODES),
-		_maxChannels(MAX_CHANNELS)
+		_maxChannels(MAX_CHANNELS), _botMode(false), _botFd(-1)
 {
 	initSocket();
 }
@@ -30,6 +30,9 @@ Server::~Server()
 	// Close the listening socket if open
 	if (_fd != -1)
 		close(_fd);
+
+	if (_botFd != -1)
+		close(_botFd);
 
 	// Delete all dynamically allocated User objects
 	while (!_usersFd.empty())
@@ -57,6 +60,11 @@ void	Server::run()
 	int		maxFd;		// Highest fd in the set, used by select() to avoid scanning all fds
 	int		writeMaxFd;	// Highest fd in the write set
 	int		ready;		// Number of ready fds returned by select()
+
+	// Initializes the bot if bot mode is set.
+	#ifdef BOT_MODE
+		initBot();
+	#endif
 
 	while (g_running)
 	{
