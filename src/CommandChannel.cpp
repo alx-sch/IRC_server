@@ -169,11 +169,19 @@ bool	Command::handleJoin(Server* server, User* user, const std::vector<std::stri
 		std::string&	channelName = channels[i];
 		std::string		key = (i < keys.size()) ? keys[i] : "";
 
-		handleSingleJoin(server, user, channelName, key);
+		bool usrJoined = handleSingleJoin(server, user, channelName, key);
 
 		// Bot automatically joins whenever a new channel is created.
 		if (server->getBotMode())
+		{
 			handleSingleJoin(server, server->getBotUser(), channelName, key);
+			if (usrJoined)
+			{
+				handleMessageToUser(server, server->getBotUser(), user->getNicknameLower(), "Welcome to channel "
+					+ channelName + ", dear " + user->getNickname() + 
+					". I am a friendly IRCbot, and I'm pleased to meet you! Send me a PRIVMSG with 'joke' or 'game', and see what happens!.", "NOTICE");
+			}
+		}
 	}
 	return true;
 }

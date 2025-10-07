@@ -8,11 +8,6 @@
 #include "../include/utils.hpp"		// logUserAction, isValidChannelName
 #include "../include/defines.hpp"	// color formatting
 
-static void	handleMessageToChannel(Server* server, User* sender, const std::string& channelName,
-									const std::string& message, const std::string& commandName);
-static void	handleMessageToUser(Server* server, User* sender, const std::string& targetNick,
-								const std::string& message, const std::string& commandName);
-
 /**
 Handles sending a message (`PRIVMSG` or `NOTICE`) to users and channels.
 
@@ -102,7 +97,7 @@ Sends a message (`PRIVMSG` or `NOTICE`) from a user to a channel.
 
  @param commandName	The name of the command ("PRIVMSG" or "NOTICE").
 */
-static void	handleMessageToChannel(Server* server, User* sender, const std::string& channelName,
+void	Command::handleMessageToChannel(Server* server, User* sender, const std::string& channelName,
 									const std::string& message, const std::string& commandName)
 {
 	const bool	sendReplies = (commandName == "PRIVMSG");
@@ -140,7 +135,7 @@ Sends a message (`PRIVMSG` or `NOTICE`) from a user to another user.
 
  @param commandName	The name of the command ("PRIVMSG" or "NOTICE").
 */
-static void handleMessageToUser(Server* server, User* sender, const std::string& targetNick,
+void Command::handleMessageToUser(Server* server, User* sender, const std::string& targetNick,
 								const std::string& message, const std::string& commandName)
 {
 	const bool	sendReplies = (commandName == "PRIVMSG");

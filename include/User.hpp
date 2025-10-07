@@ -23,7 +23,7 @@ class	User
 		void				setRealname(const std::string& realname);
 		void				setHost(const std::string& host);
 		void				markDisconnected();
-		void				setIsBotToTrue(void);
+		void				setIsBotToTrue(void); // Bot
 
 		int					getFd() const;
 		std::string&		getInputBuffer();
@@ -34,7 +34,7 @@ class	User
 		const std::string&	getRealname() const;
 		const std::string&	getHost() const;
 		const Server*		getServer() const;
-		bool				getIsBot() const;
+		bool				getIsBot() const; // Bot
 
 		const std::set<std::string>&	getChannels() const;
 		void				addChannel(const std::string& channel);

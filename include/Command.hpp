@@ -86,6 +86,10 @@ class	Command
 		static void		handleNotice(Server* server, User* user, const std::vector<std::string>& tokens);
 		static void		handleMessage(Server* server, User* user, const std::vector<std::string>& tokens,
 							 			const std::string& commandName);
+		static void		handleMessageToChannel(Server* server, User* sender, const std::string& channelName,
+									const std::string& message, const std::string& commandName);
+		static void		handleMessageToUser(Server* server, User* sender, const std::string& targetNick,
+										const std::string& message, const std::string& commandName);
 
 		// === CommandConnection.cpp ===
 

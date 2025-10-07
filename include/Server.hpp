@@ -28,8 +28,8 @@ class Server
 		const std::string&	getCModes() const;
 		const std::string&	getUModes() const;
 		int					getMaxChannels() const;
-		bool				getBotMode() const;
-		User*				getBotUser() const;
+		bool				getBotMode() const; // Bot
+		User*				getBotUser() const; // Bot
 
 		std::map<std::string, User*>&	getNickMap();
 		void				removeNickMapping(const std::string& nickname);
@@ -78,6 +78,7 @@ class Server
 		const std::string	_cModes;	// Channel modes, used in replies
 		const std::string	_uModes;	// User modes, used in replies
 		const int			_maxChannels;	// Max channels per user
+
 		bool				_botMode; // Is bot mode enabled
 		int					_botFd; // Stores the bot socket
 		User*				_botUser; // Stores the bot user
