@@ -3,6 +3,8 @@
 #include <stdexcept>	// std::runtime_error
 #include <cerrno>		// errno
 #include <cstring>		// memset(), strerror()
+#include <ctime> 		// time()
+#include <cstdlib>   // for srand(), rand()
 
 #include <unistd.h>		// close()
 #include <sys/select.h>	// select(), fd_set, FD_* macros
@@ -22,6 +24,7 @@ Server::Server(int port, const std::string& password)
 		_maxChannels(MAX_CHANNELS), _botMode(false), _botFd(-1), _botUser(NULL)
 {
 	initSocket();
+	srand(time(0));
 }
 
 // Destructor: Closes the server socket and cleans up resources.
