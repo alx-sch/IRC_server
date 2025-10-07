@@ -34,6 +34,10 @@ class Server
 		std::map<std::string, User*>&	getNickMap();
 		void				removeNickMapping(const std::string& nickname);
 
+		// === ServerBot.cpp ===
+		static void	handleJoke(Server *server, User *user);
+		static void	handleGame(Server *server, User *user);
+
 		// === ServerUser.cpp ===
 
 		User*				getUser(int fd) const;

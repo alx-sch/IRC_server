@@ -2,6 +2,7 @@
 #include <string>
 #include <algorithm>	// For std::transform
 
+#include "../include/Server.hpp"
 #include "../include/Command.hpp"
 #include "../include/User.hpp"
 #include "../include/utils.hpp"		// logUserAction()
@@ -10,7 +11,7 @@ static int	toUpperChar(int c);
 
 // Extracts the command type from a message
 // Returns `UNKNOWN` if no valid command is found
-Command::Cmd	Command::getCmd(const std::vector<std::string>& tokens)
+Command::Cmd	Command::getCmd(const std::vector<std::string>& tokens, Server* server)
 {
 	if (tokens.empty())
 		return UNKNOWN;
@@ -33,6 +34,8 @@ Command::Cmd	Command::getCmd(const std::vector<std::string>& tokens)
 	if (cmd == "INVITE")	return INVITE;
 	if (cmd == "MODE")		return MODE;
 	if (cmd == "LIST")		return LIST;
+	if (cmd == "JOKE" && server->getBotMode())	return JOKE;
+	if (cmd == "GAME" && server->getBotMode())	return GAME;
 
 	return UNKNOWN;
 }

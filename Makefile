@@ -65,7 +65,7 @@ RED :=			\033[91m
 ###########
 
 # Used for bot
-CPPFLAGS += -DBOT_MODE
+# CPPFLAGS += -DBOT_MODE
 
 all:		$(NAME)
 

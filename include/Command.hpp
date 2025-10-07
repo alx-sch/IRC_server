@@ -17,6 +17,10 @@ class	Command
 							const std::string& excludeNick = "");
 		static std::vector<std::string>	tokenize(const std::string& message);
 
+		// === CommandMessaging.cpp ===
+		static void		handleMessageToUser(Server* server, User* sender, const std::string& targetNick,
+									const std::string& message, const std::string& commandName);
+
 	private:
 		// Pure utility class, no need for instantiation
 		Command();
@@ -40,7 +44,9 @@ class	Command
 			KICK,		// Kick a user from a channel (ops only)
 			INVITE,		// Invite a user to a channel
 			MODE,		// Change channel or user mode
-			LIST		// Lists the server's existing channels
+			LIST,		// Lists the server's existing channels
+			GAME,		// Only works in bot mode. Initializes rock, paper, scissors game with bot.
+			JOKE		// Only works in bot mode. Bot sends a joke.
 		};
 
 		// === CommandRegistration.cpp ===
@@ -88,8 +94,6 @@ class	Command
 							 			const std::string& commandName);
 		static void		handleMessageToChannel(Server* server, User* sender, const std::string& channelName,
 									const std::string& message, const std::string& commandName);
-		static void		handleMessageToUser(Server* server, User* sender, const std::string& targetNick,
-										const std::string& message, const std::string& commandName);
 
 		// === CommandConnection.cpp ===
 
@@ -97,7 +101,7 @@ class	Command
 
 		// === CommandUtils.cpp ===
 
-		static Cmd		getCmd(const std::vector<std::string>& tokens);
+		static Cmd		getCmd(const std::vector<std::string>& tokens, Server* server);
 		static bool		checkRegistered(User* user, const std::string& command = "a command");
 		static std::vector<std::string>	splitCommaList(const std::string& list);
 };

@@ -24,7 +24,7 @@ bool	Command::handleCommand(Server* server, User* user, std::vector<std::string>
 	if (tokens.empty())
 		return false;
 
-	Cmd	cmdType = getCmd(tokens);
+	Cmd	cmdType = getCmd(tokens, server);
 
 	switch (cmdType)
 	{
@@ -41,6 +41,8 @@ bool	Command::handleCommand(Server* server, User* user, std::vector<std::string>
 		case INVITE:	handleInvite(server, user, tokens); break;
 		case MODE:		handleMode(server, user, tokens); break;
 		case LIST:		handleList(server, user); break;
+		case JOKE:		Server::handleJoke(server, user); break;
+		case GAME:		Server::handleGame(server, user); break;
 		default:
 			return false;	// unknown command
 	}

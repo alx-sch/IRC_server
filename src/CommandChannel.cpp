@@ -179,7 +179,7 @@ bool	Command::handleJoin(Server* server, User* user, const std::vector<std::stri
 			{
 				handleMessageToUser(server, server->getBotUser(), user->getNicknameLower(), "Welcome to channel "
 					+ channelName + ", dear " + user->getNickname() + 
-					". I am a friendly IRCbot, and I'm pleased to meet you! Send me a PRIVMSG with 'joke' or 'game', and see what happens!.", "NOTICE");
+					". I am a friendly IRCbot, and I'm pleased to meet you! Use command 'joke' or 'game', and see what happens!.", "NOTICE");
 			}
 		}
 	}
@@ -299,12 +299,16 @@ bool Command::handlePart(Server* server, User* user, const std::vector<std::stri
 	{
 		handleSinglePart(server, user, channels[i], partMessage);
 
-		// If channel has no active users except bot - it removes the channel.
+		// BOT MODE: If channel has no active users except bot - it removes the channel.
 		if (server->getBotMode() && server->getChannel(channels[i])->get_connected_user_number() == 1)
 		{
 			server->getBotUser()->removeChannel(channels[i]);
 			server->deleteChannel(channels[i], "no connected users");
 		}
+
+		// If channel has no active users - it removes the channel. 
+		else if (!server->getChannel(channels[i])->get_connected_user_number())
+			server->deleteChannel(channels[i], "no connected users");
 	}
 
 	return true;
@@ -441,12 +445,16 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 		toString("kicked ") + GREEN + targetUser->getNickname() + RESET + " from channel " + BLUE + channelNameOrig
 		+ RESET + (kickReason.empty() ? "" : toString(": ") + YELLOW + kickReason + RESET));
 
-	// If the kicked user was the last one, delete the channel
+	// BOT MODE: If channel has no active users except bot - it removes the channel.
 	if (server->getBotMode() && channel->get_connected_user_number() == 1)
 	{
 		server->getBotUser()->removeChannel(channelNameOrig);
 		server->deleteChannel(channelNameOrig, "no connected users");
 	}
+
+	// If the kicked user was the last one, delete the channel
+	else if (!channel->get_connected_user_number())
+		server->deleteChannel(channelNameOrig, "no connected users");
 
 	return true;
 }
