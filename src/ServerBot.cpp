@@ -20,7 +20,7 @@ void	Server::initBotSocket(void)
 	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // 127.0.0.1
 
 	if (connect(_botFd, (sockaddr*)&addr, sizeof(addr)) < 0)
-		throw std::runtime_error("connect() failed: " + std::string(strerror(errno)));
+		throw std::runtime_error("connect() for bot failed: " + std::string(strerror(errno)));
 }
 
 void	Server::initBotCredentials(void)
@@ -30,8 +30,8 @@ void	Server::initBotCredentials(void)
 	std::map<int, User*>::iterator it = _usersFd.begin();
 	_botUser = it->second;
 	_botUser->setNickname("IRCbot", "ircbot");
-	_botUser->setRealname("IRC botty botteson botti");
-	_botUser->setUsername("IRC botty botteson botti");
+	_botUser->setRealname("IRCbot");
+	_botUser->setUsername("IRCbot");
 	_botUser->setHasPassed(true);
 	_botUser->setIsBotToTrue();
 	_botUser->tryRegister();

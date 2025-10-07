@@ -38,12 +38,14 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 	{
 		Channel*	existingChannel = server->getChannel(channelName);
 
+		// If user is NOT a bot, log server message + send an error message to client.
 		if (!user->getIsBot())
 		{
 			logUserAction(user->getNickname(), user->getFd(), toString("tried to join already joined ")
 				+ BLUE + existingChannel->get_name() + RESET);
 			user->sendError(443, existingChannel->get_name(), "is already on channel");
 		}
+
 		return false;
 	}
 
@@ -168,6 +170,8 @@ bool	Command::handleJoin(Server* server, User* user, const std::vector<std::stri
 		std::string		key = (i < keys.size()) ? keys[i] : "";
 
 		handleSingleJoin(server, user, channelName, key);
+
+		// Bot automatically joins whenever a new channel is created.
 		if (server->getBotMode())
 			handleSingleJoin(server, server->getBotUser(), channelName, key);
 	}
@@ -286,6 +290,8 @@ bool Command::handlePart(Server* server, User* user, const std::vector<std::stri
 	for (size_t i = 0; i < channels.size(); ++i)
 	{
 		handleSinglePart(server, user, channels[i], partMessage);
+
+		// If channel has no active users except bot - it removes the channel.
 		if (server->getBotMode() && server->getChannel(channels[i])->get_connected_user_number() == 1)
 		{
 			server->getBotUser()->removeChannel(channels[i]);
@@ -328,6 +334,14 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 
 	const std::string&	channelName = tokens[1];
 	std::string			targetNickOrig = tokens[2];
+
+	// If user tries to kick IRCbot it doesn't work.
+	if (normalize(targetNickOrig) == "ircbot")
+	{
+		logUserAction(user->getNickname(), user->getFd(), "tried to KICK IRCbot.");
+		user->sendError(401, "ircbot", "No such nick/channel");
+		return false;
+	}
 
 	// Validate channel name format
 	if (channelName.empty() || channelName[0] != '#')
@@ -420,8 +434,11 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 		+ RESET + (kickReason.empty() ? "" : toString(": ") + YELLOW + kickReason + RESET));
 
 	// If the kicked user was the last one, delete the channel
-	if (!channel->get_connected_user_number())
+	if (server->getBotMode() && channel->get_connected_user_number() == 1)
+	{
+		server->getBotUser()->removeChannel(channelNameOrig);
 		server->deleteChannel(channelNameOrig, "no connected users");
+	}
 
 	return true;
 }
