@@ -379,6 +379,7 @@ To enable file sharing between multiple hosts on the same local network, the DCC
 </p>
 6. File transfers between hosts on the same LAN should now work.
 
+
 *Note: If you were sending files over the internet, you would need to use your external/WAN IP and set up port forwarding. For local network transfers, the above steps are sufficient.*
 
 ---
