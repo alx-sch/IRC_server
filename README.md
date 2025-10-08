@@ -74,7 +74,7 @@ To build and run the server, ensure you have the following tools installed on yo
    - **Linux:** The code uses the `SOCK_NONBLOCK` flag.
    - **macOS:** The code uses the `fcntl()` function to set the non-blocking flag.
    
-   **Bonus**: Use the `make bot` command to compile the server executable in bot mode. An IRCbot will register as a user, and will have a few custom made commands.
+   **Bonus**: Use the `make bot` command to compile the server executable in bot mode. An IRCbot will register as a user, it will send welcome messages and it will have a few custom made commands.
    ```
    make bot
    ```
