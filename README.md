@@ -73,7 +73,12 @@ To build and run the server, ensure you have the following tools installed on yo
    - **OS-Specific Build:** The server's non-blocking socket functionality is handled differently on Linux and macOS. The `Makefile` detects the OS and passes the correct compiler flags to handle these variations.
    - **Linux:** The code uses the `SOCK_NONBLOCK` flag.
    - **macOS:** The code uses the `fcntl()` function to set the non-blocking flag.
-     
+   
+   **Bonus**: Use the `make bot` command to compile the server executable in bot mode. An IRCbot will register as a user, and will have a few custom made commands.
+   ```
+   make bot
+   ```
+
 **4. Run the Server**  
 
    Provide a port number and a password for the server. The standard IRC port is `6667`.
