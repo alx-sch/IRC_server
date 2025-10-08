@@ -72,7 +72,7 @@ $(NAME):	$(OBJS)
 
 
 ## MAKE BOT ##
-# Adds a bot mode flag, which will activate the bot
+# Adds a bot mode flag, which will activate the bot.
 bot:
 	@$(MAKE) --no-print-directory fclean > /dev/null
 	@$(MAKE) --no-print-directory CPPFLAGS="$(CPPFLAGS) -DBOT_MODE" all
