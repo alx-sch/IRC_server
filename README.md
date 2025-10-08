@@ -370,8 +370,14 @@ To enable file sharing between multiple hosts on the same local network, the DCC
 2. Open HexChat and log into your IRC server.
 3. Navigate to:
 **Settings → Preferences → Network Setup → File Transfers**
-4. In the DCC IP address field, paste your LAN IP address.
-5. File transfers between hosts on the same LAN should now work.
+<p align="center">
+	<img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/File_transfer1.jpeg" alt="server_log"  width="450" />
+</p>
+5. In the DCC IP address field, paste your LAN IP address.
+<p align="center">
+	<img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/File_transfer2.jpeg" alt="server_log"  width="450" />
+</p>
+6. File transfers between hosts on the same LAN should now work.
 
 *Note: If you were sending files over the internet, you would need to use your external/WAN IP and set up port forwarding. For local network transfers, the above steps are sufficient.*
 
