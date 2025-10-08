@@ -179,7 +179,7 @@ bool	Command::handleJoin(Server* server, User* user, const std::vector<std::stri
 			{
 				handleMessageToUser(server, server->getBotUser(), user->getNicknameLower(), "Welcome to channel "
 					+ channelName + ", dear " + user->getNickname() + 
-					". I am a friendly IRCbot, and I'm pleased to meet you! Use command 'joke' or 'game', and see what happens!.", "NOTICE");
+					". I am a funny IRCbot, and I'm pleased to meet you! Use command 'joke', and see what happens!.", "NOTICE");
 			}
 		}
 	}

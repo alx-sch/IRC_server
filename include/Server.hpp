@@ -28,6 +28,7 @@ class Server
 		const std::string&	getCModes() const;
 		const std::string&	getUModes() const;
 		int					getMaxChannels() const;
+	
 		bool				getBotMode() const; // Bot
 		User*				getBotUser() const; // Bot
 
@@ -36,7 +37,6 @@ class Server
 
 		// === ServerBot.cpp ===
 		static void	handleJoke(Server *server, User *user);
-		static void	handleGame(Server *server, User *user);
 
 		// === ServerUser.cpp ===
 

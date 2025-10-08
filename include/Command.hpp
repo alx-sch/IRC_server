@@ -45,7 +45,6 @@ class	Command
 			INVITE,		// Invite a user to a channel
 			MODE,		// Change channel or user mode
 			LIST,		// Lists the server's existing channels
-			GAME,		// Only works in bot mode. Initializes rock, paper, scissors game with bot.
 			JOKE		// Only works in bot mode. Bot sends a joke.
 		};
 

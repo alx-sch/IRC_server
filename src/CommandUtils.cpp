@@ -35,7 +35,6 @@ Command::Cmd	Command::getCmd(const std::vector<std::string>& tokens, Server* ser
 	if (cmd == "MODE")		return MODE;
 	if (cmd == "LIST")		return LIST;
 	if (cmd == "JOKE" && server->getBotMode())	return JOKE;
-	if (cmd == "GAME" && server->getBotMode())	return GAME;
 
 	return UNKNOWN;
 }

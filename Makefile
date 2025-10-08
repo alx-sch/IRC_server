@@ -64,14 +64,18 @@ RED :=			\033[91m
 ## RULES ##
 ###########
 
-# Used for bot
-CPPFLAGS += -DBOT_MODE
-
 all:		$(NAME)
 
 $(NAME):	$(OBJS)
 	@$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
 	@echo "$(BOLD)$(YELLOW)\n$(NAME) successfully compiled.$(RESET)"
+
+
+## MAKE BOT ##
+# Adds a bot mode flag, which will activate the bot
+bot:
+	@$(MAKE) --no-print-directory fclean > /dev/null
+	@$(MAKE) --no-print-directory CPPFLAGS="$(CPPFLAGS) -DBOT_MODE" all
 
 ## COMPILATION PROGRESS BAR ##
 # Compiles individual .cpp files into .o object files without linking.

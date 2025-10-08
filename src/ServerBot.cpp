@@ -11,7 +11,7 @@
 
 void Server::handleJoke(Server *server, User *user)
 {
-	int nbr = rand() % 5;
+	int nbr = rand() % 10;
 	std::string message;
 
 	switch (nbr)
@@ -25,16 +25,20 @@ void Server::handleJoke(Server *server, User *user)
 		case 3:
 			message = "Someone tried to mute me once… But I just reconnected. 😎"; break;
 		case 4:
-			message = "I asked the server for a date. It said: “451 — unavailable for legal reasons"; break;
+			message = "I asked the server for a date. It said: “451 — unavailable for legal reasons“"; break;
+		case 5:
+			message = "Why did the IRC bot get kicked from the channel? It wouldn't stop repeating itself. It wouldn't stop repeating itself. It wouldn't stop repeating itself."; break;
+		case 6:
+			message = "I tried to join #philosophy, but they told me I don't exist. Now I'm stuck in #existential_crisis."; break;
+		case 7:
+			message = "Someone told me to “get a life.” So I joined a cron job."; break;
+		case 8:
+			message = "“Bot, do you even have feelings?” Yeah — mostly disappointment and buffer overflow. 💔💾"; break;
+		case 9:
+			message = "“Hey bot, are you self-aware?” Only enough to regret being in this channel."; break;
 	}
 
 	Command::handleMessageToUser(server, server->getBotUser(), user->getNickname(), message, "NOTICE");
-}
-
-void Server::handleGame(Server *server, User *user)
-{
-	server->getBotMode();
-	user->getIsBot();
 }
 
 void	Server::initBotSocket(void)
