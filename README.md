@@ -195,6 +195,7 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 	- `PART`: Allows a user to leave a channel - `PART #oldchannel`
 	- `PRIVMSG`: Used for sending private messages to a user or a channel - `PRIVMSG username :Hello there!`, `PRIVMSG #general :What's everyone up to?`
  	- `NOTICE`: Similar to `PRIVMSG`, but used for server messages and automated responses. It should not be used for client-to-client communication. The main difference is that a user's IRC client should never automatically respond to a `NOTICE` - `NOTICE username :You have a new message.`
+	- `LIST`: Lists up all existing channels (shows number of active users, topic if any) - `LIST`
 
 - Channel Operator Commands:
   The server differentiates between operators and regular users. Operators have the authority to use specific commands to manage a channel:
@@ -208,6 +209,11 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 		- `k`: Toggles the channel key (password) - `MODE #locked +k secretkey`
 		- `o`: Gives or takes away channel operator privilege  - `MODE #general +o newoperator`
 		- `l`: Sets or removes a user limit for the channel - `MODE #limited +l 10`
+
+- Bot Commands:
+
+	- `JOKE`: Bot tells a joke.
+	- `CALC`: Bot evaluates a mathematical expression - `CALC 22+47-3*23/2`
 
 ---
 
