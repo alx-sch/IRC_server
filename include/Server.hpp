@@ -37,6 +37,7 @@ class Server
 
 		// === ServerBot.cpp ===
 		static void	handleJoke(Server *server, User *user);
+		static void handleCalc(Server *server, User *user, const std::vector<std::string>& tokens);
 
 		// === ServerUser.cpp ===
 

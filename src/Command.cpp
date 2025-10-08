@@ -42,6 +42,7 @@ bool	Command::handleCommand(Server* server, User* user, std::vector<std::string>
 		case MODE:		handleMode(server, user, tokens); break;
 		case LIST:		handleList(server, user); break;
 		case JOKE:		Server::handleJoke(server, user); break;
+		case CALC:		Server::handleCalc(server, user, tokens); break;
 		default:
 			return false;	// unknown command
 	}

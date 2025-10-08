@@ -20,6 +20,9 @@ class	Command
 		// === CommandMessaging.cpp ===
 		static void		handleMessageToUser(Server* server, User* sender, const std::string& targetNick,
 									const std::string& message, const std::string& commandName);
+		
+		// === CommandUtils.cpp ===
+		static bool		checkRegistered(User* user, const std::string& command = "a command");
 
 	private:
 		// Pure utility class, no need for instantiation
@@ -45,7 +48,8 @@ class	Command
 			INVITE,		// Invite a user to a channel
 			MODE,		// Change channel or user mode
 			LIST,		// Lists the server's existing channels
-			JOKE		// Only works in bot mode. Bot sends a joke.
+			JOKE,		// Only works in bot mode. Bot sends a joke.
+			CALC		// Only works in bot mode. Bot gives result to a math expression.
 		};
 
 		// === CommandRegistration.cpp ===
@@ -101,7 +105,6 @@ class	Command
 		// === CommandUtils.cpp ===
 
 		static Cmd		getCmd(const std::vector<std::string>& tokens, Server* server);
-		static bool		checkRegistered(User* user, const std::string& command = "a command");
 		static std::vector<std::string>	splitCommaList(const std::string& list);
 };
 
