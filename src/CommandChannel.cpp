@@ -190,10 +190,12 @@ bool	Command::handleJoin(Server* server, User* user, const std::vector<std::stri
 
 		if (server->getBotMode() && usrJoined)
 		{
-			handleMessageToUser(server, server->getBotUser(), user->getNicknameLower(), "Welcome to "
-				+ channelName + ", dear " + user->getNickname() + "!\n"
-				+ "I am a friendly IRCbot and I'm pleased to meet you!\n"
-				+ "Use command 'joke' or 'calc <expression>' (e.g. 'calc 2+2') and see what happens!", "NOTICE");
+			handleMessageToUser(server, server->getBotUser(), user->getNicknameLower(),
+				"Welcome to " + channelName + ", dear " + user->getNickname() + "!", "NOTICE");
+			handleMessageToUser(server, server->getBotUser(), user->getNicknameLower(),
+				"I am a friendly IRCbot and I'm pleased to meet you!", "NOTICE");
+			handleMessageToUser(server, server->getBotUser(), user->getNicknameLower(),
+				"Use command 'joke' or 'calc <expression>' (e.g. 'calc 2+2') and see what happens!", "NOTICE");
 		}
 	}
 	return true;
