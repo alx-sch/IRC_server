@@ -58,7 +58,7 @@ void	Server::handleCalc(Server *server, User *user, const std::vector<std::strin
 	if (!isValidExpression(expression))
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent CALC with an invalid math expression");
-		user->sendError(461, "CALC", "Invalid expression. Only digits and operators (+-*/) are allowed.");
+		user->sendError(461, "CALC", "Invalid expression: Only digits and operators (+-*/) are allowed. Integers only.");
 		return;
 	}
 
@@ -80,7 +80,7 @@ void	Server::handleCalc(Server *server, User *user, const std::vector<std::strin
 
 	// Send result as a NOTICE from the bot
 	Command::handleMessageToUser(server, server->getBotUser(), user->getNickname(),
-		"The answer to " + expression + " is: " + resultStr, "NOTICE");
+		"The answer to " + expression + " is: " + resultStr, "PRIVMSG");
 }
 
 /**
@@ -203,7 +203,7 @@ void	Server::handleJoke(Server *server, User *user)
 			message = "“Hey bot, are you self-aware?” Only enough to regret being in this channel."; break;
 	}
 
-	Command::handleMessageToUser(server, server->getBotUser(), user->getNickname(), message, "NOTICE");
+	Command::handleMessageToUser(server, server->getBotUser(), user->getNickname(), message, "PRIVMSG");
 }
 
 
