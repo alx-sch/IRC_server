@@ -16,8 +16,8 @@
 // Bot commands //
 //////////////////
 
-long	evaluateExpression(const std::string &expr);
-bool	isValidExpression(const std::string &expr);
+static long	evaluateExpression(const std::string &expr);
+static bool	isValidExpression(const std::string &expr);
 
 /**
 Handles the custom IRCbot `CALC` command, evaluating a simple math expression and replying with the result.
@@ -36,7 +36,7 @@ Example:
  @param user	The user issuing the CALC command.
  @param tokens	Vector containing the command and expression tokens.
 */
-void Server::handleCalc(Server *server, User *user, const std::vector<std::string>& tokens)
+void	Server::handleCalc(Server *server, User *user, const std::vector<std::string>& tokens)
 {
 	if (!Command::checkRegistered(user, "CALC"))
 		return;
@@ -49,16 +49,18 @@ void Server::handleCalc(Server *server, User *user, const std::vector<std::strin
 		return;
 	}
 
-	if (!isValidExpression(tokens[1]))
+	std::string	expression = tokens[1];
+	for (size_t i = 2; i < tokens.size(); ++i)
+		expression += tokens[i]; // Concatenate all tokens to form the full expression
+
+	if (!isValidExpression(expression))
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent CALC with an invalid math expression");
-		user->sendError(461, "CALC", "Not enough parameters");
+		user->sendError(461, "CALC", "Invalid expression. Only digits and operators (+-*/) are allowed.");
 		return;
 	}
 
-	std::string expression = tokens[1];
-	long result = 0;
-
+	long	result = 0;
 	try
 	{
 		result = evaluateExpression(expression);
@@ -75,9 +77,9 @@ void Server::handleCalc(Server *server, User *user, const std::vector<std::strin
 	std::string resultStr = oss.str();
 
 	// Send result as a NOTICE from the bot
-	Command::handleMessageToUser(server, server->getBotUser(), user->getNickname(), "The answer to " + expression + " is: " + resultStr, "NOTICE");
+	Command::handleMessageToUser(server, server->getBotUser(), user->getNickname(),
+		"The answer to " + expression + " is: " + resultStr, "NOTICE");
 }
-
 
 /**
 Helper function for handleCalc().
@@ -86,16 +88,16 @@ It scans the string left→right, builds multi-digit numbers, and uses a stack t
 A sentinel character at the end forces the last number to be processed.
 Division by zero throws a std::runtime_error.
 */
-long evaluateExpression(const std::string &expr)
+static long	evaluateExpression(const std::string &expr)
 {
-	std::stack<long> numbers; // Holds intermediate/temporary values that will later be summed.
-	long currentNumber = 0; // Accumulates digits into an integer.
-	char lastOperator = '+'; // Remembers the operator that applies to currentNumber. It starts as '+' so the first number is pushed as positive.
+	std::stack<long>	numbers; // Holds intermediate/temporary values that will later be summed.
+	long				currentNumber = 0; // Accumulates digits into an integer.
+	char				lastOperator = '+'; // Remembers the operator that applies to currentNumber. It starts as '+' so the first number is pushed as positive.
 
 	for (size_t i = 0; i <= expr.size(); ++i)
 	{
 		// '\0' acts as a sentinel character — it’s not part of the expression, but it forces the code to process the last number before exiting the loop.
-		char c = (i < expr.size()) ? expr[i] : '\0';
+		char	c = (i < expr.size()) ? expr[i] : '\0';
 
 		if (isdigit(c))
 			currentNumber = currentNumber * 10 + (c - '0'); // If digit, store the current digit in currentNumber by its integer value.
@@ -103,7 +105,7 @@ long evaluateExpression(const std::string &expr)
 		// If an operator or end of string
 		if (!isdigit(c)|| i == expr.size())
 		{
-			long top = numbers.empty() ? 0 : numbers.top(); // Reads the current top of the stack (or 0 if empty).
+			long	top = numbers.empty() ? 0 : numbers.top(); // Reads the current top of the stack (or 0 if empty).
 
 			if (lastOperator == '+')
 				numbers.push(currentNumber); // Push currentNumber (deferred addition - it will happen later).
@@ -127,7 +129,7 @@ long evaluateExpression(const std::string &expr)
 		}
 	}
 
-	long result = 0; // All deferred additions/subtractions are accumulated to produce the final integer result.
+	long	result = 0; // All deferred additions/subtractions are accumulated to produce the final integer result.
 	while (!numbers.empty())
 	{
 		result += numbers.top();
@@ -145,7 +147,7 @@ Validates math expression (it can only contain digits, '+', '-', '*' and '/').
 
  @return		True if valid, false if invalid.
 */
-bool isValidExpression(const std::string &expr)
+static bool	isValidExpression(const std::string &expr)
 {
 	for (size_t i = 0; i < expr.size(); ++i)
 	{
@@ -167,7 +169,7 @@ Syntax:
  @param server	Pointer to the server instance handling the command.
  @param user	The user issuing the JOKE command.
 */
-void Server::handleJoke(Server *server, User *user)
+void	Server::handleJoke(Server *server, User *user)
 {
 	if (!Command::checkRegistered(user, "JOKE"))
 		return ;
