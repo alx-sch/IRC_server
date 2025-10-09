@@ -38,14 +38,9 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 	{
 		Channel*	existingChannel = server->getChannel(channelName);
 
-		// If user is NOT a bot, log server message + send an error message to client.
-		if (!user->getIsBot())
-		{
-			logUserAction(user->getNickname(), user->getFd(), toString("tried to join already joined ")
-				+ BLUE + existingChannel->get_name() + RESET);
-			user->sendError(443, existingChannel->get_name(), "is already on channel");
-		}
-
+		logUserAction(user->getNickname(), user->getFd(), toString("tried to join already joined ")
+			+ BLUE + existingChannel->get_name() + RESET);
+		user->sendError(443, existingChannel->get_name(), "is already on channel");
 		return false;
 	}
 
@@ -78,6 +73,12 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 					toString("tried to join channel ") + BLUE + channelNameOrig + RESET + " with bad key");
 				user->sendError(475, channelNameOrig, "Cannot join channel (+k)");
 				break;
+			case Channel::JOIN_MAX_CHANNELS:
+				logUserAction(user->getNickname(), user->getFd(),
+					toString("tried to join ") + BLUE + channelNameOrig + RESET
+					+ " but is already in too many channels");
+				user->sendError(405, channelNameOrig, "You have joined too many channels");
+				break;
 		}
 		return false;
 	}
@@ -92,6 +93,22 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 		channel->make_user_operator(user);
 		logUserAction(user->getNickname(), user->getFd(),
 			toString("became operator of ") + BLUE + channelName + RESET);
+
+		// Make channel password protected if key was provided
+		if (!key.empty())
+		{
+			channel->set_password(key);
+			logUserAction(user->getNickname(), user->getFd(), toString("set channel key for ")
+				+ BLUE + channelName + RESET);
+		}
+
+		// Have the bot join the channel as well and make it an operator
+		if (server->getBotMode())
+		{
+			channel->add_user(server->getBotUser());
+			server->getBotUser()->addChannel(channelName);
+			channel->make_user_operator(server->getBotUser());
+		}
 	}	
 
 	// Notify user(s) about successful join
@@ -171,16 +188,12 @@ bool	Command::handleJoin(Server* server, User* user, const std::vector<std::stri
 
 		bool usrJoined = handleSingleJoin(server, user, channelName, key);
 
-		// Bot automatically joins whenever a new channel is created.
-		if (server->getBotMode())
+		if (server->getBotMode() && usrJoined)
 		{
-			handleSingleJoin(server, server->getBotUser(), channelName, key);
-			if (usrJoined)
-			{
-				handleMessageToUser(server, server->getBotUser(), user->getNicknameLower(), "Welcome to channel "
-					+ channelName + ", dear " + user->getNickname() + 
-					". I am a friendly IRCbot and I'm pleased to meet you! Use command 'joke' or 'calc <expression>' (e.g. 'calc 2+2'), and see what happens!", "NOTICE");
-			}
+			handleMessageToUser(server, server->getBotUser(), user->getNicknameLower(), "Welcome to "
+				+ channelName + ", dear " + user->getNickname() + "!\n"
+				+ "I am a friendly IRCbot and I'm pleased to meet you!\n"
+				+ "Use command 'joke' or 'calc <expression>' (e.g. 'calc 2+2') and see what happens!", "NOTICE");
 		}
 	}
 	return true;
@@ -406,22 +419,13 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 		return false;
 	}
 
-	// Check if user to be kicked is also an operator
+	// Check if user to be kicked is also an operator (bot is always operator)
 	if (channel->is_user_operator(targetUser))
 	{
 		logUserAction(user->getNickname(), user->getFd(),
 			toString("tried to KICK operator ") + GREEN + targetUser->getNickname() + RESET + " from "
 			+ BLUE + channelNameOrig + RESET);
 		user->sendError(482, channelNameOrig, "Cannot kick another channel operator");
-		return false;
-	}
-
-	// If user tries to kick IRCbot it doesn't work.
-	if (normalize(targetNickOrig) == "ircbot")
-	{
-		logUserAction(user->getNickname(), user->getFd(), toString("tried to KICK the protected bot from ")
-			+ BLUE + channelNameOrig + RESET);
-		user->sendError(482, channelNameOrig, "The channel bot cannot be kicked.");
 		return false;
 	}
 

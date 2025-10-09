@@ -18,10 +18,12 @@ class	Command
 		static std::vector<std::string>	tokenize(const std::string& message);
 
 		// === CommandMessaging.cpp ===
+
 		static void		handleMessageToUser(Server* server, User* sender, const std::string& targetNick,
 									const std::string& message, const std::string& commandName);
 		
 		// === CommandUtils.cpp ===
+
 		static bool		checkRegistered(User* user, const std::string& command = "a command");
 
 	private:

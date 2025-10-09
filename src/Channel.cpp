@@ -1,6 +1,7 @@
 #include "../include/Channel.hpp"
-#include "../include/User.hpp"	// for User* in get_mode_string()
-#include "../include/utils.hpp"	// toString
+#include "../include/User.hpp"		// for User* in get_mode_string()
+#include "../include/utils.hpp"		// toString
+#include "../include/defines.hpp"	// MAX_CHANNELS
 
 #include <ctime>	// time()
 #include <utility>	// std::make_pair
@@ -79,7 +80,7 @@ bool	Channel::is_user_operator(const User* user) const
 	return (_channel_operators_by_nickname.count(nick_lower) > 0);
 }
 
-// Checks if a user can join the channel with the provided key.
+// Checks if a user can join the channel.
 // Overwrites `result` with the appropriate JoinResult enum value.
 bool	Channel::can_user_join(User* user, const std::string &provided_key,
 								JoinResult& result) const
@@ -102,6 +103,11 @@ bool	Channel::can_user_join(User* user, const std::string &provided_key,
 	if (is_invite_only() && !is_invited(nick_lower))
 	{
 		result = JOIN_INVITE_ONLY;
+		return false;
+	}
+	if (user->getChannels().size() >= MAX_CHANNELS)
+	{
+		result = JOIN_MAX_CHANNELS;
 		return false;
 	}
 	return true;
