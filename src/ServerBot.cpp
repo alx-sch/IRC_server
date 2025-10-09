@@ -30,7 +30,7 @@ Syntax:
 	CALC <expression>
 
 Example:
-	CALC 3+5*2
+	CALC 3 + 5 * 2
 
  @param server	Pointer to the server instance handling the command.
  @param user	The user issuing the CALC command.
