@@ -18,7 +18,8 @@ class	Channel
 		{
 			JOIN_INVITE_ONLY,
 			JOIN_FULL,
-			JOIN_BAD_KEY
+			JOIN_BAD_KEY,
+			JOIN_MAX_CHANNELS
 		};
 
 		const std::string&				get_name() const;

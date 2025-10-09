@@ -73,6 +73,12 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 					toString("tried to join channel ") + BLUE + channelNameOrig + RESET + " with bad key");
 				user->sendError(475, channelNameOrig, "Cannot join channel (+k)");
 				break;
+			case Channel::JOIN_MAX_CHANNELS:
+				logUserAction(user->getNickname(), user->getFd(),
+					toString("tried to join ") + BLUE + channelNameOrig + RESET
+					+ " but is already in too many channels");
+				user->sendError(405, channelNameOrig, "You have joined too many channels");
+				break;
 		}
 		return false;
 	}
@@ -87,6 +93,22 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 		channel->make_user_operator(user);
 		logUserAction(user->getNickname(), user->getFd(),
 			toString("became operator of ") + BLUE + channelName + RESET);
+
+		// Make channel password protected if key was provided
+		if (!key.empty())
+		{
+			channel->set_password(key);
+			logUserAction(user->getNickname(), user->getFd(), toString("set channel key for ")
+				+ BLUE + channelName + RESET);
+		}
+
+		// Have the bot join the channel as well and make it an operator
+		if (server->getBotMode())
+		{
+			channel->add_user(server->getBotUser());
+			server->getBotUser()->addChannel(channelName);
+			channel->make_user_operator(server->getBotUser());
+		}
 	}	
 
 	// Notify user(s) about successful join
@@ -164,7 +186,17 @@ bool	Command::handleJoin(Server* server, User* user, const std::vector<std::stri
 		std::string&	channelName = channels[i];
 		std::string		key = (i < keys.size()) ? keys[i] : "";
 
-		handleSingleJoin(server, user, channelName, key);
+		bool usrJoined = handleSingleJoin(server, user, channelName, key);
+
+		if (server->getBotMode() && usrJoined)
+		{
+			handleMessageToUser(server, server->getBotUser(), user->getNicknameLower(),
+				"Welcome to " + channelName + ", dear " + user->getNickname() + "!", "NOTICE");
+			handleMessageToUser(server, server->getBotUser(), user->getNicknameLower(),
+				"I am a friendly IRCbot and I'm pleased to meet you!", "NOTICE");
+			handleMessageToUser(server, server->getBotUser(), user->getNicknameLower(),
+				"Use command 'joke' or 'calc <expression>' (e.g. 'calc 40 + 2', int only) and see what happens!", "NOTICE");
+		}
 	}
 	return true;
 }
@@ -231,9 +263,6 @@ bool	Command::handleSinglePart(Server* server, User* user, const std::string& ch
 	logUserAction(user->getNickname(), user->getFd(), toString("left channel ") + BLUE + channelNameOrig
 		+ RESET + (partMessage.empty() ? "" : toString(": ") + YELLOW + partMessage + RESET));
 
-	if (!channel->get_connected_user_number()) // If the user who left was the last one - delete channel
-		server->deleteChannel(channelNameOrig, "no connected users");
-
 	return true;
 }
 
@@ -282,7 +311,20 @@ bool Command::handlePart(Server* server, User* user, const std::vector<std::stri
 
 	// Process each channel
 	for (size_t i = 0; i < channels.size(); ++i)
+	{
 		handleSinglePart(server, user, channels[i], partMessage);
+
+		// BOT MODE: If channel has no active users except bot - it removes the channel.
+		if (server->getBotMode() && server->getChannel(channels[i])->get_connected_user_number() == 1)
+		{
+			server->getBotUser()->removeChannel(channels[i]);
+			server->deleteChannel(channels[i], "no connected users");
+		}
+
+		// If channel has no active users - it removes the channel. 
+		else if (!server->getChannel(channels[i])->get_connected_user_number())
+			server->deleteChannel(channels[i], "no connected users");
+	}
 
 	return true;
 }
@@ -373,9 +415,19 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	if (!channel->is_user_member(targetUser))
 	{
 		logUserAction(user->getNickname(), user->getFd(),
-			toString("tried to KICK user ") + GREEN + targetUser->getNickname() + RESET + " who is not in channel "
+			toString("tried to KICK user ") + GREEN + targetUser->getNickname() + RESET + " who is not in "
 			+ BLUE + channelNameOrig + RESET);
 		user->sendError(441, targetUser->getNickname() + " " + channelNameOrig, "They aren't on that channel");
+		return false;
+	}
+
+	// Check if user to be kicked is also an operator (bot is always operator)
+	if (channel->is_user_operator(targetUser))
+	{
+		logUserAction(user->getNickname(), user->getFd(),
+			toString("tried to KICK operator ") + GREEN + targetUser->getNickname() + RESET + " from "
+			+ BLUE + channelNameOrig + RESET);
+		user->sendError(482, channelNameOrig, "Cannot kick another channel operator");
 		return false;
 	}
 
@@ -410,8 +462,15 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 		toString("kicked ") + GREEN + targetUser->getNickname() + RESET + " from channel " + BLUE + channelNameOrig
 		+ RESET + (kickReason.empty() ? "" : toString(": ") + YELLOW + kickReason + RESET));
 
+	// BOT MODE: If channel has no active users except bot - it removes the channel.
+	if (server->getBotMode() && channel->get_connected_user_number() == 1)
+	{
+		server->getBotUser()->removeChannel(channelNameOrig);
+		server->deleteChannel(channelNameOrig, "no connected users");
+	}
+
 	// If the kicked user was the last one, delete the channel
-	if (!channel->get_connected_user_number())
+	else if (!channel->get_connected_user_number())
 		server->deleteChannel(channelNameOrig, "no connected users");
 
 	return true;

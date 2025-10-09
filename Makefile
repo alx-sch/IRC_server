@@ -4,6 +4,7 @@ NAME :=			ircserv
 SRCS_DIR :=		src
 SRCS_FILES :=	main.cpp \
 				Server.cpp \
+				ServerBot.cpp \
 				ServerUser.cpp \
 				ServerSocket.cpp \
 				ServerChannel.cpp \
@@ -29,7 +30,7 @@ OBJS :=			$(SRCS:$(SRCS_DIR)/%.cpp=$(OBJS_DIR)/%.o)
 DEPS :=			$(OBJS:.o=.d)
 
 # Detect the operating system
-OS := $(shell uname -s)
+OS := 			$(shell uname -s)
 
 # COMPILER
 CXX :=			c++
@@ -40,7 +41,6 @@ CXXFLAGS +=		-Wpedantic	# Enforces strict ISO C++ compliance.
 # CXXFLAGS +=		-g -O0
 
 # CPPFLAGS are for preprocessor-specific flags
-# Add OS-specific flags or definitions
 ifeq ($(OS),Darwin) # Darwin is the kernel name for macOS
 	# Define a preprocessor macro for macOS
 	CPPFLAGS += -DMACOS_OS
@@ -68,6 +68,12 @@ all:		$(NAME)
 $(NAME):	$(OBJS)
 	@$(CXX) $(CXXFLAGS) $(OBJS) -o $(NAME)
 	@echo "$(BOLD)$(YELLOW)\n$(NAME) successfully compiled.$(RESET)"
+
+
+## MAKE BOT ##
+# Adds a bot mode flag, which will activate the bot.
+bot:
+	@$(MAKE) --no-print-directory CPPFLAGS="$(CPPFLAGS) -DBOT_MODE" all
 
 ## COMPILATION PROGRESS BAR ##
 # Compiles individual .cpp files into .o object files without linking.
@@ -104,6 +110,6 @@ re:	fclean all
 check_os:
 	@echo "Detected OS: $(OS)"
 
-.PHONY: all clean fclean re check_os
+.PHONY: all bot clean fclean re check_os
 
 -include $(DEPS)

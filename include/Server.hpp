@@ -28,6 +28,9 @@ class Server
 		const std::string&	getCModes() const;
 		const std::string&	getUModes() const;
 		int					getMaxChannels() const;
+	
+		bool				getBotMode() const; // Bot
+		User*				getBotUser() const; // Bot
 
 		std::map<std::string, User*>&	getNickMap();
 		void				removeNickMapping(const std::string& nickname);
@@ -46,6 +49,11 @@ class Server
 																bool* wasCreated = NULL);
 		void								deleteChannel(const std::string& channelName, std::string reason);
 		std::map<std::string, Channel*>&	getAllChannels();
+
+		// === ServerBot.cpp ===
+
+		static void			handleJoke(Server *server, User *user);
+		static void			handleCalc(Server *server, User *user, const std::vector<std::string>& tokens);
 
 
 	private:
@@ -77,6 +85,10 @@ class Server
 		const std::string	_uModes;	// User modes, used in replies
 		const int			_maxChannels;	// Max channels per user
 
+		bool				_botMode;	// Is bot mode enabled
+		int					_botFd;		// Stores the bot socket
+		User*				_botUser;	// Stores the bot user
+
 		// === ServerSocket.cpp ===
 
 		void				initSocket();
@@ -94,6 +106,12 @@ class Server
 		void				handleWriteReadyUsers(fd_set& writeFds);
 		UserInputResult		handleUserInput(int fd);
 		std::vector<std::string>	extractMessagesFromBuffer(User* user);
+
+		// === ServerBot.cpp ===
+
+		void				initBot(void);
+		void				initBotSocket(void);
+		void				initBotCredentials(void);
 };
 
 #endif
