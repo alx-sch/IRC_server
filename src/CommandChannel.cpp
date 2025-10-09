@@ -179,7 +179,7 @@ bool	Command::handleJoin(Server* server, User* user, const std::vector<std::stri
 			{
 				handleMessageToUser(server, server->getBotUser(), user->getNicknameLower(), "Welcome to channel "
 					+ channelName + ", dear " + user->getNickname() + 
-					". I am a friendly IRCbot, and I'm pleased to meet you! Use command 'joke' or 'calc <expression>', and see what happens!.", "NOTICE");
+					". I am a friendly IRCbot and I'm pleased to meet you! Use command 'joke' or 'calc <expression>' (e.g. 'calc 2+2'), and see what happens!", "NOTICE");
 			}
 		}
 	}
@@ -347,14 +347,6 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	const std::string&	channelName = tokens[1];
 	std::string			targetNickOrig = tokens[2];
 
-	// If user tries to kick IRCbot it doesn't work.
-	if (normalize(targetNickOrig) == "ircbot")
-	{
-		logUserAction(user->getNickname(), user->getFd(), "tried to KICK IRCbot.");
-		user->sendError(401, "ircbot", "No such nick/channel");
-		return false;
-	}
-
 	// Validate channel name format
 	if (channelName.empty() || channelName[0] != '#')
 	{
@@ -408,9 +400,28 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 	if (!channel->is_user_member(targetUser))
 	{
 		logUserAction(user->getNickname(), user->getFd(),
-			toString("tried to KICK user ") + GREEN + targetUser->getNickname() + RESET + " who is not in channel "
+			toString("tried to KICK user ") + GREEN + targetUser->getNickname() + RESET + " who is not in "
 			+ BLUE + channelNameOrig + RESET);
 		user->sendError(441, targetUser->getNickname() + " " + channelNameOrig, "They aren't on that channel");
+		return false;
+	}
+
+	// Check if user to be kicked is also an operator
+	if (channel->is_user_operator(targetUser))
+	{
+		logUserAction(user->getNickname(), user->getFd(),
+			toString("tried to KICK operator ") + GREEN + targetUser->getNickname() + RESET + " from "
+			+ BLUE + channelNameOrig + RESET);
+		user->sendError(482, channelNameOrig, "Cannot kick another channel operator");
+		return false;
+	}
+
+	// If user tries to kick IRCbot it doesn't work.
+	if (normalize(targetNickOrig) == "ircbot")
+	{
+		logUserAction(user->getNickname(), user->getFd(), toString("tried to KICK the protected bot from ")
+			+ BLUE + channelNameOrig + RESET);
+		user->sendError(482, channelNameOrig, "The channel bot cannot be kicked.");
 		return false;
 	}
 

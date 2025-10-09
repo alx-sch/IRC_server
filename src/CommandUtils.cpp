@@ -6,6 +6,7 @@
 #include "../include/Command.hpp"
 #include "../include/User.hpp"
 #include "../include/utils.hpp"		// logUserAction()
+#include "../include/defines.hpp"	// colors
 
 static int	toUpperChar(int c);
 
@@ -46,8 +47,8 @@ bool	Command::checkRegistered(User* user, const std::string& command)
 {
 	if (!user->isRegistered())
 	{
-		logUserAction(user->getNickname(), user->getFd(),
-			"tried to execute " + command + " before registration");
+		logUserAction(user->getNickname(), user->getFd(), toString("tried to execute ")
+			+ YELLOW + command + RESET +" before registration");
 		user->sendError(451, "", "You have not registered");
 		return false;
 	}

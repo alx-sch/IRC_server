@@ -2,6 +2,7 @@
 #include "../include/User.hpp"
 #include "../include/Command.hpp"
 #include "../include/utils.hpp"
+#include "../include/defines.hpp"	// BOT_NAME
 
 #include <stdexcept>	// std::runtime_error
 #include <cstring>		// memset(), strerror()
@@ -15,8 +16,8 @@
 // Bot commands //
 //////////////////
 
-long evaluateExpression(const std::string &expr);
-bool isValidExpression(const std::string &expr);
+long	evaluateExpression(const std::string &expr);
+bool	isValidExpression(const std::string &expr);
 
 /**
 Handles the custom IRCbot `CALC` command, evaluating a simple math expression and replying with the result.
@@ -34,16 +35,14 @@ Example:
  @param server	Pointer to the server instance handling the command.
  @param user	The user issuing the CALC command.
  @param tokens	Vector containing the command and expression tokens.
-
- @return		Nothing
 */
 void Server::handleCalc(Server *server, User *user, const std::vector<std::string>& tokens)
 {
 	if (!Command::checkRegistered(user, "CALC"))
 		return;
 
-	// Needs exactly 2 tokens: CALC <expression>
-	if (tokens.size() != 2)
+	// Needs 2 tokens: CALC <expression>
+	if (tokens.size() < 2)
 	{
 		logUserAction(user->getNickname(), user->getFd(), "sent CALC without a math expression");
 		user->sendError(461, "CALC", "Not enough parameters");
@@ -167,16 +166,14 @@ Syntax:
 
  @param server	Pointer to the server instance handling the command.
  @param user	The user issuing the JOKE command.
-
- @return		Nothing
 */
 void Server::handleJoke(Server *server, User *user)
 {
 	if (!Command::checkRegistered(user, "JOKE"))
 		return ;
 
-	int nbr = rand() % 10;
-	std::string message;
+	int			nbr = rand() % 10;
+	std::string	message;
 
 	switch (nbr)
 	{
@@ -207,30 +204,28 @@ void Server::handleJoke(Server *server, User *user)
 
 
 //////////////////////
-// Initializing bot //
+// Initializing Bot //
 //////////////////////
 
 /**
- * Initializes and connects the internal bot socket.
- *
- * This function creates a new TCP socket dedicated to the server’s built-in bot.
- * The bot connects to the same IRC server instance via the local loopback interface
- * (127.0.0.1) using the server’s own listening port.
- *
- * Steps:
- *  1. Create a socket using AF_INET (IPv4) and SOCK_STREAM (TCP).
- *  2. Configure the socket address to point to localhost and the server port.
- *  3. Attempt to connect the bot socket to the server.
- *
- * @throws std::runtime_error if the socket creation or connection fails.
- */
+Initializes and connects the internal bot socket.
+
+This function creates a new TCP socket dedicated to the server’s built-in bot.
+The bot connects to the same IRC server instance via the local loopback interface
+(127.0.0.1) using the server’s own listening port.
+
+Steps:
+ - 1. Create a socket using AF_INET (IPv4) and SOCK_STREAM (TCP).
+ - 2. Configure the socket address to point to localhost and the server port.
+ - 3. Attempt to connect the bot socket to the server.
+*/
 void	Server::initBotSocket(void)
 {
 	_botFd = socket(AF_INET, SOCK_STREAM, 0);
 	if (_botFd < 0)
 		throw std::runtime_error("socket() for bot failed");
 
-	sockaddr_in addr;
+	sockaddr_in	addr;
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(_port);
 	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // 127.0.0.1
@@ -243,13 +238,16 @@ void	Server::initBotSocket(void)
 (_usersFd, _usersNick) by creating a new User object. Also sets the bot credentials and registers it.*/
 void	Server::initBotCredentials(void)
 {
+	std::string	botName = BOT_NAME;
+
 	acceptNewUser();
 
-	std::map<int, User*>::iterator it = _usersFd.begin();
+	// As the bot is the first user, it will be the first in the map.
+	std::map<int, User*>::iterator	it = _usersFd.begin();
 	_botUser = it->second;
-	_botUser->setNickname("IRCbot", "ircbot");
-	_botUser->setRealname("IRCbot");
-	_botUser->setUsername("IRCbot");
+	_botUser->setNickname(botName, normalize(botName));
+	_botUser->setRealname(botName);
+	_botUser->setUsername(botName);
 	_botUser->setHasPassed(true);
 	_botUser->setIsBotToTrue();
 	_botUser->tryRegister();

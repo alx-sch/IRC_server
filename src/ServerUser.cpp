@@ -25,6 +25,9 @@
 /**
 Accepts a new user connection and adds them to the server's user lists
 (`_usersFd`, `_usersNick`) by creating a new `User` object.
+
+`accepts()` uses the server's listening socket (`_fd`) to identify and accept 
+any pending incoming connection requests.
 */
 void	Server::acceptNewUser()
 {

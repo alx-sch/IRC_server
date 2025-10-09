@@ -5,6 +5,8 @@
 # define NETWORK			"42 IRC"
 # define VERSION			"eval-42.42"
 
+# define BOT_NAME			"IRCbot"
+
 # define MAX_CHANNELS		10		// Max channels per user; recommended in RFC 1459, 1.3 
 # define C_MODES			"itkol"	// Supported channel modes, as per subject
 # define U_MODES			"-"		// No user modes implemented
