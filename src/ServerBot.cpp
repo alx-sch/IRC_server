@@ -9,8 +9,10 @@
 #include <cerrno>		// errno
 #include <sys/socket.h>	// socket(), bind(), listen(), accept(), setsockopt(), etc.
 #include <netinet/in.h>	// sockaddr_in, INADDR_ANY, htons()
-#include <fcntl.h>		// fcntl() for setting non-blocking mode on macOS
 #include <stack>
+#include <map>
+#include <cctype>		// isdigit()
+#include <sstream>		// std::ostringstream
 
 //////////////////
 // Bot commands //
