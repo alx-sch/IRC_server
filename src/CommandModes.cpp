@@ -429,6 +429,21 @@ bool	Command::applyOperator(Server* server, Channel* channel, User* user, bool a
 		return false;
 	}
 
+	// Prevent Op from de-opting other ops (exluding oneself)
+	if (!adding)
+	{
+		// Check if targeting another operator
+		if (channel->is_user_operator(targetUser) && targetUser != user)
+		{
+			logUserAction(user->getNickname(), user->getFd(),
+				toString("tried to remove operator status from operator ")
+				+ GREEN + targetUser->getNickname() + RESET + " in " + BLUE + channel->get_name() + RESET);
+			user->sendError(482, channel->get_name(), "You cannot de-op another channel operator.");
+			++paramIndex;
+			return false;
+		}
+	}
+
 	if (adding)
 		channel->make_user_operator(targetUser);
 	else
