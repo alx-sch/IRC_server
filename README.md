@@ -22,8 +22,10 @@ This project is a collaboration between:
 - [Server Features](#server-features)
 - [Client–Server Communication](#clientserver-communication)
 - [Project Architecture](#project-architecture)
-- [Operational Workflow](#operational-worflow)
+- [Operational Workflow](#operational-workflow)
 - [Core Server Functions](#core-server-functions)
+- [File Transfer](#core-server-functions)
+- [Bot](#bot)
   
 ---
 
