@@ -20,7 +20,7 @@ class	Command
 		// === CommandMessaging.cpp ===
 
 		static void		handleMessageToUser(Server* server, User* sender, const std::string& targetNick,
-									const std::string& message, const std::string& commandName);
+									const std::string& message, const std::string& commandName, const std::string& botCmd = "");
 		
 		// === CommandUtils.cpp ===
 

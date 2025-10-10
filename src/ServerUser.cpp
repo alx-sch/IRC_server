@@ -41,8 +41,10 @@ void	Server::acceptNewUser()
 
 	std::string	userIp = inet_ntoa(userAddr.sin_addr);
 
+	bool	BotFirstUser = getBotMode() && _usersFd.empty();
+
 	logUserAction("*", userFd, toString("connected from ") + YELLOW
-		+ toString(userIp) + RESET);
+		+ toString(userIp) + RESET, BotFirstUser);
 
 	try
 	{
@@ -58,7 +60,7 @@ void	Server::acceptNewUser()
 	{
 		close(userFd);	// Close fd to prevent leak
 		logUserAction("*", userFd, RED
-			+ toString("ERROR: Failed to allocate memory for new user. Connection closed") + RESET);
+			+ toString("ERROR: Failed to allocate memory for new user. Connection closed") + RESET, BotFirstUser);
 		return; // Keep server running
 	}
 }
@@ -306,7 +308,7 @@ void	Server::deleteUser(int fd, std::string logMsg)
 	std::string	nick = user->getNickname();
 
 	// Log before we close and erase everything
-	logUserAction(nick, fd, logMsg);
+	logUserAction(nick, fd, logMsg, user->getIsBot());
 
 	close(fd);
 	user->markDisconnected();

@@ -168,13 +168,18 @@ Formats a log line with timestamp, aligned nickname and fd columns.
  @param nick	The user's nickname
  @param fd		The user's socket fd
  @param message	The message to log
+ @param botMode	True if bot mode is active (to color bot messages differently)
 */
-void	logUserAction(const std::string& nick, int fd, const std::string& message)
-{
+void	logUserAction(const std::string& nick, int fd, const std::string& message, bool botMode)
+{			
 	std::ostringstream	oss;
+	std::string			logColor = GREEN;
+
+	if (botMode)
+		logColor = BOT_COLOR;
 
 	oss	<< "[" << CYAN << getTimestamp() << RESET << "] "
-		<< GREEN << std::left << std::setw(MAX_NICK_LENGTH + 1) << nick << RESET // pad nick + some space
+		<< logColor << std::left << std::setw(MAX_NICK_LENGTH + 1) << nick << RESET // pad nick + some space
 		<< "(" << MAGENTA << "fd " << std::right << std::setw(3) << fd << RESET << ") "
 		<< message;
 

@@ -72,8 +72,14 @@ $(NAME):	$(OBJS)
 
 ## MAKE BOT ##
 # Adds a bot mode flag, which will activate the bot.
+# Only print the "Bot mode activated!" message if bot mode was not already active.
 bot:
-	@$(MAKE) --no-print-directory CPPFLAGS="$(CPPFLAGS) -DBOT_MODE" all
+	@status=0; \
+	status=$$($(MAKE) -q --no-print-directory CPPFLAGS="$(CPPFLAGS) -DBOT_MODE" all; echo $$?); \
+	$(MAKE) --no-print-directory CPPFLAGS="$(CPPFLAGS) -DBOT_MODE" all; \
+	if [ $$status -ne 0 ]; then \
+		echo "$(BOLD)$(YELLOW)Bot mode activated!$(RESET)"; \
+	fi
 
 ## COMPILATION PROGRESS BAR ##
 # Compiles individual .cpp files into .o object files without linking.
@@ -107,9 +113,11 @@ fclean:	clean
 
 re:	fclean all
 
+re_bot: fclean bot
+
 check_os:
 	@echo "Detected OS: $(OS)"
 
-.PHONY: all bot clean fclean re check_os
+.PHONY: all bot clean fclean re re_bot check_os
 
 -include $(DEPS)

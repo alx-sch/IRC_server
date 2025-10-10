@@ -38,7 +38,12 @@ for syntax and uniqueness by the caller (e.g., in the command handler).
 */
 void	User::setNickname(const std::string& displayNick, const std::string& normNick)
 {
-	logUserAction(_nickname, _fd, toString("set nickname to ") + GREEN + displayNick + RESET);
+	std::string	nickColor = GREEN;
+
+	if (_isBot)
+		nickColor = BOT_COLOR;
+
+	logUserAction(_nickname, _fd, toString("set nickname to ") + nickColor + displayNick + RESET, _isBot);
 
 	// If the user already had a nickname, remove the old one
 	if (_hasNick)

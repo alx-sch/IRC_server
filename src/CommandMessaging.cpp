@@ -136,15 +136,19 @@ Sends a message (`PRIVMSG` or `NOTICE`) from a user to another user.
  @param commandName	The name of the command ("PRIVMSG" or "NOTICE").
 */
 void Command::handleMessageToUser(Server* server, User* sender, const std::string& targetNick,
-								const std::string& message, const std::string& commandName)
+								const std::string& message, const std::string& commandName, const std::string& botCmd)
 {
 	const bool	sendReplies = (commandName == "PRIVMSG");
 	User*		targetUser = server->getUser(normalize(targetNick));
 
+	std::string	logCmd = commandName;
+	if (sender->getIsBot() && !botCmd.empty())
+		logCmd += " (" + botCmd + ")";
+
 	if (!targetUser)
 	{
-		logUserAction(sender->getNickname(), sender->getFd(), "tried to send " + commandName
-			+ " to non-existing " + RED + targetNick + RESET);
+		logUserAction(sender->getNickname(), sender->getFd(), "tried to send " + logCmd
+			+ " to non-existing " + RED + targetNick + RESET, sender->getIsBot());
 		if (sendReplies)
 			sender->sendError(401, targetNick, "No such nick/channel");
 		return;
@@ -154,6 +158,6 @@ void Command::handleMessageToUser(Server* server, User* sender, const std::strin
 	std::string	line =	commandName + " " + targetUser->getNickname() + " :" + message;
 	targetUser->sendMsgFromUser(sender, line);
 
-	logUserAction(sender->getNickname(), sender->getFd(), "sent " + commandName + " to user "
-		+ GREEN + targetUser->getNickname() + RESET);
+	logUserAction(sender->getNickname(), sender->getFd(), "sent " + logCmd + " to user "
+		+ GREEN + targetUser->getNickname() + RESET, sender->getIsBot());
 }
