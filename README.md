@@ -425,7 +425,7 @@ Compiling the server via `make bot` registers a bot as a regular client upon sta
 - **Custom Commands:** Two new custom commands, `JOKE` and `CALC`, were implemented and integrated into the server's command dispatcher.
 	- When a user sends these commands (e.g., `JOKE` or `CALC 5+5`), the bot replies via `PRIVMSG`.
 	- `JOKE`: Returns a random joke from a predefined set of ten.
-	- `CALC`: Solves the mathematical expression provided as an argument.
+	- `CALC`: Solves the mathematical expression provided as argument(s); spaces are allowed.
 
 - **Channel Automation:**
 	- **Auto-Join:** The bot automatically joins every new channel on the server.
