@@ -22,7 +22,7 @@ This project is a collaboration between:
 - [Server Features](#server-features)
 - [Client–Server Communication](#clientserver-communication)
 - [Project Architecture](#project-architecture)
-- [Core Functionality](#core-functionality)
+- [Operational Workflow](#operational-worflow)
 - [Core Server Functions](#core-server-functions)
   
 ---
@@ -171,7 +171,7 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_rdy.png" alt="HexChat_rdy"  width="450" />
 	</p>
 
-- The server logs events to the console and also saves them to log files in ---_>>  XXX (dedicated folder??). <<<---- The client may send commands the server does not support (e.g. `CAP`), but all core IRC functions still work (see below).
+- The server logs events to the console. The client may send commands the server does not support (e.g. `CAP`), but all core IRC functions still work (see below).
 
 	<p align="center">
 	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/server_log.png" alt="server_log"  width="450" />
@@ -306,7 +306,7 @@ The project is structured around several key classes:
 
 ---
 
-## Core Functionality
+## Operational Workflow
 
 1. **Server Lifecycle:** The server starts in `main.cpp` by creating a `Server` instance with a given port and password. The `Server::run()` method then starts a loop that continuously monitors all client sockets using `select()`. It waits for one of three types of events to handle I/O:
     - **New Connections:** A new connection request on the main server socket is handled by `FD_ISSET(_fd, &readFds)`.
