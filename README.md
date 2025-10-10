@@ -24,7 +24,7 @@ This project is a collaboration between:
 - [Project Architecture](#project-architecture)
 - [Operational Workflow](#operational-workflow)
 - [Core Server Functions](#core-server-functions)
-- [File Transfer](#core-server-functions)
+- [File Transfer](#file-transfer)
 - [Bot](#bot)
   
 ---
