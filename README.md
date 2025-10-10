@@ -418,6 +418,21 @@ PRIVMSG <Recipient_Nick> :\x01DCC SEND <filename> <longip> <port> <filesize>\x01
 
 ## Bot
 
+Compiling the server via `make bot` registers a server bot as a regular client upon startup.
+
+- **Design and Integration:** The bot is implemented as a regular `User` object (with a set `_isBot` flag). This allows the bot to leverage all existing client-handling logic, simplifying its integration into the main server loop.
+
+- **Custom Commands:** Two new custom commands, `JOKE` and `CALC`, were implemented and integrated into the server's command dispatcher.
+	- When a user sends these commands (e.g., `JOKE` or `CALC 5+5`), the bot replies via `PRIVMSG`.
+	- `JOKE`: Returns a random joke from a predefined set of ten.
+	- `CALC`: Solves the mathematical expression provided as an argument.
+
+- **Channel Automation:**
+	- **Auto-Join:** The bot automatically joins every new channel on the server.
+   	- **Operator Status:** Upon joining, the bot is immediately granted channel operator status,  making it impossible for users to kick or de-op the bot from the channel.
+   	- **Welcome Notice:** The bot sends a `NOTICE` to the channel creator and to every new user joining, welcoming them and providing instructions on how to use the bot's commands.
+   	- **No Zombie Channels**: The presence of the bot does not prevent the channel from being properly closed and deleted once every human user has left.
+
 ---
 
 ## References
