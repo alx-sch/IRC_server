@@ -324,7 +324,7 @@ The project is structured around several key classes:
   
 4. **Channel Management:** The `Server` class manages all channels, with the `Channel` class handling channel-specific details. The server supports a variety of channel-related commands, including:
     - `JOIN`: Allows a user to join a channel, with checks for passwords (`+k`), user limits (`+l`), and invite-only status (`+i`). If the channel doesn't exist, it is created.
-    - `PART`: A user leaves a channel.
+    - `PART`: A user leaves a channel. When all users have left, the channel is deleted.
     - `KICK`: An operator can forcibly remove another user from a channel.
     - `TOPIC`: Sets or retrieves a channel's topic, with optional operator-only protection.
     - `INVITE`: An operator can invite a user to an invite-only channel.
