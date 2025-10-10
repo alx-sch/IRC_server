@@ -418,7 +418,7 @@ PRIVMSG <Recipient_Nick> :\x01DCC SEND <filename> <longip> <port> <filesize>\x01
 
 ## Bot
 
-Compiling the server via `make bot` registers a server bot as a regular client upon startup.
+Compiling the server via `make bot` registers a bot as a regular client upon startup.
 
 - **Design and Integration:** The bot is implemented as a regular `User` object (with a set `_isBot` flag). This allows the bot to leverage all existing client-handling logic, simplifying its integration into the main server loop.
 
