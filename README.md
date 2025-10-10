@@ -365,7 +365,9 @@ In a server using `select()`, this happens if you mistakenly try to read from a 
 
 ## File Transfer
 
-**DCC (Direct Client-to-Client)** is the standard method for transferring files between IRC clients. The IRC server itself does **not** carry the file; it only passes along the DCC request (IP address and port) to the receiving client. This means the transfer occurs **directly between two clients**, without a central server mediating the data. Since DCC always uses direct TCP connections, the IP address is crucial — the receiving client must be able to reach the sending client’s address. TCP is like a secure, reliable phone line between two computers — you can send data, and it ensures the other side gets it all in the right order.
+**DCC (Direct Client-to-Client)** is the standard method for transferring files between IRC clients. The IRC server itself does **not** carry the file; it only passes along the DCC request (IP address and port) to the receiving client via a `PRIVMSG`. This means the transfer occurs **directly between two clients**, without a central server mediating the data. Since DCC always uses direct TCP connections, the IP address is crucial — the receiving client must be able to reach the sending client’s address. TCP is like a secure, reliable phone line between two computers — you can send data, and it ensures the other side gets it all in the right order.
+
+### IP Setting
 
 By default, HexChat (and many other IRC clients) automatically selects an IP address for DCC transfers. This automatically chosen IP may not be reachable by other hosts, for example:  
 - A loopback address (`127.0.0.1`)  
@@ -385,6 +387,34 @@ To enable file sharing between multiple hosts on the same local network, the DCC
 <p align="center">
 	<img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/file_transfer.png" alt="file_transfer.png"  width="600" />
 </p>
+
+### Sending the File
+
+#### Via Command Line
+
+Use `/dcc send` command with the following syntax:
+
+```bash
+/dcc send <nickname> <full_path_to_file>
+```
+
+The client interprets this command and sends a corresponding `PRIVMSG` through the server to the recipient:
+
+```bash
+PRIVMSG <Recipient_Nick> :\x01DCC SEND <filename> <longip> <port> <filesize>\x01
+```
+
+#### Via Hexchat GUI
+
+1. **Locate the recipient:** Find the recipient's nickname in the user list (usually on the right side).
+
+2. **Select a file:** Right-click on the recipient's nickname, choose **"Send a File..."** and select the file you want to send.
+
+3. **Wait for acceptance**: An *"Uploads & Downloads"* window will open with the status **"Waiting"**. The transfer will begin once the recipient accepts.
+
+---
+
+## Bot
 
 ---
 
