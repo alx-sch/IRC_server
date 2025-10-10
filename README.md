@@ -89,7 +89,7 @@ To build and run the server, ensure you have the following tools installed on yo
 
 While `make` is sufficient for a basic build, here are a few other essential commands you might use:
 
- - `make bot`: Have a bot join the server! Learn more about it here XXXX.
+ - `make bot`: Have a bot join the server! Learn more about the bot [here](#bot).
  - `make clean`: Removes all the compiled object files (`.o` and `.d` files) and the obj directory.
  - `make fclean`: Performs a full clean by removing both the object files and the final `ircserv` executable.
  - `make re`/`make re_bot`: A shortcut that runs `fclean` and then `all` to completely rebuild the project from scratch.
