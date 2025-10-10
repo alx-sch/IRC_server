@@ -73,11 +73,6 @@ To build and run the server, ensure you have the following tools installed on yo
    - **OS-Specific Build:** The server's non-blocking socket functionality is handled differently on Linux and macOS. The `Makefile` detects the OS and passes the correct compiler flags to handle these variations.
    - **Linux:** The code uses the `SOCK_NONBLOCK` flag.
    - **macOS:** The code uses the `fcntl()` function to set the non-blocking flag.
-   
-   **Bonus**: Use the `make bot` command to compile the server executable in bot mode. An IRCbot will register as a user, it will send welcome messages and it will have a few custom made commands.
-   ```
-   make bot
-   ```
 
 **4. Run the Server**  
 
@@ -92,9 +87,10 @@ To build and run the server, ensure you have the following tools installed on yo
 
 While `make` is sufficient for a basic build, here are a few other essential commands you might use:
 
+ - `make bot`: Have a bot join the server! Learn more about it here XXXX.
  - `make clean`: Removes all the compiled object files (`.o` and `.d` files) and the obj directory.
  - `make fclean`: Performs a full clean by removing both the object files and the final `ircserv` executable.
- - `make re`: A shortcut that runs `fclean` and then `all` to completely rebuild the project from scratch.
+ - `make re`/`make re_bot`: A shortcut that runs `fclean` and then `all` to completely rebuild the project from scratch.
  - `make checkout_os`: Prints the detected operating system to the console.
 
 ---
@@ -197,7 +193,7 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
  	- `NOTICE`: Similar to `PRIVMSG`, but used for server messages and automated responses. It should not be used for client-to-client communication. The main difference is that a user's IRC client should never automatically respond to a `NOTICE` - `NOTICE username :You have a new message.`
 	- `LIST`: Lists up all existing channels (shows number of active users, topic if any) - `LIST`
 
-- Channel Operator Commands:
+- Channel Operator Commands:   
   The server differentiates between operators and regular users. Operators have the authority to use specific commands to manage a channel:
 
 	- `KICK`: Ejects a client from a channel - `KICK #general baduser :You've been kicked for spamming.` (reason is optional)
@@ -213,7 +209,7 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 - Bot Commands:
 
 	- `JOKE`: Bot tells a joke.
-	- `CALC`: Bot evaluates a mathematical expression - `CALC 22+47-3*23/2`
+	- `CALC`: Bot evaluates a mathematical expression: `CALC 22 + 47 - 3*23 / 2`.
 
 ---
 
