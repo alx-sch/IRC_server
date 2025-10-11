@@ -184,7 +184,7 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 
 ## Server Features
 
-- User Commands:
+- **User Commands:**
 
 	- `NICK`: Handles setting or changing a nickname - `NICK newnickname`
 	- `USER`: Handles setting a username (and other info) - `USER <username> <hostname> <servername> <realname>` → `USER guest 0 * :Ronnie Reagan`. Hostname and servername are usually ignored/masked in modern IRC but info is used to form the  hostmask `nickname!username@hostname`, which uniquely identifies a client.
@@ -196,7 +196,7 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
  	- `NOTICE`: Similar to `PRIVMSG`, but used for server messages and automated responses. It should not be used for client-to-client communication. The main difference is that a user's IRC client should never automatically respond to a `NOTICE` - `NOTICE username :You have a new message.`
 	- `LIST`: Lists up all existing channels (shows number of active users, topic if any) - `LIST`
 
-- Channel Operator Commands:   
+- **Channel Operator Commands:** 
   The server differentiates between operators and regular users. Operators have the authority to use specific commands to manage a channel:
 
 	- `KICK`: Ejects a client from a channel - `KICK #general baduser :You've been kicked for spamming.` (reason is optional)
@@ -209,10 +209,15 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 		- `o`: Gives or takes away channel operator privilege  - `MODE #general +o newoperator`
 		- `l`: Sets or removes a user limit for the channel - `MODE #limited +l 10`
 
-- Bot Commands:
+- **Bot Commands:**
 
 	- `JOKE`: Bot tells a joke.
 	- `CALC`: Bot evaluates a mathematical expression: `CALC 22 + 47 - 3*23 / 2`.
+
+ - **Logging and Audit Trail:**
+The server includes a detailed logging mechanism for debugging and operational oversight.
+ 	- **Event Tracking:** The system maintains a structured log of all events, including successful/failed authentications, connection lifecycle, bot activity, every command executed by users and critical server failures and errors.
+    - **Dual Output:** Logs are output in real-time to the server console (for immediate monitoring) and saved persistently in dedicated log files (for audit and post-mortem analysis).
 
 ---
 
