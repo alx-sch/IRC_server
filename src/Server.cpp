@@ -77,7 +77,8 @@ void	Server::run()
 	int		ready;		// Number of ready fds returned by select()
 
 	openLogFile();
-	logServerMessage(toString("Server running on port ") + YELLOW + toString(getPort()) + RESET);
+	logServerMessage(toString("Server ") + BOT_COLOR + _name + RESET + " running on port "
+		+ YELLOW + toString(getPort()) + RESET);
 
 	// Initializes the bot if bot mode is set.
 	#ifdef BOT_MODE
