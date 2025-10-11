@@ -91,7 +91,8 @@ While `make` is sufficient for a basic build, here are a few other essential com
 
  - `make bot`: Have a bot join the server! Learn more about the bot [here](#bot).
  - `make clean`: Removes all the compiled object files (`.o` and `.d` files) and the obj directory.
- - `make fclean`: Performs a full clean by removing both the object files and the final `ircserv` executable.
+ - `make clean_log`: Removes all generated log files from the project’s root directory.
+ - `make fclean`: Performs a full clean by removing the object and log files as well as the final `ircserv` executable.
  - `make re`/`make re_bot`: A shortcut that runs `fclean` and then `all` to completely rebuild the project from scratch.
  - `make checkout_os`: Prints the detected operating system to the console.
 
@@ -173,7 +174,7 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_rdy.png" alt="HexChat_rdy"  width="450" />
 	</p>
 
-- The server logs events to the console. The client may send commands the server does not support (e.g. `CAP`), but all core IRC functions still work (see below).
+- The server logs events to the console and to log files in the root directory (`<server_name>_<timestamp>.log`). The client may send unsupported commands (e.g. `CAP`), but all core IRC functions still work (see below).
 
 	<p align="center">
 	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/server_log.png" alt="server_log"  width="450" />
