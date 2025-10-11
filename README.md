@@ -382,7 +382,7 @@ To enable file sharing between multiple hosts on the same local network, the DCC
 *Note: If you were sending files over the internet, you would need to use your external/WAN IP and set up port forwarding. For local network transfers, the above steps are sufficient.*
 
 <p align="center">
-	<img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/file_transfer.png" alt="file_transfer.png"  width="600" />
+	<img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/file_transfer.png" alt="file_transfer.png"  width="500" />
 </p>
 
 ### Sending the File
