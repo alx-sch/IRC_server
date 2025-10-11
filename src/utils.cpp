@@ -42,6 +42,9 @@ std::string	getFormattedTime()
 	std::tm*	gmt = std::gmtime(&now);	// Convert to UTC time (struct tm)
 	char		buffer[128];
 
+	if (!gmt)
+		return "TIMESTAMP_ERROR";
+
 	// Format: AbbrWeekday AbbrMonth Day Year at HH:MM:SS UTC
 	std::strftime(buffer, sizeof(buffer), "%a %b %d %Y at %H:%M:%S UTC", gmt);
 
@@ -62,6 +65,9 @@ std::string	getTimestamp()
 	std::time_t	now = std::time(NULL);		// Get current time as time_t (seconds since epoch)
 	std::tm*	gmt = std::gmtime(&now);	// Convert to UTC time (struct tm)
 	char		buffer[128];
+
+	if (!gmt)
+		return "TIMESTAMP_ERROR";
 
 	// Format: YYYY-MM-DD HH:MM:SS UTC
 	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", gmt);

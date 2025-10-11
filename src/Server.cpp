@@ -155,6 +155,9 @@ static std::string	getFileTimestamp()
 	std::tm*	gmt = std::gmtime(&now);	// Convert to UTC time (struct tm)
 	char		buffer[128];
 
+	if (!gmt)
+		return "TIMESTAMP_ERROR";
+
 	// Format: YYYYMMDD_HHMMSS
 	std::strftime(buffer, sizeof(buffer), "%Y%m%d_%H%M%S", gmt);
 
