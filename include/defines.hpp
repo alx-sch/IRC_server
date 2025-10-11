@@ -6,7 +6,8 @@
 # define VERSION			"eval-42.42"
 
 # define BOT_NAME			"IRCbot"
-# define BOT_COLOR			"\033[38;5;214m" // Orange color for bot messages
+# define BOT_COLOR			"\033[38;5;214m"	// Orange color for bot messages
+# define BOT_SILENT_NOTE	1	// '1': No logging of bot NOTICE messages; '0': log them
 
 # define MAX_CHANNELS		10		// Max channels per user; recommended in RFC 1459, 1.3 
 # define C_MODES			"itkol"	// Supported channel modes, as per subject

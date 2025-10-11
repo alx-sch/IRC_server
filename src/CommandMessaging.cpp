@@ -134,13 +134,21 @@ void	Command::handleMessageToChannel(Server* server, User* sender, const std::st
 /**
 Sends a message (`PRIVMSG` or `NOTICE`) from a user to another user.
 
+ @param server		Pointer to the server instance.
+ @param sender		Pointer to the user sending the message.
+ @param targetNick	The nickname of the target user.
+ @param message		The message text to send.
  @param commandName	The name of the command ("PRIVMSG" or "NOTICE").
+ @param botCmd		Optional, if the sender is a bot (specifies command the bot is replying to).
 */
 void Command::handleMessageToUser(Server* server, User* sender, const std::string& targetNick,
 								const std::string& message, const std::string& commandName, const std::string& botCmd)
 {
 	const bool	sendReplies = (commandName == "PRIVMSG");
 	User*		targetUser = server->getUser(normalize(targetNick));
+
+	if (BOT_SILENT_NOTE && commandName == "NOTICE" && sender->getIsBot())
+		return; // Do not log bot NOTICE messages
 
 	std::string	logCmd = commandName;
 	if (sender->getIsBot() && !botCmd.empty())
