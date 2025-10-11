@@ -39,7 +39,12 @@ Server::~Server()
 	if (_botFd != -1)
 		close(_botFd);
 	
-	std::cout << std::endl;	// Just a newline for clean output after Ctrl+C
+	if (g_running == 0) // g_running set to 0 by SIGINT handler
+	{
+		std::cout << std::endl;	// Just a newline for clean output after Ctrl+C
+		logServerMessage(BOT_COLOR + toString("SIGINT received") + RESET);
+	}
+
 	logServerMessage("Shutting down server...");
 
 	// Delete all dynamically allocated User objects
@@ -91,13 +96,15 @@ void	Server::run()
 		writeMaxFd = prepareWriteSet(writeFds);
 		if (writeMaxFd > maxFd) maxFd = writeMaxFd;
 
-		// Pause the program until a socket becomes readable or writable imn any of the provided sets
-		// 'exceptional' set is not used (NULL), also no timeour set (NULL)
+		// Pause the program until a socket becomes readable or writable in any of the provided sets
+		// 'exceptional' set is not used (NULL), also no timeout set (NULL)
 		ready = select(maxFd + 1, &readFds, &writeFds, NULL, NULL);
 		if (ready == -1) // Critical! Shut down server / end program
 		{
 			if (errno == EINTR) // If interrupted by signal (SIGINT), just return to main.
 				return;
+			std::string	errorMsg = "select() failed: " + toString(strerror(errno));
+			logServerMessage(RED + toString("ERROR: ") + errorMsg + RESET);
 			throw std::runtime_error("select() failed: " + toString(strerror(errno)));
 		}
 

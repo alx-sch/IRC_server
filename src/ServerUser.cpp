@@ -40,7 +40,11 @@ bool	Server::acceptNewUser()
 
 	userFd = accept(_fd, reinterpret_cast<sockaddr*>(&userAddr), &userLen);
 	if (userFd == -1) // Critical! Shut down server / end program
-		throw std::runtime_error("accept() failed: " + toString(strerror(errno)));
+	{
+		std::string	errorMsg = "accept() failed: " + toString(strerror(errno));
+		logServerMessage(RED + toString("ERROR: ") + errorMsg + RESET);
+		throw std::runtime_error(errorMsg);
+	}
 
 	std::string	userIp = inet_ntoa(userAddr.sin_addr);
 

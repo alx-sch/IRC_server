@@ -235,7 +235,11 @@ void	Server::initBotSocket(void)
 {
 	_botFd = socket(AF_INET, SOCK_STREAM, 0);
 	if (_botFd < 0)
-		throw std::runtime_error("socket() for bot failed");
+	{
+		std::string	errorMsg = "socket() for bot failed: " + std::string(strerror(errno));
+		logServerMessage(RED + toString("ERROR: ") + errorMsg + RESET);
+		throw std::runtime_error(errorMsg);
+	}
 
 	sockaddr_in	addr;
 	addr.sin_family = AF_INET;
@@ -243,7 +247,11 @@ void	Server::initBotSocket(void)
 	addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK); // 127.0.0.1
 
 	if (connect(_botFd, (sockaddr*)&addr, sizeof(addr)) < 0)
-		throw std::runtime_error("connect() for bot failed: " + std::string(strerror(errno)));
+	{
+		std::string	errorMsg = "connect() for bot failed: " + std::string(strerror(errno));
+		logServerMessage(RED + toString("ERROR: ") + errorMsg + RESET);
+		throw std::runtime_error(errorMsg);
+	}
 }
 
 /*Accepts the bot user connection and adds it to the server's user lists
