@@ -107,7 +107,11 @@ clean:
 	@rm -rf $(OBJS_DIR)
 	@echo "$(BOLD)$(RED)$(NAME) object files removed.$(RESET)"
 
-fclean:	clean
+clean_log:
+	@rm -f *.log
+	@echo "$(BOLD)$(RED)Log files removed.$(RESET)"
+
+fclean:	clean clean_log
 	@rm -f $(NAME)
 	@echo "$(BOLD)$(RED)$(NAME) removed.$(RESET)"
 
@@ -118,6 +122,6 @@ re_bot: fclean bot
 check_os:
 	@echo "Detected OS: $(OS)"
 
-.PHONY: all bot clean fclean re re_bot check_os
+.PHONY: all bot clean clean_log fclean re re_bot check_os
 
 -include $(DEPS)

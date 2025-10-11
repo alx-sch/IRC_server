@@ -6,8 +6,11 @@
 #include <stdexcept>	// std::runtime_error
 #include <iomanip>		// std::setw, std::left, std::right
 #include <cctype>		// For ::isalpha(), ::isdigit()
+#include <cstddef>		// size_t
 #include <cstdlib>		// strtol
 #include <algorithm>	// std::transform
+#include <sstream>		// std::stringstream
+#include <string>		// std::string
 
 // Parses and validates a port number gitfrom a C-style string (argument)
 int	parsePort(const char* arg)
@@ -186,14 +189,6 @@ void	logUserAction(const std::string& nick, int fd, const std::string& message, 
 	std::cout << oss.str() << std::endl;
 }
 
-// Logs a general server message with timestamp.
-void	logServerMessage(const std::string& message)
-{
-	std::cout	<< "[" << CYAN << getTimestamp() << RESET << "] "
-				<< std::left << std::setw(MAX_NICK_LENGTH + 10) << " " // pad for alignment with user logs
-				<< message << std::endl;
-}
-
 // IRC-specific case mapping for lowercase conversion.
 // See RFC 1459, section 2.2.2
 static char	ircToLowerChar(char c)
@@ -213,5 +208,40 @@ std::string	normalize(const std::string& name)
 {
 	std::string	result = name;
 	std::transform(result.begin(), result.end(), result.begin(), ircToLowerChar);
+	return result;
+}
+
+/**
+Removes all ANSI escape code sequences from a given string.
+
+ANSI escape sequences (used for terminal colors and formatting) 
+start with the Escape character ('\033') and end with the character 'm'.
+
+ @param str	The input string potentially containing ANSI color codes.
+ @return	A new std::string containing the original content with all ANSI color codes removed.
+*/
+std::string	removeColorCodes(const std::string& str)
+{
+	std::string	result = str;
+	size_t		startPos = 0;
+	const char	ESC = '\033';	// ANSI codes always start with '\033' (ESC char)
+
+	// Loop until no more ESC (start of a color code) is found
+	while ((startPos = result.find(ESC, startPos)) != std::string::npos)
+	{
+		// Find the end of the sequence, which is the 'm' char
+		// As below is only executed if ESC was found, startPos-endPos is the color code
+		size_t	endPos = result.find('m', startPos);
+
+		if (endPos != std::string::npos)
+		{
+			// Erase the sequence, from ESC up to and including 'm'
+			result.erase(startPos, endPos - startPos + 1);
+		}
+		else
+		{
+			break; // Malformed color code, no 'm' found after ESC
+		}
+	}
 	return result;
 }

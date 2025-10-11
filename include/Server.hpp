@@ -5,6 +5,7 @@
 # include <map>
 # include <vector>
 # include <sys/select.h>	// for fd_set
+# include <fstream>			// for std::ofstream
 
 class	User;	// no include needed as only pointer is used
 class	Channel;
@@ -17,7 +18,9 @@ class Server
 		Server(int port, const std::string& password);
 		~Server();
 
-		void	run();
+		void				run();
+		void				logServerMessage(const std::string& message);
+		void				openLogFile();
 
 		const std::string&	getServerName() const;
 		const std::string&	getVersion() const;
@@ -28,7 +31,6 @@ class Server
 		const std::string&	getCModes() const;
 		const std::string&	getUModes() const;
 		int					getMaxChannels() const;
-	
 		bool				getBotMode() const; // Bot
 		User*				getBotUser() const; // Bot
 
@@ -89,6 +91,9 @@ class Server
 		int					_botFd;		// Stores the bot socket
 		User*				_botUser;	// Stores the bot user
 
+		std::ofstream		_logFile;		// Log file stream
+		std::string			_logFilePath;	// Path to the log file
+	
 		// === ServerSocket.cpp ===
 
 		void				initSocket();
