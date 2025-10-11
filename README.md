@@ -8,7 +8,7 @@ This project is about building a functional IRC (Internet Relay Chat) server fro
 
 This project is a collaboration between:
 
-- **[Alex](https://github.com/alx-sch)**: Server core & connection management, message handling, this ReadMe.
+- **[Alex](https://github.com/alx-sch)**: Server core & connection management, message handling, logging mechanism, and this ReadMe.
 - **[Pavlos](https://github.com/sysex89)**: Channel logic.
 - **[Natalie](https://github.com/busedame)**: File transfer and server bot.
   
@@ -92,8 +92,8 @@ While `make` is sufficient for a basic build, here are a few other essential com
  - `make bot`: Have a bot join the server! Learn more about the bot [here](#bot).
  - `make clean`: Removes all the compiled object files (`.o` and `.d` files) and the obj directory.
  - `make clean_log`: Removes all generated log files from the project’s root directory.
- - `make fclean`: Performs a full clean by removing the object and log files as well as the final `ircserv` executable.
- - `make re`/`make re_bot`: A shortcut that runs `fclean` and then `all` to completely rebuild the project from scratch.
+ - `make fclean`: Performs a full cleanup by removing object and log files + the `ircserv` executable.
+ - `make re`/`make re_bot`: A shortcut that runs `fclean` and then `all`/`bot` to rebuild the project from scratch.
  - `make checkout_os`: Prints the detected operating system to the console.
 
 ---
