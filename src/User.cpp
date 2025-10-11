@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <iomanip>		// std::setw
+#include <sstream>		// std::ostringstream
 
 #include "../include/User.hpp"
 #include "../include/Server.hpp"
@@ -30,8 +31,9 @@ Formats a log line with timestamp, aligned nickname and fd columns.
  @param botMode	True if bot mode is active (to color bot messages differently)
 */
 void	User::logUserAction(const std::string& message, bool botMode)
-{			
+{
 	std::string			logColor = GREEN;
+	std::ostringstream	fileLogEntry;
 
 	if (botMode)
 		logColor = BOT_COLOR;
@@ -40,6 +42,20 @@ void	User::logUserAction(const std::string& message, bool botMode)
 				<< logColor << std::left << std::setw(MAX_NICK_LENGTH + 1) << _nickname << RESET // pad nick + some space
 				<< "(" << MAGENTA << "fd " << std::right << std::setw(3) << _fd << RESET << ") "
 				<< message << std::endl;
+
+	fileLogEntry	<< "[" << getTimestamp() << "] "
+					<< std::left << std::setw(MAX_NICK_LENGTH + 1) << _nickname
+					<< "(fd " << std::right << std::setw(3) << _fd << ") "
+					<< removeColorCodes(message) << "\n";
+
+
+	if (_server->getLogFile().is_open())
+	{
+		_server->getLogFile() << fileLogEntry.str();
+		_server->getLogFile().flush(); // Ensure the data is written immediately to disk
+	}
+
+	
 }
 
 /////////////

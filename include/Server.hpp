@@ -31,8 +31,9 @@ class Server
 		const std::string&	getCModes() const;
 		const std::string&	getUModes() const;
 		int					getMaxChannels() const;
-		bool				getBotMode() const; // Bot
-		User*				getBotUser() const; // Bot
+		bool				getBotMode() const;	// Bot
+		User*				getBotUser() const;	// Bot
+		std::ofstream&		getLogFile();		// Log file stream
 
 		std::map<std::string, User*>&	getNickMap();
 		void				removeNickMapping(const std::string& nickname);

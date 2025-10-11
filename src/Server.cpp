@@ -54,8 +54,8 @@ Server::~Server()
 
 	if (_logFile.is_open())
 	{
-		_logFile.close();
 		logServerMessage(toString("Log file closed: ") + YELLOW + _logFilePath + RESET);
+		_logFile.close();
 	}
 
 }
@@ -240,6 +240,11 @@ User*	Server::getBotUser() const
 	return _botUser;
 }
 
+// Returns the log file output stream.
+std::ofstream&	Server::getLogFile()
+{
+	return _logFile;
+}
 
 //////////////////
 // Nick Mapping //
