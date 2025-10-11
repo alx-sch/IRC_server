@@ -162,7 +162,7 @@ static std::string	getFileTimestamp()
 
 void	Server::openLogFile()
 {
-	_logFilePath = getServerName() + "_" + getFileTimestamp() + ".log";
+	_logFilePath = _name + "_" + getFileTimestamp() + ".log";
 
 	_logFile.open(_logFilePath.c_str(), std::ios::out | std::ios::app);
 	if (!_logFile.is_open())
