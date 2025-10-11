@@ -16,7 +16,7 @@
 #include "../include/User.hpp"
 #include "../include/Command.hpp"
 #include "../include/defines.hpp"
-#include "../include/utils.hpp"	// toString(), logUserAction
+#include "../include/utils.hpp"	// toString()
 
 ///////////////////////////////
 // Accepting Users on Server //
@@ -28,8 +28,11 @@ Accepts a new user connection and adds them to the server's user lists
 
 `accepts()` uses the server's listening socket (`_fd`) to identify and accept 
 any pending incoming connection requests.
+
+ @return	`true` if a new user was successfully accepted and added,
+			`false` if an error occurred (e.g. memory allocation failure).
 */
-void	Server::acceptNewUser()
+bool	Server::acceptNewUser()
 {
 	int			userFd;		// fd for the accepted user connection
 	sockaddr_in	userAddr;	// Init user address structure
@@ -43,14 +46,15 @@ void	Server::acceptNewUser()
 
 	bool	BotFirstUser = getBotMode() && _usersFd.empty();
 
-	logUserAction("*", userFd, toString("connected from ") + YELLOW
-		+ toString(userIp) + RESET, BotFirstUser);
-
 	try
 	{
 		User*	newUser = new User(userFd, this); // 'new' throws std::bad_alloc on failure
+
+		newUser->logUserAction(toString("connected from ") + YELLOW
+			+ toString(userIp) + RESET, BotFirstUser);
+
 		_usersFd[userFd] = newUser;
-		newUser->setHost(userIp);
+		newUser->setHost(userIp);	
 
 		// Set as "password-passed" when server requires no password
 		if (_password.empty())
@@ -58,11 +62,19 @@ void	Server::acceptNewUser()
 	}
 	catch(const std::bad_alloc&)
 	{
+		std::string	user = "new user";
+		if (getBotMode() && _usersFd.empty())
+		{
+			user = BOT_COLOR + toString("server bot") + RED;
+			_botMode = false; // Server keeps running without bot
+		}
+
 		close(userFd);	// Close fd to prevent leak
-		logUserAction("*", userFd, RED
-			+ toString("ERROR: Failed to allocate memory for new user. Connection closed") + RESET, BotFirstUser);
-		return; // Keep server running
+		logServerMessage(RED + toString("ERROR: Failed to allocate memory for " + user 
+			+ " from ") + YELLOW + toString(userIp) + RESET + ". Connection closed");
+		return false; // Keep server running
 	}
+	return true;
 }
 
 /////////////////////////
@@ -121,8 +133,7 @@ Server::UserInputResult	Server::handleUserInput(int fd)
 		{
 			std::string	cmd = tokens[0];
 
-			logUserAction(user->getNickname(), fd, toString("sent unknown command: ")
-				+ RED + cmd + RESET);
+			user->logUserAction(toString("sent unknown command: ") + RED + cmd + RESET);	
 			user->sendError(421, cmd, "Unknown command");
 		}
 	}
@@ -163,11 +174,11 @@ std::vector<std::string>	Server::extractMessagesFromBuffer(User* user)
 		// Check if line is too long (more than 510 + CRLF = 512); see RFC 1459, 2.3
 		if (msg.size() > MAX_BUFFER_SIZE - 2)
 		{
-			logUserAction(user->getNickname(), user->getFd(), toString("sent an overlong line (")
-				+ YELLOW + toString(msg.size()) + RESET + " > 512 bytes)");
+			user->logUserAction(toString("sent an overlong line (") + YELLOW
+				+ toString(msg.size()) + RESET + " > 512 bytes)");
 			user->sendError(417, "", "Input line was too long");
 			continue; // Skip this message, do not add to vector
-		}
+			}
 
 		// Store the clean message in vector
 		messages.push_back(msg);
@@ -206,8 +217,8 @@ void	Server::handleReadReadyUsers(fd_set& readFds)
 				disconnectUser(userFd, "Connection closed");
 			else if (result == INPUT_ERROR)
 			{
-				logUserAction(getUser(userFd)->getNickname(), userFd, RED
-					"ERROR: recv() failed: " + toString(strerror(errno)) + RESET);
+				getUser(userFd)->logUserAction(RED + toString("ERROR: recv() failed: ")
+					+ toString(strerror(errno)) + RESET);
 				disconnectUser(userFd, "Read error: " + toString(strerror(errno)));
 			}
 		}
@@ -246,8 +257,7 @@ void	Server::handleWriteReadyUsers(fd_set& writeFds)
 			{
 				if (errno == EPIPE || errno == ECONNRESET)
 				{
-					logUserAction(user->getNickname(), userFd, RED + toString("ERROR: send() failed: ")
-						+ toString(strerror(errno)) + RESET);
+					user->logUserAction(RED + toString("ERROR: send() failed: ") + toString(strerror(errno)) + RESET);
 					disconnectUser(userFd, "Write error: " + toString(strerror(errno)));
 				}
 				// If errno is EAGAIN or EWOULDBLOCK, do nothing (temporary issue), just try again in next select() loop
@@ -308,7 +318,7 @@ void	Server::deleteUser(int fd, std::string logMsg)
 	std::string	nick = user->getNickname();
 
 	// Log before we close and erase everything
-	logUserAction(nick, fd, logMsg, user->getIsBot());
+	user->logUserAction(logMsg, user->getIsBot());
 
 	close(fd);
 	user->markDisconnected();

@@ -46,7 +46,7 @@ void	Server::handleCalc(Server *server, User *user, const std::vector<std::strin
 	// Needs 2 tokens: CALC <expression>
 	if (tokens.size() < 2)
 	{
-		logUserAction(user->getNickname(), user->getFd(), "sent CALC without a math expression");
+		user->logUserAction("sent CALC without a math expression");
 		Command::handleMessageToUser(server, server->getBotUser(), user->getNickname(),
 			"You missed the expression! But the answer is likely '42' anway :P", "PRIVMSG", "CALC");
 		return;
@@ -58,7 +58,7 @@ void	Server::handleCalc(Server *server, User *user, const std::vector<std::strin
 
 	if (!isValidExpression(expression))
 	{
-		logUserAction(user->getNickname(), user->getFd(), "sent CALC with an invalid math expression");
+		user->logUserAction("sent CALC with an invalid math expression");
 		Command::handleMessageToUser(server, server->getBotUser(), user->getNickname(),
 			"I didn't quite understand '" + expression + "'. "
 			+ "Could you please send expressions using only whole numbers (integers) and the operators '+, -, *, /' ?", "PRIVMSG", "CALC");
@@ -72,7 +72,7 @@ void	Server::handleCalc(Server *server, User *user, const std::vector<std::strin
 	}
 	catch (const std::runtime_error &e) // Division by zero
 	{
-		logUserAction(user->getNickname(), user->getFd(), "sent CALC with an invalid math expression");
+		user->logUserAction("sent CALC with an invalid math expression");
 		Command::handleMessageToUser(server, server->getBotUser(), user->getNickname(),
 			"Oh silly! Only Chuck Norris can divide by zero!", "PRIVMSG", "CALC"); // Division by zero
 		return;
@@ -83,7 +83,7 @@ void	Server::handleCalc(Server *server, User *user, const std::vector<std::strin
 	oss << result;
 	std::string resultStr = oss.str();
 
-	logUserAction(user->getNickname(), user->getFd(), "sent CALC command");
+	user->logUserAction("sent CALC command");
 
 	// Send result as a NOTICE from the bot
 	Command::handleMessageToUser(server, server->getBotUser(), user->getNickname(),
@@ -210,7 +210,7 @@ void	Server::handleJoke(Server *server, User *user)
 			message = "“Hey bot, are you self-aware?” Only enough to regret being in this channel."; break;
 	}
 
-	logUserAction(user->getNickname(), user->getFd(), "sent JOKE command");
+	user->logUserAction("sent JOKE command");
 	Command::handleMessageToUser(server, server->getBotUser(), user->getNickname(), message, "PRIVMSG", "JOKE");
 }
 
@@ -252,17 +252,18 @@ void	Server::initBotCredentials(void)
 {
 	std::string	botName = BOT_NAME;
 
-	acceptNewUser();
-
-	// As the bot is the first user, it will be the first in the map.
-	std::map<int, User*>::iterator	it = _usersFd.begin();
-	_botUser = it->second;
-	_botUser->setIsBotToTrue();
-	_botUser->setNickname(botName, normalize(botName));
-	_botUser->setRealname(botName);
-	_botUser->setUsername(botName);
-	_botUser->setHasPassed(true);
-	_botUser->tryRegister();
+	if (acceptNewUser()) // Allocating of bot user object successful
+	{
+		// As the bot is the first user, it will be the first in the map.
+		std::map<int, User*>::iterator	it = _usersFd.begin();
+		_botUser = it->second;
+		_botUser->setIsBotToTrue();
+		_botUser->setNickname(botName, normalize(botName));
+		_botUser->setRealname(botName);
+		_botUser->setUsername(botName);
+		_botUser->setHasPassed(true);
+		_botUser->tryRegister();
+	}
 }
 
 /*Initializes bot socket and connects to server socket, sets bot credentials, and 

@@ -4,7 +4,7 @@
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
 #include "../include/Channel.hpp"
-#include "../include/utils.hpp"		// logUserAction, isValidChannelName
+#include "../include/utils.hpp"		// isValidChannelName()
 #include "../include/defines.hpp"	// color formatting
 
 /**
@@ -34,7 +34,7 @@ bool	Command::handleMode(Server* server, User* user, const std::vector<std::stri
 
 	if (tokens.size() < 2)
 	{
-		logUserAction(user->getNickname(), user->getFd(), "sent MODE without parameters");
+		user->logUserAction("sent MODE without parameters");
 		user->sendError(461, "MODE", "Not enough parameters");
 		return false;
 	}
@@ -59,8 +59,8 @@ bool	Command::handleMode(Server* server, User* user, const std::vector<std::stri
 	// MODE change: requires operator privileges
 	if (!channel->is_user_operator(user))
 	{
-		logUserAction(user->getNickname(), user->getFd(), toString("tried to change modes for ")
-			+ BLUE + target + RESET + " but is not an operator");
+		user->logUserAction(toString("tried to change modes for ") + BLUE + target + RESET
+			+ " but is not an operator");
 		user->sendError(482, target, "You're not channel operator");
 		return false;
 	}
@@ -90,7 +90,7 @@ bool	Command::handleModeChanges(Server* server, User* user, Channel* channel, co
 	// first determine initial direction (+ or -)
 	if (modeString.empty() || (modeString[0] != '+' && modeString[0] != '-'))
 	{
-		logUserAction(user->getNickname(), user->getFd(), toString("sent MODE with invalid mode string: ") + RED + modeString + RESET);
+		user->logUserAction(toString("sent MODE with invalid mode string: ") + RED + modeString + RESET);
 		user->sendError(501, "", "Mode string must start with + or -");
 		return false;
 	}
@@ -116,7 +116,7 @@ bool	Command::handleModeChanges(Server* server, User* user, Channel* channel, co
 
 	if (addedModes.empty() && removedModes.empty() && !modeCandidateFound) // just + or - with no potential modes
 	{
-		logUserAction(user->getNickname(), user->getFd(), "sent MODE without parameters");
+		user->logUserAction("sent MODE without parameters");
 		user->sendError(461, "MODE", "Not enough parameters");
 		return false;
 	}
@@ -163,14 +163,12 @@ Channel*	Command::validateChannelAndUser(Server* server, User* user, const std::
 		// It's not a channel. Check if it's a user before erroring.
 		if (server->getUser(target)) // user exists
 		{
-			logUserAction(user->getNickname(), user->getFd(),
-				toString("sent MODE for a user target (unsupported): ") + RED + target + RESET);
+			user->logUserAction(toString("sent MODE for a user target (unsupported): ") + RED + target + RESET);
 			user->sendError(502, "", "Cant change mode for other users");
 		}
 		else // user does not exist
 		{
-			logUserAction(user->getNickname(), user->getFd(),
-				toString("sent MODE for non-existing user: ") + RED + target + RESET);
+			user->logUserAction(toString("sent MODE for non-existing user: ") + RED + target + RESET);
 			user->sendError(401, target, "No such nick/channel");
 		}
 		return NULL;
@@ -180,8 +178,7 @@ Channel*	Command::validateChannelAndUser(Server* server, User* user, const std::
 	Channel*	channel = server->getChannel(target);
 	if (!channel)
 	{
-		logUserAction(user->getNickname(), user->getFd(),
-			toString("tried to change modes for non-existing ") + RED + target + RESET);
+		user->logUserAction(toString("tried to change modes for non-existing ") + RED + target + RESET);
 		user->sendError(403, target, "No such channel");
 		return NULL;
 	}
@@ -191,8 +188,7 @@ Channel*	Command::validateChannelAndUser(Server* server, User* user, const std::
 	// Check if user is in the channel
 	if (!channel->is_user_member(user))
 	{
-		logUserAction(user->getNickname(), user->getFd(),
-			toString("sent MODE but is not a member of ") + BLUE + channelNameOrig + RESET);
+		user->logUserAction(toString("sent MODE but is not a member of ") + BLUE + channelNameOrig + RESET);
 		user->sendError(442, channelNameOrig, "You're not on that channel");
 		return NULL;
 	}
@@ -264,8 +260,9 @@ void	Command::sendModeReply(User* user, const std::string& target, const std::st
 	user->sendServerMsg("324 " + user->getNickname() + " " + channelNameOrig
 		+ (modes.empty() ? "" : " " + modes) + params);
 
-	logUserAction(user->getNickname(), user->getFd(), toString("queried modes for ") + BLUE + channelNameOrig + RESET
+	user->logUserAction(toString("queried modes for ") + BLUE + channelNameOrig + RESET
 		+ (modes.empty() ? " (no modes set)" : toString(" (") + YELLOW + modes + RESET + paramsLogging + ")"));
+	
 }
 
 // Applies a single mode change to a channel.
@@ -290,7 +287,7 @@ bool	Command::applyChannelMode(Server* server, User* user, Channel* channel, cha
 			return applyOperator(server, channel, user, adding, tokens, paramIndex, modeParams);
 
 		default:
-			logUserAction(user->getNickname(), user->getFd(), toString("tried to set unknown mode: ") + RED + mode + RESET);
+			user->logUserAction(toString("tried to set unknown mode: ") + RED + mode + RESET);
 			user->sendError(472, std::string(1, mode), "is unknown mode char to me");
 			return false;
 	}
@@ -311,8 +308,8 @@ bool	Command::applySimpleMode(Channel* channel, User* user, char mode, bool addi
 		action = "topic protection";
 	}
 
-	logUserAction(user->getNickname(), user->getFd(),
-		(adding ? "enabled " : "disabled ") + action + " for " + BLUE + channel->get_name() + RESET);
+	user->logUserAction((adding ? "enabled " : "disabled ") + action + " for "
+		+ BLUE + channel->get_name() + RESET);
 
 	return true;
 }
@@ -325,7 +322,7 @@ bool	Command::applyUserLimit(Channel* channel, User* user, bool adding, const st
 	{
 		if (paramIndex >= tokens.size())
 		{
-			logUserAction(user->getNickname(), user->getFd(), "sent MODE l without enough parameters");
+			user->logUserAction("sent MODE l without enough parameters");
 			user->sendError(461, "MODE", "Not enough parameters");
 			return false; // Failed: Missing parameter for user limit
 		}
@@ -336,15 +333,16 @@ bool	Command::applyUserLimit(Channel* channel, User* user, bool adding, const st
 		{
 			channel->set_user_limit(limit);
 			modeParams += " " + tokens[paramIndex];
-			logUserAction(user->getNickname(), user->getFd(), toString("set user limit to ")
-					+ YELLOW + toString(limit) + RESET + " for " + BLUE + channel->get_name() + RESET);
+			user->logUserAction(toString("set user limit to ") + YELLOW + toString(limit) + RESET
+				+ " for " + BLUE + channel->get_name() + RESET);
 			++paramIndex;
 			return true;
 		}
 
 		// limit is zero or negative
-		logUserAction(user->getNickname(), user->getFd(), toString("sent invalid user limit: ") + RED
+		user->logUserAction(toString("sent invalid user limit: ") + RED
 			+ tokens[paramIndex] + RESET);
+
 		user->sendError(696, channel->get_name() + " l " + tokens[paramIndex],
 			"Invalid user limit: Must be a positive number");
 		return false;
@@ -352,8 +350,7 @@ bool	Command::applyUserLimit(Channel* channel, User* user, bool adding, const st
 	else // Removing user limit
 	{
 		channel->set_user_limit(0);
-		logUserAction(user->getNickname(), user->getFd(),
-			toString("removed user limit for ") + BLUE + channel->get_name() + RESET);
+		user->logUserAction(toString("removed user limit for ") + BLUE + channel->get_name() + RESET);
 		return true;
 	}
 }
@@ -367,7 +364,7 @@ bool	Command::applyChannelKey(Channel* channel, User* user, bool adding, const s
 	{
 		if (paramIndex >= tokens.size())
 		{
-			logUserAction(user->getNickname(), user->getFd(), "sent MODE k without enough parameters");
+			user->logUserAction("sent MODE k without enough parameters");
 			user->sendError(461, "MODE", "Not enough parameters");
 			return false; // Failed: Missing parameter for channel key
 		}
@@ -377,8 +374,7 @@ bool	Command::applyChannelKey(Channel* channel, User* user, bool adding, const s
 
 		modeParams += " " + key;
 
-		logUserAction(user->getNickname(), user->getFd(), toString("set channel key for ")
-			+ BLUE + channel->get_name() + RESET);
+		user->logUserAction(toString("set channel key for ") + BLUE + channel->get_name() + RESET);
 		++paramIndex;
 		return true;
 	}
@@ -390,8 +386,7 @@ bool	Command::applyChannelKey(Channel* channel, User* user, bool adding, const s
 			++paramIndex;
 
 		channel->set_password("");
-		logUserAction(user->getNickname(), user->getFd(), toString("removed channel key for ")
-			+ BLUE + channel->get_name() + RESET);
+		user->logUserAction(toString("removed channel key for ") + BLUE + channel->get_name() + RESET);
 		return true;
 	}
 }
@@ -402,7 +397,7 @@ bool	Command::applyOperator(Server* server, Channel* channel, User* user, bool a
 {
 	if (paramIndex >= tokens.size())
 	{
-		logUserAction(user->getNickname(), user->getFd(), "sent MODE o without enough parameters");
+		user->logUserAction("sent MODE o without enough parameters");
 		user->sendError(461, "MODE", "Not enough parameters");
 		return false; // Failed: Missing parameter.
 	}
@@ -412,8 +407,8 @@ bool	Command::applyOperator(Server* server, Channel* channel, User* user, bool a
 
 	if (!targetUser)
 	{
-		logUserAction(user->getNickname(), user->getFd(),
-			toString("tried to set operator status for non-existing user: ") + RED + targetNickOrig + RESET);
+		user->logUserAction(toString("tried to set operator status for non-existing user: ")
+			+ RED + targetNickOrig + RESET);
 		user->sendError(401, targetNickOrig, "No such nick/channel");
 		++paramIndex;
 		return false;
@@ -421,9 +416,8 @@ bool	Command::applyOperator(Server* server, Channel* channel, User* user, bool a
 
 	if (!channel->is_user_member(targetUser))
 	{
-		logUserAction(user->getNickname(), user->getFd(),
-			toString("tried to set operator status for user not in ") + BLUE + channel->get_name() + RESET
-			+ ": " + RED + targetUser->getNickname() + RESET);
+		user->logUserAction(toString("tried to set operator status for user not in ")
+			+ BLUE + channel->get_name() + RESET + ": " + RED + targetUser->getNickname() + RESET);
 		user->sendError(441, targetUser->getNickname() + " " + channel->get_name(), "They aren't on that channel");
 		++paramIndex;
 		return false;
@@ -435,8 +429,7 @@ bool	Command::applyOperator(Server* server, Channel* channel, User* user, bool a
 		// Check if targeting another operator
 		if (channel->is_user_operator(targetUser) && targetUser != user)
 		{
-			logUserAction(user->getNickname(), user->getFd(),
-				toString("tried to remove operator status from operator ")
+			user->logUserAction(toString("tried to remove operator status from operator ")
 				+ GREEN + targetUser->getNickname() + RESET + " in " + BLUE + channel->get_name() + RESET);
 			user->sendError(482, channel->get_name(), "You cannot de-op another channel operator.");
 			++paramIndex;
@@ -450,7 +443,7 @@ bool	Command::applyOperator(Server* server, Channel* channel, User* user, bool a
 		channel->remove_user_operator_status(targetUser);
 
 	modeParams += " " + targetUser->getNickname();
-	logUserAction(user->getNickname(), user->getFd(), (adding ? "gave" : "removed") + toString(" operator status for ")
+	user->logUserAction((adding ? "gave" : "removed") + toString(" operator status for ")
 		+ GREEN + targetUser->getNickname() + RESET + " in " + BLUE + channel->get_name() + RESET);
 
 	++paramIndex;

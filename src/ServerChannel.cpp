@@ -48,16 +48,16 @@ Channel*	Server::getOrCreateChannel(const std::string& channelName, User* user, 
 	{
 		channel = new Channel(channelName);
 		_channels[normalize(channelName)] = channel; // Add to the server's channel map
-		logUserAction(user->getNickname(), user->getFd(), toString("created ")
-			+ BLUE + channelName + RESET);
+		user->logUserAction(toString("created ") + BLUE + channelName + RESET);
 
 		if (wasCreated)
 			*wasCreated = true;
 	}
 	catch(const std::bad_alloc&)
 	{
-		logUserAction(user->getNickname(), user->getFd(), RED
-			+ toString("ERROR: Failed to allocate memory for new channel ") + BLUE + channelName + RESET);
+		user->logUserAction(RED + toString("ERROR: Failed to allocate memory for new channel ")
+			+ BLUE + channelName + RESET);
+		
 		user->sendError(500, "", "Internal server error while creating channel " + channelName);
 		if (wasCreated)
 			*wasCreated = false;

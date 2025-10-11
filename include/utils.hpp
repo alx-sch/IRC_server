@@ -9,7 +9,6 @@ std::string	getFormattedTime();
 std::string	getTimestamp();
 bool		isValidNick(const std::string& nick);
 bool		isValidChannelName(const std::string& channelName);
-void		logUserAction(const std::string& nick, int fd, const std::string& message, bool botMode = false);
 std::string	normalize(const std::string& name);
 std::string	removeColorCodes(const std::string& str);
 

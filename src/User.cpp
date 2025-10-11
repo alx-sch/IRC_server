@@ -1,10 +1,11 @@
 #include <iostream>
 #include <string>
+#include <iomanip>		// std::setw
 
 #include "../include/User.hpp"
 #include "../include/Server.hpp"
-#include "../include/utils.hpp"		// logUserAction
 #include "../include/defines.hpp"	// color formatting
+#include "../include/utils.hpp"		// getTimestamp(), toString()
 
 // '*' is default nickname for unregistered users
 User::User(int fd, Server* server)
@@ -18,6 +19,27 @@ User::~User() {}
 std::string	User::buildHostmask() const
 {
 	return _nickname + "!" + _username + "@" + _host;
+}
+
+/**
+Formats a log line with timestamp, aligned nickname and fd columns.
+
+ @param nick	The user's nickname
+ @param fd		The user's socket fd
+ @param message	The message to log
+ @param botMode	True if bot mode is active (to color bot messages differently)
+*/
+void	User::logUserAction(const std::string& message, bool botMode)
+{			
+	std::string			logColor = GREEN;
+
+	if (botMode)
+		logColor = BOT_COLOR;
+
+	std::cout	<< "[" << CYAN << getTimestamp() << RESET << "] "
+				<< logColor << std::left << std::setw(MAX_NICK_LENGTH + 1) << _nickname << RESET // pad nick + some space
+				<< "(" << MAGENTA << "fd " << std::right << std::setw(3) << _fd << RESET << ") "
+				<< message << std::endl;
 }
 
 /////////////
@@ -43,7 +65,7 @@ void	User::setNickname(const std::string& displayNick, const std::string& normNi
 	if (_isBot)
 		nickColor = BOT_COLOR;
 
-	logUserAction(_nickname, _fd, toString("set nickname to ") + nickColor + displayNick + RESET, _isBot);
+	logUserAction(toString("set nickname to ") + nickColor + displayNick + RESET, _isBot);
 
 	// If the user already had a nickname, remove the old one
 	if (_hasNick)

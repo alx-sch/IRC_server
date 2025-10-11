@@ -25,7 +25,7 @@ void	User::tryRegister()
 	if (_hasNick && _hasUser && _hasPassed)
 	{
 		_isRegistered = true;
-		logUserAction(_nickname, _fd, "successfully registered", _isBot);
+		logUserAction("successfully registered", _isBot);
 		sendWelcome();	// Send welcome messages
 	}
 }

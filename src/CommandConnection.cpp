@@ -6,7 +6,6 @@
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
 #include "../include/Channel.hpp"
-#include "../include/utils.hpp"		// logUserAction
 #include "../include/defines.hpp"	// color formatting
 
 // Helper function to get the quit reason from the tokens

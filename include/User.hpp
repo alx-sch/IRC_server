@@ -16,6 +16,7 @@ class	User
 		~User();
 
 		std::string			buildHostmask() const;
+		void				logUserAction(const std::string& message, bool botMode = false);
 
 		void				setNickname(const std::string& displayNick, const std::string& canonicalNick);
 		void				setUsername(const std::string& username);

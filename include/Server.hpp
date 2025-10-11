@@ -106,7 +106,7 @@ class Server
 
 		// === ServerUser.cpp ===
 
-		void				acceptNewUser();
+		bool				acceptNewUser();
 		void				handleReadReadyUsers(fd_set& readFds);
 		void				handleWriteReadyUsers(fd_set& writeFds);
 		UserInputResult		handleUserInput(int fd);

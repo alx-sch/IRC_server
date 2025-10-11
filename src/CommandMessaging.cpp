@@ -5,7 +5,7 @@
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
 #include "../include/Channel.hpp"
-#include "../include/utils.hpp"		// logUserAction, isValidChannelName
+#include "../include/utils.hpp"		// isValidChannelName()
 #include "../include/defines.hpp"	// color formatting
 
 /**
@@ -28,14 +28,14 @@ void	Command::handleMessage(Server* server, User* user, const std::vector<std::s
 	// Argument checks
 	if (tokens.size() < 2)
 	{
-		logUserAction(user->getNickname(), user->getFd(), "sent invalid " + commandName + " (no recipient)");
+		user->logUserAction("sent invalid " + commandName + " (no recipient)");
 		if (sendReplies)
 			user->sendError(411, "", "No recipient given (" + commandName + ")");
 		return;
 	}
 	if (tokens.size() < 3)
 	{
-		logUserAction(user->getNickname(), user->getFd(), "sent invalid " + commandName + " (no text)");
+		user->logUserAction("sent invalid " + commandName + " (no text)");
 		if (sendReplies)
 			user->sendError(412, "", "No text to send");
 		return;
@@ -105,8 +105,9 @@ void	Command::handleMessageToChannel(Server* server, User* sender, const std::st
 
 	if (!channel)
 	{
-		logUserAction(sender->getNickname(), sender->getFd(), "tried to send " + commandName
+		sender->logUserAction("tried to send " + commandName
 			+ " to non-existing " + RED + channelName + RESET);
+		
 		if (sendReplies)
 			sender->sendError(403, channelName, "No such channel");
 		return;
@@ -115,8 +116,9 @@ void	Command::handleMessageToChannel(Server* server, User* sender, const std::st
 	std::string	channelNameOrig = channel->get_name();
 	if (!channel->is_user_member(sender))
 	{
-		logUserAction(sender->getNickname(), sender->getFd(), "tried to send " + commandName
+		sender->logUserAction("tried to send " + commandName
 			+ " to " + BLUE + channelNameOrig + RESET + " but is not a member");
+		// Only send error for PRIVMSG, NOTICE does not trigger replies
 		if (sendReplies)
 			sender->sendError(404, channelNameOrig, "Cannot send to channel");
 		return;
@@ -126,8 +128,7 @@ void	Command::handleMessageToChannel(Server* server, User* sender, const std::st
 	std::string	line = ":" + sender->buildHostmask() + " " + commandName + " " + channelNameOrig + " :" + message;
 	Command::broadcastToChannel(channel, line, sender->getNicknameLower()); // exclude sender
 
-	logUserAction(sender->getNickname(), sender->getFd(), "sent " + commandName + " to "
-		+ BLUE + channelNameOrig + RESET);
+	sender->logUserAction("sent " + commandName + " to " + BLUE + channelNameOrig + RESET);
 }
 
 /**
@@ -147,8 +148,8 @@ void Command::handleMessageToUser(Server* server, User* sender, const std::strin
 
 	if (!targetUser)
 	{
-		logUserAction(sender->getNickname(), sender->getFd(), "tried to send " + logCmd
-			+ " to non-existing " + RED + targetNick + RESET, sender->getIsBot());
+		sender->logUserAction("tried to send " + logCmd
+			+ " to non-existing " + RED + targetNick + RESET);
 		if (sendReplies)
 			sender->sendError(401, targetNick, "No such nick/channel");
 		return;
@@ -158,6 +159,6 @@ void Command::handleMessageToUser(Server* server, User* sender, const std::strin
 	std::string	line =	commandName + " " + targetUser->getNickname() + " :" + message;
 	targetUser->sendMsgFromUser(sender, line);
 
-	logUserAction(sender->getNickname(), sender->getFd(), "sent " + logCmd + " to user "
+	sender->logUserAction("sent " + logCmd + " to user "
 		+ GREEN + targetUser->getNickname() + RESET, sender->getIsBot());
 }

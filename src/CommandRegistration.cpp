@@ -1,7 +1,7 @@
 #include "../include/Command.hpp"
 #include "../include/Server.hpp"
 #include "../include/User.hpp"
-#include "../include/utils.hpp"		// logUserAction, isValidNick, normalize
+#include "../include/utils.hpp"		// isValidNick, normalize
 #include "../include/defines.hpp"	// color formatting
 
 #include <algorithm>	// For std::transform
@@ -13,7 +13,7 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 {
 	if (tokens.size() < 2)
 	{
-		logUserAction(user->getNickname(), user->getFd(), "sent NICK without a nickname");
+		user->logUserAction("sent NICK without a nickname");
 		user->sendError(431, "", "No nickname given");
 		return;
 	}
@@ -23,7 +23,7 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 	// Check if the nickname is valid according to IRC rules
 	if (!isValidNick(displayNick))
 	{
-		logUserAction(user->getNickname(), user->getFd(), toString("tried to set an invalid nickname: ")
+		user->logUserAction(toString("tried to set an invalid nickname: ")
 			+ RED + displayNick + RESET);
 		user->sendError(432, displayNick, "Erroneous nickname");
 		return;
@@ -35,8 +35,8 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 	// Nickname is already in use?
 	if (server->getNickMap().count(normNick) > 0)
 	{
-		logUserAction(user->getNickname(), user->getFd(),
-			toString("tried to set a nickname already in use: ") + YELLOW + displayNick + RESET);
+		user->logUserAction(toString("tried to set a nickname already in use: ")
+			+ YELLOW + displayNick + RESET);
 		user->sendError(433, displayNick, "Nickname is already in use");
 		return;
 	}
@@ -58,7 +58,7 @@ void	Command::handleUser(User* user, const std::vector<std::string>& tokens)
 {
 	if (user->isRegistered())
 	{
-		logUserAction(user->getNickname(), user->getFd(), "tried to resend USER after registration");
+		user->logUserAction("tried to resend USER after registration");
 		user->sendError(462, "", "You may not reregister");
 		return;
 	}
@@ -66,12 +66,12 @@ void	Command::handleUser(User* user, const std::vector<std::string>& tokens)
 	// Enough arguments?
 	if (tokens.size() < 5)
 	{
-		logUserAction(user->getNickname(), user->getFd(), "sent invalid USER command (too few arguments)");
+		user->logUserAction("sent invalid USER command (too few arguments)");
 		user->sendError(461, "USER", "Not enough parameters");
 		return;
 	}
-	
-	logUserAction(user->getNickname(), user->getFd(), "sent valid USER command");
+
+	user->logUserAction("sent valid USER command");
 
 	// Set username and realname / ignore hostname and servername
 	user->setUsername(tokens[1]);
@@ -91,14 +91,14 @@ void	Command::handlePass(Server* server, User* user, const std::vector<std::stri
 {
 	if (user->isRegistered())
 	{
-		logUserAction(user->getNickname(), user->getFd(), "tried to resend PASS after registration");
+		user->logUserAction("tried to resend PASS after registration");
 		user->sendError(462, "", "You may not reregister");
 		return;
 	}
 
 	if (tokens.size() < 2)
 	{
-		logUserAction(user->getNickname(), user->getFd(), "sent invalid PASS command (missing password)");
+		user->logUserAction("sent invalid PASS command (missing password)");
 		user->sendError(461, "PASS", "Not enough parameters");
 		return;
 	}
@@ -109,12 +109,12 @@ void	Command::handlePass(Server* server, User* user, const std::vector<std::stri
 	bool				requiresPassword = !server->getPassword().empty();
 	if (requiresPassword && password != server->getPassword())
 	{
-		logUserAction(user->getNickname(), user->getFd(), "provided incorrect password");
+		user->logUserAction("provided incorrect password");
 		user->sendError(464, "", "Password incorrect");
 		return;
 	}
 
-	logUserAction(user->getNickname(), user->getFd(), "sent valid PASS command");
+	user->logUserAction("sent valid PASS command");
 	user->setHasPassed(true);
 	user->tryRegister();
 }
