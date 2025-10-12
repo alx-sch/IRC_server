@@ -6,7 +6,6 @@
 
 #include <algorithm>	// For std::transform
 
-
 // Handles the `NICK` command for a user. Also part of the initial client registration.
 // Command: `NICK <nickname>`
 void	Command::handleNick(Server* server, User* user, const std::vector<std::string>& tokens)
@@ -47,9 +46,23 @@ void	Command::handleNick(Server* server, User* user, const std::vector<std::stri
 	if (user->getUsername().empty())
 		user->setUsernameTemp("~" + displayNick);
 
-	user->sendMsgFromUser(user, "NICK :" + displayNick); // Notify user of their own nick change
+	// Notify user of their own nick change
+	user->sendMsgFromUser(user, "NICK :" + displayNick);
 	user->setNickname(displayNick, normNick);
 	user->tryRegister();
+
+	// Notify other users of the nick change
+	if (user->getChannels().size() > 0)
+	{
+		std::string	notice = ":" + user->buildHostmask() + " NICK :" + displayNick;
+		for (std::set<std::string>::const_iterator it = user->getChannels().begin();
+				it != user->getChannels().end(); ++it)
+		{
+			Channel*	channel = server->getChannel(*it);
+			if (channel)
+				broadcastToChannel(channel, notice, normNick); // Exclude the user changing nick
+		}
+	}
 }
 
 // Handles the `USER` command for a user. Also part of the initial client registration.

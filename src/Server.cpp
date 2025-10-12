@@ -128,22 +128,22 @@ void	Server::run()
 void	Server::logServerMessage(const std::string& message)
 {
 	std::string			timeStamp = getTimestamp();
-	std::ostringstream	fileLogEntry;
+	std::ostringstream	fileLog;
 
 	// log into console
 	std::cout	<< "[" << CYAN << timeStamp << RESET << "] "
-				<< std::left << std::setw(MAX_NICK_LENGTH + 10) << " " // pad for alignment with user logs
+				<< std::left << std::setw(MAX_NICK_LENGTH + 10) << " "
 				<< message << std::endl;
 
 	// log into file
-	fileLogEntry	<< "[" << timeStamp << "] "
-					<< std::left << std::setw(MAX_NICK_LENGTH + 10) << " " 
-					<< removeColorCodes(message) << "\n";
+	fileLog		<< "[" << timeStamp << "] "
+				<< std::left << std::setw(MAX_NICK_LENGTH + 10) << " " 
+				<< removeColorCodes(message) << "\n";
 
 	if (_logFile.is_open())
 	{
-		_logFile << fileLogEntry.str();
-		_logFile.flush(); // Ensure the data is written immediately to disk
+		_logFile << fileLog.str();
+		_logFile.flush(); // Write immediately to disk
 	}
 }
 

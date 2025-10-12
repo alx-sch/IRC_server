@@ -73,8 +73,10 @@ bool	Command::handleSingleJoin(Server* server, User* user, const std::string& ch
 				break;
 			case Channel::JOIN_MAX_CHANNELS:
 				user->logUserAction(toString("tried to join ") + BLUE + channelNameOrig + RESET
-					+ " but is already in too many channels");
+					+ " but is in too many channels");
 				user->sendError(405, channelNameOrig, "You have joined too many channels");
+				if (!server->getChannel(channelNameOrig)->get_connected_user_number())
+					server->deleteChannel(channelNameOrig, "no connected users");
 				break;
 		}
 		return false;

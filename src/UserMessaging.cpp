@@ -1,5 +1,4 @@
-#include <sstream>		// std::ostringstream()
-
+#include <sstream>	// std::ostringstream()
 #include "../include/User.hpp"
 #include "../include/Server.hpp"
 

@@ -37,6 +37,7 @@ bool	Server::acceptNewUser()
 	int			userFd;		// fd for the accepted user connection
 	sockaddr_in	userAddr;	// Init user address structure
 	socklen_t	userLen = sizeof(userAddr);
+	bool		BotFirstUser = getBotMode() && _usersFd.empty();
 
 	userFd = accept(_fd, reinterpret_cast<sockaddr*>(&userAddr), &userLen);
 	if (userFd == -1) // Critical! Shut down server / end program
@@ -47,8 +48,6 @@ bool	Server::acceptNewUser()
 	}
 
 	std::string	userIp = inet_ntoa(userAddr.sin_addr);
-
-	bool	BotFirstUser = getBotMode() && _usersFd.empty();
 
 	try
 	{
@@ -73,7 +72,7 @@ bool	Server::acceptNewUser()
 			_botMode = false; // Server keeps running without bot
 		}
 
-		close(userFd);	// Close fd to prevent leak
+		close(userFd);
 		logServerMessage(RED + toString("ERROR: Failed to allocate memory for " + user 
 			+ " from ") + YELLOW + toString(userIp) + RESET + ". Connection closed");
 		return false; // Keep server running

@@ -328,7 +328,6 @@ bool	Command::applyUserLimit(Channel* channel, User* user, bool adding, const st
 		}
 
 		int	limit = atoi(tokens[paramIndex].c_str());
-
 		if (limit > 0)
 		{
 			channel->set_user_limit(limit);
@@ -342,12 +341,12 @@ bool	Command::applyUserLimit(Channel* channel, User* user, bool adding, const st
 		// limit is zero or negative
 		user->logUserAction(toString("sent invalid user limit: ") + RED
 			+ tokens[paramIndex] + RESET);
-
 		user->sendError(696, channel->get_name() + " l " + tokens[paramIndex],
 			"Invalid user limit: Must be a positive number");
+		++paramIndex;
 		return false;
 	}
-	else // Removing user limit
+	else // Remove user limit
 	{
 		channel->set_user_limit(0);
 		user->logUserAction(toString("removed user limit for ") + BLUE + channel->get_name() + RESET);

@@ -4,6 +4,7 @@
 # include <set>
 # include <map>
 # include <string>
+# include <ctime>	// time_t
 
 class	User;
 
@@ -24,13 +25,11 @@ class	Channel
 
 		const std::string&				get_name() const;
 		const std::string&				get_name_lower() const;
-		Channel*						get_channel(const std::string& channelName) const;
 		const std::map<std::string, User*>&	get_members() const;
 		std::string						get_names_list() const;
 		std::string						get_mode_string(const User* user) const;
 		int								get_connected_user_number() const;
-		
-	
+
 		void	add_user(User *user);
 		void	remove_user(User *user);
 		bool	is_user_member(User *user) const;
@@ -72,12 +71,11 @@ class	Channel
 		std::string				_channel_name_lower;
 		std::string				_channel_topic;
 		std::string				_channel_topic_set_by;
-		int						_channel_topic_set_at;
+		time_t					_channel_topic_set_at;
 		std::map<std::string, User*>	_channel_members_by_nickname;
 		std::map<std::string, User*>	_channel_operators_by_nickname;
 		std::set<std::string>	_channel_invitation_list;
 
-		int						_connected_user_number;
 		// MODE RELATED VARS
 		int						_user_limit;	// set by l
 		bool					_invite_only;	// set by i

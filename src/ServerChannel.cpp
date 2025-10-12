@@ -28,7 +28,6 @@ In case of memory allocation failure, an error is logged and the user is notifie
 
  @param channelName	The name of the channel to retrieve or create.
  @param user		The user requesting or triggering the channel creation.
- @param key			Optional channel key to set if creating a new channel.
  @param wasCreated	Optional output parameter set to true if a new channel was created, false otherwise.
 
  @return			Pointer to the `Channel` object, or `NULL` on failure.

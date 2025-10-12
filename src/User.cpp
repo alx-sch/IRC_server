@@ -33,28 +33,26 @@ Formats a log line with timestamp, aligned nickname and fd columns.
 void	User::logUserAction(const std::string& message, bool botMode)
 {
 	std::string			logColor = GREEN;
-	std::ostringstream	fileLogEntry;
+	std::ostringstream	fileLog;
 
 	if (botMode)
 		logColor = BOT_COLOR;
 
 	std::cout	<< "[" << CYAN << getTimestamp() << RESET << "] "
-				<< logColor << std::left << std::setw(MAX_NICK_LENGTH + 1) << _nickname << RESET // pad nick + some space
+				<< logColor << std::left << std::setw(MAX_NICK_LENGTH + 1) << _nickname << RESET
 				<< "(" << MAGENTA << "fd " << std::right << std::setw(3) << _fd << RESET << ") "
 				<< message << std::endl;
 
-	fileLogEntry	<< "[" << getTimestamp() << "] "
-					<< std::left << std::setw(MAX_NICK_LENGTH + 1) << _nickname
-					<< "(fd " << std::right << std::setw(3) << _fd << ") "
-					<< removeColorCodes(message) << "\n";
-
+	fileLog		<< "[" << getTimestamp() << "] "
+				<< std::left << std::setw(MAX_NICK_LENGTH + 1) << _nickname
+				<< "(fd " << std::right << std::setw(3) << _fd << ") "
+				<< removeColorCodes(message) << "\n";
 
 	if (_server->getLogFile().is_open())
 	{
-		_server->getLogFile() << fileLogEntry.str();
-		_server->getLogFile().flush(); // Ensure the data is written immediately to disk
+		_server->getLogFile() << fileLog.str();
+		_server->getLogFile().flush(); // Write immediately to disk
 	}
-
 	
 }
 

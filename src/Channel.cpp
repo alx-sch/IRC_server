@@ -9,35 +9,32 @@
 // Constructor: Initializes the channel with a name and default values.
 Channel::Channel(std::string name)
 	:	_channel_name(name), _channel_name_lower(normalize(name)),
-		_channel_topic_set_at(0), _connected_user_number(0),
-		_user_limit(0), _invite_only(false), _topic_protection(false)
+		_channel_topic_set_at(0), _user_limit(0), _invite_only(false),
+		_topic_protection(false)
 {}
 
 // Default destructor
 Channel::~Channel() {}
 
-// Adds a user to the channel and increments member count if successful.
+// Adds a user to the channel.
 void	Channel::add_user(User *user)
 {
 	if (!user)
 		return;
 
 	const std::string	nick_lower = user->getNicknameLower();
-	bool	inserted = _channel_members_by_nickname.insert(std::make_pair(nick_lower, user)).second;
-	if (inserted)
-		++_connected_user_number;
+	_channel_members_by_nickname.insert(std::make_pair(nick_lower, user)).second;
 }
 
-// Removes a user from the channel and decrements member count if they were present.
+// Removes a user from the channel.
 void	Channel::remove_user(User* user)
 {
 	if (!user)
 		return;
 
 	const std::string	nick_lower = user->getNicknameLower();
-	bool	removed = _channel_members_by_nickname.erase(nick_lower);
-	if (removed)
-		--_connected_user_number;
+	_channel_members_by_nickname.erase(nick_lower);
+	_channel_operators_by_nickname.erase(nick_lower);
 }
 
 // Grants operator status to the given user.
@@ -155,7 +152,7 @@ bool	Channel::has_user_limit() const
 // Checks if the user limit has been reached.
 bool	Channel::is_at_user_limit() const
 {
-	return (_connected_user_number == _user_limit);
+	return (static_cast<int>(_channel_members_by_nickname.size()) >= _user_limit);
 }
 
 // Sets the maximum number of users allowed in the channel.
@@ -242,7 +239,7 @@ const std::map<std::string, User*>&	Channel::get_members() const
 // Returns the amount of the channel's connected users.
 int	Channel::get_connected_user_number() const
 {
-	return _connected_user_number;
+	return _channel_members_by_nickname.size();
 }
 
 /**

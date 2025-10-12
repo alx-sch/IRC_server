@@ -1,5 +1,6 @@
+#include <string>
 #include <map>
-#include <string>	// std::string::size_type (size / position in strings)
+#include <vector>
 
 #include "../include/Command.hpp"
 #include "../include/Server.hpp"

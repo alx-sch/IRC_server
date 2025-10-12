@@ -1,5 +1,3 @@
-// Using HexChat IRC client as a reference
-
 #ifndef USER_HPP
 # define USER_HPP
 
