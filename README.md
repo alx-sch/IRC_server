@@ -216,7 +216,7 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 
  - **Logging and Audit Trail:**
 The server includes a detailed logging mechanism for debugging and operational oversight.
- 	- **Event Tracking:** The system maintains a structured log of all events, including successful/failed authentications, connection lifecycle, bot activity, every command executed by users and critical server failures and errors.
+ 	- **Event Tracking:** The system maintains a structured log of all events, including successful/failed authentications, connection lifecycle, bot activity, every command executed by users and critical server failures.
     - **Dual Output:** Logs are output in real-time to the server console (for immediate monitoring) and saved persistently in dedicated log files (for audit and post-mortem analysis).
 
 ---
