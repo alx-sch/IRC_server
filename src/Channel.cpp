@@ -23,7 +23,7 @@ void	Channel::add_user(User *user)
 		return;
 
 	const std::string	nick_lower = user->getNicknameLower();
-	_channel_members_by_nickname.insert(std::make_pair(nick_lower, user)).second;
+	_channel_members_by_nickname.insert(std::make_pair(nick_lower, user));
 }
 
 // Removes a user from the channel.
