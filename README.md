@@ -372,11 +372,11 @@ In a server using `select()`, this happens if you mistakenly try to read from a 
 
 ### IP Setting
 
-By default, HexChat (and many other IRC clients) automatically selects an IP address for DCC transfers. This automatically chosen IP may not be reachable by other hosts, for example:  
+By default, HexChat (and many other IRC clients) automatically selects an IP address for DCC transfers. This automatically chosen IP **may** not be reachable by other hosts, for example:  
 - A loopback address (`127.0.0.1`)  
 - A WAN/external IP that is not accessible from the local network  
 
-To enable file sharing between multiple hosts on the same local network, the DCC IP must be set manually. For LAN transfers, you can use the following steps:
+In these cases, the DCC IP must be set manually. For LAN transfers, you can use the following steps:
 
 1. Retrieve your computer’s LAN IP address by running: `hostname -i`
 2. Open HexChat and log into your IRC server.
