@@ -124,11 +124,14 @@ Server::UserInputResult	Server::handleUserInput(int fd)
 	// Append the received bytes to the user's input buffer
 	user->getInputBuffer().append(buffer, bytesRead);
 
+
 	messages = extractMessagesFromBuffer(user);
 
 	// Process each complete message
 	for (size_t i = 0; i < messages.size(); ++i)
 	{
+		if (LOG_RAW_CMDS)
+			user->logUserAction(BOLD + messages[i] + RESET);
 		std::vector<std::string>	tokens = Command::tokenize(messages[i]);
 		if (tokens.empty())
 			continue; // Skip empty/space-only lines

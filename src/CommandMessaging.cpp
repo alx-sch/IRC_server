@@ -8,6 +8,8 @@
 #include "../include/utils.hpp"		// isValidChannelName()
 #include "../include/defines.hpp"	// color formatting
 
+static bool isDccSend(const std::string& message);
+
 /**
 Handles sending a message (`PRIVMSG` or `NOTICE`) to users and channels.
 
@@ -93,6 +95,28 @@ void Command::handleNotice(Server *server, User *user, const std::vector<std::st
 ////////////
 
 /**
+Checks if a message is a valid DCC SEND command.
+
+Example of a DCC SEND command:
+ - `PRIVMSG <Recipient_Nick> :\x01DCC SEND <filename> <longip> <port> <filesize>\x01`
+ - `PRIVMSG alx40 :\x01DCC SEND file.pdf 2130706433 36905 1392541\x01`
+*/
+static bool isDccSend(const std::string& message)
+{
+	// Check if message starts and ends with ASCII 0x01 (SOH) --> Indicating a Client-to-Client Command
+	if ((unsigned char)message[0] != 1 && (unsigned char)message[message.size() - 1] != 1)
+		return false;
+
+	std::vector<std::string>	tokens = Command::tokenize(message);
+	if (tokens.size() != 6)
+		return false;
+	if (tokens[0].substr(1) != "DCC" || tokens[1] != "SEND")
+		return false;	
+
+	return true;
+}
+
+/**
 Sends a message (`PRIVMSG` or `NOTICE`) from a user to a channel.
 
  @param commandName	The name of the command ("PRIVMSG" or "NOTICE").
@@ -127,7 +151,6 @@ void	Command::handleMessageToChannel(Server* server, User* sender, const std::st
 	// Construct the IRC line and broadcast it
 	std::string	line = ":" + sender->buildHostmask() + " " + commandName + " " + channelNameOrig + " :" + message;
 	Command::broadcastToChannel(channel, line, sender->getNicknameLower()); // exclude sender
-
 	sender->logUserAction("sent " + commandName + " to " + BLUE + channelNameOrig + RESET);
 }
 
@@ -167,6 +190,17 @@ void Command::handleMessageToUser(Server* server, User* sender, const std::strin
 	std::string	line =	commandName + " " + targetUser->getNickname() + " :" + message;
 	targetUser->sendMsgFromUser(sender, line);
 
-	sender->logUserAction("sent " + logCmd + " to user "
-		+ GREEN + targetUser->getNickname() + RESET, sender->getIsBot());
+	if (isDccSend(message) && commandName == "PRIVMSG")
+	{
+		std::string	dccInfo = message.substr(1, message.size() - 2); // remove leading and trailing 0x01
+		std::vector<std::string>	tokens = Command::tokenize(dccInfo);
+	
+		sender->logUserAction(toString("sent DCC-SEND to ") + GREEN + targetUser->getNickname() + RESET
+			+ ": " + YELLOW + tokens[2] + " (" + tokens[5] + " bytes)" + RESET, sender->getIsBot());
+	}
+	else
+	{
+		sender->logUserAction("sent " + logCmd + " to user "
+			+ GREEN + targetUser->getNickname() + RESET, sender->getIsBot());
+	}
 }
