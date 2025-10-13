@@ -177,7 +177,7 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 - The server logs events to the console and to log files in the root directory (`<server_name>_<timestamp>.log`). The client may send unsupported commands (e.g. `CAP`), but all core IRC functions still work (see below).
 
 	<p align="center">
-	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/server_log.png" alt="server_log"  width="450" />
+	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/server_log.png" alt="server_log"  width="600" />
 	</p>
 
 ---
