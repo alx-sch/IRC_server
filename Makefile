@@ -39,6 +39,7 @@ CXXFLAGS +=		-Werror -Wextra -Wall
 CXXFLAGS +=		-Wshadow	# Warns about shadowed variables.
 CXXFLAGS +=		-Wpedantic	# Enforces strict ISO C++ compliance.
 # CXXFLAGS +=		-g -O0
+# CXXFLAGS +=		-g -O1 -fsanitize=address
 
 # CPPFLAGS are for preprocessor-specific flags
 ifeq ($(OS),Darwin) # Darwin is the kernel name for macOS

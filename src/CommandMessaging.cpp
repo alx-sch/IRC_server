@@ -108,7 +108,7 @@ static bool isDccSend(const std::string& message)
 		return false;
 
 	std::vector<std::string>	tokens = Command::tokenize(message);
-	if (tokens.size() != 6)
+	if (tokens.size() < 6)
 		return false;
 	if (tokens[0].substr(1) != "DCC" || tokens[1] != "SEND")
 		return false;	
