@@ -348,6 +348,8 @@ When you perform a non-blocking I/O operation (like `recv()` or `send()`) on a s
 
 In a server using `select()`, this happens if you mistakenly try to read from a socket that `select()` hasn't marked as ready to be read from, or try to write to a socket whose buffer is full. The correct way to handle these errors is to simply ignore them and try again on the next iteration of the main loop. This ensures the server never gets stuck and can continue monitoring other connections.
 
+#### Socket Functions
+
 -  **`socket()`:** `Server::createSocket()` uses `socket(AF_INET, SOCK_STREAM | SOCK_NONBLOCK, 0)` to create the server socket. The `SOCK_STREAM` specifies a TCP socket, and `AF_INET` sets the address family to IPv4. The `SOCK_NONBLOCK` flag is an important part, as it makes the socket non-blocking. On a macOS, the `socket()` call creates a standard blocking socket first. Then, the `fcntl()` function is used with the `F_SETFL` flag to explicitly set the `O_NONBLOCK` option, modifying the socket to be non-blocking
 
 - **`setsockopt()`:** In `Server::setSocketOptions()`, this function is used to set the `SO_REUSEADDR` option. This allows the server to restart immediately on the same port without waiting for the operating system to clear the previous socket's state.
