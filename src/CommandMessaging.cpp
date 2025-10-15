@@ -45,8 +45,6 @@ void	Command::handleMessage(Server* server, User* user, const std::vector<std::s
 
 	// Get message
 	std::string	message = tokens[2];
-	if (!message.empty() && message[0] == ':')
-		message = message.substr(1); // Remove leading ':' if present
 
 	// Send message to each target
 	std::vector<std::string>	targets = splitCommaList(tokens[1]);

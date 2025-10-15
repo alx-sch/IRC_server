@@ -172,8 +172,6 @@ bool	Command::handleJoin(Server* server, User* user, const std::vector<std::stri
 	if (tokens.size() >= 3)
 	{
 		std::string	keyList = tokens[2];
-		if (!keyList.empty() && keyList[0] == ':') // Check if key list starts with ':' (trailing parameter)
-			keyList = keyList.substr(1); // Remove leading ':'
 		keys = splitCommaList(keyList);
 	}
 
@@ -299,8 +297,6 @@ bool Command::handlePart(Server* server, User* user, const std::vector<std::stri
 				partMessage += " ";
 			partMessage += tokens[i];
 		}
-		if (!partMessage.empty() && partMessage[0] == ':')
-			partMessage = partMessage.substr(1);
 	}
 
 	// Process each channel
@@ -431,9 +427,6 @@ bool	Command::handleKick(Server* server, User* user, const std::vector<std::stri
 				kickReason += " ";
 			kickReason += tokens[i];
 		}
-		// Remove leading ':' if present (trailing parameter)
-		if (!kickReason.empty() && kickReason[0] == ':')
-			kickReason = kickReason.substr(1);
 	}
 
 	// Send KICK message to all channel members (including kicker and victim)
@@ -521,8 +514,6 @@ bool	Command::handleTopic(Server *server, User *user, const std::vector<std::str
 	if (tokens.size() > 2)
 	{
 		std::string	newTopic = tokens[2];
-		if (newTopic[0] == ':')
-			newTopic = newTopic.substr(1); // Remove leading ':', if present
 		if (channel->has_topic_protection() && !channel->is_user_operator(user))
 		{
 			user->logUserAction(toString("tried to set topic for ") + BLUE + channelNameOrig + RESET

@@ -81,7 +81,7 @@ preserving the trailing parameter (after a colon `:`).
 This function splits an IRC line like:
 	"   USER max 0   * :Max Power  the Third"
  into:
-	["USER", "max", "0", "*", ":Max Power  the Third"]
+	["USER", "max", "0", "*", "Max Power  the Third"]
 
 If a token starts with a colon (`:`), the rest of the line (including spaces) is treated
 as a single argument (the trailing parameter), as per IRC protocol.
@@ -108,7 +108,7 @@ std::vector<std::string>	Command::tokenize(const std::string& message)
 		if (message[pos] == ':')
 		{
 			if (pos + 1 < message.size()) // Only push trailing param if there is something after ':'
-				tokens.push_back(message.substr(pos)); // Add the rest of the line as one token
+				tokens.push_back(message.substr(pos + 1)); // Add the rest of the line as one token
 			break; // No more tokens
 		}
 
