@@ -437,6 +437,10 @@ Compiling the server via `make bot` registers a bot as a regular client upon sta
    	- **Welcome Notice:** The bot sends a `NOTICE` to the channel creator and to every new user joining, welcoming them and providing instructions on how to use the bot's commands.
    	- **No Zombie Channels**: The presence of the bot does not prevent the channel from being properly closed and deleted once every human user has left.
 
+<p align="center">
+	<img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/bot_welcome_note.png" alt="bot_welcome_note.png"  width="650" />
+</p>
+
 ---
 
 ## References
