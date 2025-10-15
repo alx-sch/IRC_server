@@ -45,8 +45,6 @@ void	Command::handleMessage(Server* server, User* user, const std::vector<std::s
 
 	// Get message
 	std::string	message = tokens[2];
-	if (!message.empty() && message[0] == ':')
-		message = message.substr(1); // Remove leading ':' if present
 
 	// Send message to each target
 	std::vector<std::string>	targets = splitCommaList(tokens[1]);
@@ -170,17 +168,31 @@ void Command::handleMessageToUser(Server* server, User* sender, const std::strin
 	const bool	sendReplies = (commandName == "PRIVMSG");
 	User*		targetUser = server->getUser(normalize(targetNick));
 
-	if (BOT_SILENT_NOTE && commandName == "NOTICE" && sender->getIsBot())
-		return; // Do not log bot NOTICE messages
-
 	std::string	logCmd = commandName;
 	if (sender->getIsBot() && !botCmd.empty())
 		logCmd += " (" + botCmd + ")";
 
+	bool	logAction = true;
+	if (BOT_SILENT_NOTE && commandName == "NOTICE" && sender->getIsBot())
+		logAction = false; // Do not log bot NOTICE messages
+
+	// not connected
 	if (!targetUser)
 	{
-		sender->logUserAction("tried to send " + logCmd
-			+ " to non-existing " + RED + targetNick + RESET);
+		if (logAction)
+			sender->logUserAction("tried to send " + logCmd
+				+ " to non-existing " + RED + targetNick + RESET);
+		if (sendReplies)
+			sender->sendError(401, targetNick, "No such nick/channel");
+		return;
+	}
+
+	// On server but not yet registered
+	if (!targetUser->isRegistered())
+	{
+		if (logAction)
+			sender->logUserAction("tried to send " + logCmd
+				+ " to not registered " + RED + targetNick + RESET);
 		if (sendReplies)
 			sender->sendError(401, targetNick, "No such nick/channel");
 		return;
@@ -195,12 +207,14 @@ void Command::handleMessageToUser(Server* server, User* sender, const std::strin
 		std::string	dccInfo = message.substr(1, message.size() - 2); // remove leading and trailing 0x01
 		std::vector<std::string>	tokens = Command::tokenize(dccInfo);
 	
-		sender->logUserAction(toString("sent DCC-SEND to ") + GREEN + targetUser->getNickname() + RESET
-			+ ": " + YELLOW + tokens[2] + " (" + tokens[5] + " bytes)" + RESET, sender->getIsBot());
+		if (logAction)
+			sender->logUserAction(toString("sent DCC-SEND to ") + GREEN + targetUser->getNickname() + RESET
+				+ ": " + YELLOW + tokens[2] + " (" + tokens[5] + " bytes)" + RESET, sender->getIsBot());
 	}
 	else
 	{
-		sender->logUserAction("sent " + logCmd + " to user "
-			+ GREEN + targetUser->getNickname() + RESET, sender->getIsBot());
+		if (logAction)
+			sender->logUserAction("sent " + logCmd + " to user "
+				+ GREEN + targetUser->getNickname() + RESET, sender->getIsBot());
 	}
 }
