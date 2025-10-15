@@ -5,11 +5,11 @@
 # define NETWORK			"42 IRC"
 # define VERSION			"eval-42.42"
 
-# define LOG_RAW_CMDS		0	// '1': Commands as sent by users are logged; '0': not logged
+# define LOG_RAW_CMDS		0	// '1': Commands as sent by users are logged; '0': not logged --> Good for Debugging!
 
 # define BOT_NAME			"IRCbot"
 # define BOT_COLOR			"\033[38;5;214m"	// Orange color for bot messages
-# define BOT_SILENT_NOTE	1	// '1': No logging of bot NOTICE messages; '0': log them
+# define BOT_SILENT_NOTE	1	// '1': No logging of bot NOTICE messages; '0': log them; helps to avoid cluttering the log
 
 # define MAX_CHANNELS		10		// Max channels per user; recommended in RFC 1459, 1.3
 # define C_MODES			"itkol"	// Supported channel modes, as per subject
