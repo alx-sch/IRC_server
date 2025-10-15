@@ -177,10 +177,21 @@ void Command::handleMessageToUser(Server* server, User* sender, const std::strin
 	if (sender->getIsBot() && !botCmd.empty())
 		logCmd += " (" + botCmd + ")";
 
+	// not connected
 	if (!targetUser)
 	{
 		sender->logUserAction("tried to send " + logCmd
 			+ " to non-existing " + RED + targetNick + RESET);
+		if (sendReplies)
+			sender->sendError(401, targetNick, "No such nick/channel");
+		return;
+	}
+
+	// On server but not yet registered
+	if (!targetUser->isRegistered())
+	{
+		sender->logUserAction("tried to send " + logCmd
+			+ " to not registered " + RED + targetNick + RESET);
 		if (sendReplies)
 			sender->sendError(401, targetNick, "No such nick/channel");
 		return;
