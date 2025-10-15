@@ -365,7 +365,7 @@ In a server using `select()`, this happens if you mistakenly try to read from a 
 
 - **`send()`:** `Server::handleWriteReadyUsers()` uses `send()` to push data from a user's output buffer to their connected socket.
 
-- **`recv()`:** `Server::handleUserInput()` uses `recv()` to read data from a user's socket into a buffer. It checks the number of bytes read to determine if the client is still connected or if a message has been received.
+- **`recv()`:** `Server::handleUserInput()` uses `recv()` to read data from a user's socket and append it to the user's input buffer (stored in the `User` object). The server later reads and parses this buffer into IRC messages. `Server::handleUserInput()` also checks the number of bytes read to determine if the client is still connected or if a message was received.
 
 ----
 
