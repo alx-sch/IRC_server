@@ -418,6 +418,10 @@ PRIVMSG <Recipient_Nick> :\x01DCC SEND <filename> <longip> <port> <filesize>\x01
 
 3. **Wait for acceptance**: An *"Uploads & Downloads"* window will open with the status **"Waiting"**. The transfer will begin once the recipient accepts.
 
+### Server Role
+
+The server automatically facilitates the DCC handshake, provided that `PRIVMSG` handling is correctly set up. This server implementation also detects the `\x01` delimiters in `PRIVMSG` messages and validates the `DCC SEND` command in order to log the file transfer properly.
+
 ---
 
 ## Bot
