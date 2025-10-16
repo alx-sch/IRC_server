@@ -396,7 +396,7 @@ In these cases, the DCC IP must be set manually. For LAN transfers, you can use 
 
 ### Sending the File
 
-⚠️ Note: Tools such as `nc` or `telnet` won’t trigger a real DCC transfer since they do not implement CTCP (Client-To-Client Protocol used by IRC clients). Only real IRC clients do (e.g. HexChat).
+*Note: Tools such as `nc` or `telnet` won’t trigger a real DCC transfer since they do not implement CTCP (Client-To-Client Protocol used by IRC clients). Only real IRC clients do (e.g. HexChat).*
 
 #### Using the `/dcc` Command
 
