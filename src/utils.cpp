@@ -171,7 +171,6 @@ bool	isValidChannelName(const std::string& channelName)
 	return true;
 }
 
-
 // IRC-specific case mapping for lowercase conversion.
 // See RFC 1459, section 2.2.2
 static char	ircToLowerChar(char c)

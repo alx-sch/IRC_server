@@ -96,8 +96,20 @@ void Command::handleNotice(Server *server, User *user, const std::vector<std::st
 Checks if a message is a valid DCC SEND command.
 
 Example of a DCC SEND command:
- - `PRIVMSG <Recipient_Nick> :\x01DCC SEND <filename> <longip> <port> <filesize>\x01`
+ - `PRIVMSG <Recipient_Nick> :\x01DCC SEND <filename> <ip_address> <port> <filesize>\x01`
  - `PRIVMSG alx40 :\x01DCC SEND file.pdf 2130706433 36905 1392541\x01`
+
+Where:
+ - `\x01`:			Represents the Start of Heading (`SOH`) character (ASCII character 1,
+					or \x01), which is the standard delimiter for CTCP messages.
+ - `DCC SEND`:		The CTCP command specifying a Direct Client-to-Client file transfer.
+ - `<filename>`:	The name of the file being offered. If the filename contains spaces,
+					it is often enclosed in quotes (e.g., "My File.zip").
+ - `<ip_address>`:	The sending client's public IP address, encoded as unsigned integer
+					in network byte order.
+ - `<port>`:		The port number on the sending client's machine where it has opened
+					a listening TCP socket for the recipient to connect to.
+ - `<file_size>`:	The total size of the file in bytes.
 */
 static bool isDccSend(const std::string& message)
 {
@@ -202,14 +214,14 @@ void Command::handleMessageToUser(Server* server, User* sender, const std::strin
 	std::string	line =	commandName + " " + targetUser->getNickname() + " :" + message;
 	targetUser->sendMsgFromUser(sender, line);
 
-	if (isDccSend(message) && commandName == "PRIVMSG")
+	// Logging successful message sending
+	if (isDccSend(message) && commandName == "PRIVMSG") // Special case: Is PRIVMSG a file transfer request?
 	{
-		std::string	dccInfo = message.substr(1, message.size() - 2); // remove leading and trailing 0x01
+		std::string					dccInfo = message.substr(1, message.size() - 2); // remove leading and trailing 0x01
 		std::vector<std::string>	tokens = Command::tokenize(dccInfo);
 	
-		if (logAction)
-			sender->logUserAction(toString("sent DCC-SEND to ") + GREEN + targetUser->getNickname() + RESET
-				+ ": " + YELLOW + tokens[2] + " (" + tokens[5] + " bytes)" + RESET, sender->getIsBot());
+		sender->logUserAction(toString("sent DCC-SEND to ") + GREEN + targetUser->getNickname() + RESET
+			+ ": " + YELLOW + tokens[2] + " (" + tokens[5] + " bytes)" + RESET, sender->getIsBot());
 	}
 	else
 	{
