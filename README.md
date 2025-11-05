@@ -1,7 +1,7 @@
 # IRC Server
 
 <p align="center">
-    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/ft_irc_badge.png" alt="ft_irc_badge.png" />
+    <img src="https://raw.githubusercontent.com/alx-sch/IRC_server/refs/heads/main/.assets/ft_irc_badge.png" alt="ft_irc_badge.png" />
 </p>
 
 This project is about building a functional IRC (Internet Relay Chat) server from scratch in C++. The goal is to create a multi-client, event-driven network application that handles IRC protocol commands and manages user connections, channels, and message routing.
@@ -147,37 +147,37 @@ For a better user experience, a graphical client is recommended, e.g. Hexchat:
 - Open HexChat. In the Network List (prompted automatically), add a new network **(1)**.
 
 	<p align="center">
-	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_01.png" alt="HexChat_01"  width="300" />
+	    <img src="https://raw.githubusercontent.com/alx-sch/IRC_server/refs/heads/main/.assets/HexChat_01.png" alt="HexChat_01"  width="300" />
 	</p>
 
 - Name the new network **(1)** and edit its settings **(2)**:
 
 	<p align="center">
-	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_02.png" alt="HexChat_02"  width="300" />
+	    <img src="https://raw.githubusercontent.com/alx-sch/IRC_server/refs/heads/main/.assets/HexChat_02.png" alt="HexChat_02"  width="300" />
 	</p>
 
 - There is already a default server listed. Change its host IP address and port **(1)** to match your own. Disable SSL, since the server does not support it (otherwise it would fail to interpret the encrypted requests) **(2)**. Enter the server password if required **(3)**. Close the network settings **(4)**:
 
 	<p align="center">
-	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_03.png" alt="HexChat_03"  width="300" />
+	    <img src="https://raw.githubusercontent.com/alx-sch/IRC_server/refs/heads/main/.assets/HexChat_03.png" alt="HexChat_03"  width="300" />
 	</p>
 
 - Enter the user info (nick, alt nick, username) **(1)**, select the custom network **(2)**, and connect **(3)**.
 
 	<p align="center">
-	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_04.png" alt="HexChat_04"  width="300" />
+	    <img src="https://raw.githubusercontent.com/alx-sch/IRC_server/refs/heads/main/.assets/HexChat_04.png" alt="HexChat_04"  width="300" />
 	</p>
 
 - HexChat automatically sends the registration commands (`NICK`, `USER`, `PASS`) to the server. The client is now ready: join a channel with `/join #channelname` or send a private message with `/msg nickname message`.
 
 	<p align="center">
-	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/HexChat_rdy.png" alt="HexChat_rdy"  width="450" />
+	    <img src="https://raw.githubusercontent.com/alx-sch/IRC_server/refs/heads/main/.assets/HexChat_rdy.png" alt="HexChat_rdy"  width="450" />
 	</p>
 
 - The server logs events to the console and to log files in the root directory (`<server_name>_<timestamp>.log`). The client may send unsupported commands (e.g. `CAP`), but all core IRC functions still work (see below).
 
 	<p align="center">
-	    <img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/server_log.png" alt="server_log"  width="600" />
+	    <img src="https://raw.githubusercontent.com/alx-sch/IRC_server/refs/heads/main/.assets/server_log.png" alt="server_log"  width="600" />
 	</p>
 
 ---
@@ -391,7 +391,7 @@ In these cases, the DCC IP must be set manually. For LAN transfers, you can use 
 *Note: If you were sending files over the internet, you would need to use your external/WAN IP and set up port forwarding. For local network transfers, the above steps are sufficient.*
 
 <p align="center">
-	<img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/file_transfer.png" alt="file_transfer.png"  width="500" />
+	<img src="https://raw.githubusercontent.com/alx-sch/IRC_server/refs/heads/main/.assets/file_transfer.png" alt="file_transfer.png"  width="500" />
 </p>
 
 ### Sending the File
@@ -444,7 +444,7 @@ Compiling the server via `make bot` registers a bot as a regular client upon sta
    	- **No Zombie Channels**: The presence of the bot does not prevent the channel from being properly closed and deleted once every human user has left.
 
 <p align="center">
-	<img src="https://github.com/alx-sch/IRC_server/blob/main/.assets/bot_welcome_note.png" alt="bot_welcome_note.png"  width="650" />
+	<img src="https://raw.githubusercontent.com/alx-sch/IRC_server/refs/heads/main/.assets/bot_welcome_note.png" alt="bot_welcome_note.png"  width="650" />
 </p>
 
 ---
