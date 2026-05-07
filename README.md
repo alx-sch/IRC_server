@@ -371,7 +371,7 @@ In a server using `select()`, this happens if you mistakenly try to read from a 
 
 ## File Transfer
 
-**DCC (Direct Client-to-Client)** is the standard method for transferring files between IRC clients. The IRC server itself does **not** carry the file; it only passes along the DCC request (IP address and port) to the receiving client via a `PRIVMSG`. This means the transfer occurs **directly between two clients**, without a central server mediating the data. Since DCC always uses direct TCP connections, the IP address is crucial — the receiving client must be able to reach the sending client’s address. TCP is like a secure, reliable phone line between two computers — you can send data, and it ensures the other side gets it all in the right order.
+**DCC (Direct Client-to-Client)** is the standard method for transferring files between IRC clients. The IRC server itself does **not** carry the file; it only passes along the DCC request (IP address and port) to the receiving client via a `PRIVMSG`. This means the transfer occurs **directly between two clients**, without a central server mediating the data. Since DCC always uses direct TCP connections, the IP address is crucial: the receiving client must be able to reach the sending client’s address. TCP is like a secure, reliable phone line between two computers: you can send data, and it ensures the other side gets it all in the right order.
 
 ### IP Setting
 
